@@ -40,3 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /Data Analysis Scratch
+.Rhistory
+*.Rmd
+db_backups/20250224_152028/full_backup.dump
+db_backups/20250224_152028/schema_backup.sql
+IN495734_SCD_Labs_Baseline.txt
+labs_clean.csv
+Labs_Lam_20241004.csv
