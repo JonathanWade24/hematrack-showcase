@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faXmark, faSpinner, faUpload } from '@fortawesome/free-solid-svg-icons'
 import { PreviewTable } from './PreviewTable'
-import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
 
 interface FileUpload {
   file: File | null

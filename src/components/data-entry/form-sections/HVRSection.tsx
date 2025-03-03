@@ -1,7 +1,7 @@
 'use client'
 
-import { Input } from '../../ui/Input'
-import { Select } from '../../ui/Select'
+import { Input } from '../../ui/input'
+import { Select } from '../../ui/select'
 import { FormSectionProps } from './types'
 
 export function HVRSection({ formData, onInputChange }: FormSectionProps) {

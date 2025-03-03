@@ -1,7 +1,13 @@
 'use client'
 
-import { Input } from '../../ui/Input'
-import { Select } from '../../ui/Select'
+import { Input } from '../../ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../ui/select'
 import { FormSectionProps } from './types'
 
 export function BasicInfoSection({ formData, isEditMode, onInputChange }: FormSectionProps) {
@@ -64,25 +70,35 @@ export function BasicInfoSection({ formData, isEditMode, onInputChange }: FormSe
           <label className="block text-sm font-medium text-gray-700">
             Sex
           </label>
-          <Select
-            value={formData.sex || ''}
-            onChange={(e) => onInputChange('sex', e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="M">Male</option>
-            <option value="F">Female</option>
+          <Select value={formData.sex || ''} onValueChange={(value) => onInputChange('sex', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select sex..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="M">Male</SelectItem>
+              <SelectItem value="F">Female</SelectItem>
+            </SelectContent>
           </Select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Genotype
           </label>
-          <Input
-            type="text"
-            value={formData.genotype || ''}
-            onChange={(e) => onInputChange('genotype', e.target.value)}
-            placeholder="e.g., SS"
-          />
+          <Select value={formData.genotype || ''} onValueChange={(value) => onInputChange('genotype', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select genotype..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="SS">SS</SelectItem>
+              <SelectItem value="SC">SC</SelectItem>
+              <SelectItem value="SB0">Sβ0</SelectItem>
+              <SelectItem value="SB+">Sβ+</SelectItem>
+              <SelectItem value="AS">AS</SelectItem>
+              <SelectItem value="AA">AA</SelectItem>
+              <SelectItem value="AC">AC</SelectItem>
+              <SelectItem value="CC">CC</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

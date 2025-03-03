@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/button'
 import { BasicInfoSection } from './form-sections/BasicInfoSection'
 import { AdviaSection } from './form-sections/AdviaSection'
 import { DNASection } from './form-sections/DNASection'

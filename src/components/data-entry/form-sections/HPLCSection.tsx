@@ -1,6 +1,7 @@
 'use client'
 
-import { Input } from '../../ui/Input'
+import { Input } from '../../ui/input'
+import { Select } from '../../ui/select'
 import { FormSectionProps } from './types'
 
 export function HPLCSection({ formData, onInputChange }: FormSectionProps) {
