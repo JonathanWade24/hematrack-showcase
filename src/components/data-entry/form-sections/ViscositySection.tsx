@@ -1,7 +1,13 @@
 'use client'
 
 import { Input } from '../../ui/input'
-import { Select } from '../../ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../ui/select'
 import { FormSectionProps } from './types'
 
 export function ViscositySection({ formData, onInputChange }: FormSectionProps) {
@@ -48,14 +54,15 @@ export function ViscositySection({ formData, onInputChange }: FormSectionProps) 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">QC Pass</label>
-          <Select
-            value={formData.qc_pass_viscosity || ''}
-            onChange={(e) => onInputChange('qc_pass_viscosity', e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-            <option value="Review">Review</option>
+          <Select value={formData.qc_pass_viscosity || ''} onValueChange={(value) => onInputChange('qc_pass_viscosity', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select QC status..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Yes">Yes</SelectItem>
+              <SelectItem value="No">No</SelectItem>
+              <SelectItem value="Review">Review</SelectItem>
+            </SelectContent>
           </Select>
         </div>
         <div>

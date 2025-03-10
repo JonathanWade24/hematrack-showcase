@@ -138,4 +138,6 @@ export function Timeline({ events }: TimelineProps) {
       </div>
     </div>
   )
-} 
+}
+
+export default Timeline 

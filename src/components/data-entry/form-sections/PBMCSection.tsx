@@ -1,7 +1,13 @@
 'use client'
 
 import { Input } from '../../ui/input'
-import { Select } from '../../ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../ui/select'
 import { FormSectionProps } from './types'
 
 export function PBMCSection({ formData, onInputChange }: FormSectionProps) {
@@ -50,13 +56,14 @@ export function PBMCSection({ formData, onInputChange }: FormSectionProps) {
           <label className="block text-sm font-medium text-gray-700">
             Sent to GT
           </label>
-          <Select
-            value={formData.sent_to_gt_pbmc || ''}
-            onChange={(e) => onInputChange('sent_to_gt_pbmc', e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
+          <Select value={formData.sent_to_gt_pbmc || ''} onValueChange={(value) => onInputChange('sent_to_gt_pbmc', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select status..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Yes">Yes</SelectItem>
+              <SelectItem value="No">No</SelectItem>
+            </SelectContent>
           </Select>
         </div>
         <div>

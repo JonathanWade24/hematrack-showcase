@@ -1,0 +1,135 @@
+       source_table        | source_column |       target_table        | target_column 
+---------------------------+---------------+---------------------------+---------------
+ clinical.Labs             | patient_mrn   | phi.patients              | patient_mrn
+ clinical.bone_marrow      | patient_mrn   | phi.patients              | patient_mrn
+ clinical.demographics     | patient_mrn   | phi.patients              | patient_mrn
+ clinical.ip_admissions    | patient_mrn   | phi.patients              | patient_mrn
+ clinical.ip_medications   | patient_mrn   | phi.patients              | patient_mrn
+ clinical.op_medications   | patient_mrn   | phi.patients              | patient_mrn
+ clinical.op_visits        | patient_mrn   | phi.patients              | patient_mrn
+ clinical.unified_visits   | patient_mrn   | phi.patients              | patient_mrn
+ laboratory.omics_results  | subject_id    | laboratory.omics_subjects | subject_id
+ laboratory.omics_subjects | patient_mrn   | phi.patients              | patient_mrn
+ phi.subject_registration  | subject_id    | laboratory.omics_subjects | subject_id
+ phi.subject_registration  | patient_mrn   | phi.patients              | patient_mrn
+(12 rows)
+
+        table_name         | primary_key_column 
+---------------------------+--------------------
+ audit.audit_log           | id
+ clinical.Labs             | id
+ clinical.bone_marrow      | id
+ clinical.demographics     | id
+ clinical.ip_admissions    | id
+ clinical.ip_medications   | id
+ clinical.op_medications   | id
+ clinical.op_visits        | id
+ clinical.unified_visits   | id
+ laboratory.omics_results  | id
+ laboratory.omics_subjects | subject_id
+ phi.patients              | patient_mrn
+ phi.subject_registration  | id
+(13 rows)
+
+            table_a             |    column_a    |            table_b             |    column_b    
+--------------------------------+----------------+--------------------------------+----------------
+ clinical.Labs                  | component_id   | clinical.bone_marrow           | component_id
+ clinical.Labs                  | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.Labs                  | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.Labs                  | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.Labs                  | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.Labs                  | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.Labs                  | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.Labs                  | patient_mrn    | clinical.unified_visits        | patient_mrn
+ clinical.Labs                  | component_id   | clinical.visit_associated_labs | component_id
+ clinical.Labs                  | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.bone_marrow           | component_id   | clinical.Labs                  | component_id
+ clinical.bone_marrow           | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.bone_marrow           | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.bone_marrow           | hsp_account_id | clinical.ip_admissions         | hsp_account_id
+ clinical.bone_marrow           | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.bone_marrow           | hsp_account_id | clinical.ip_medications        | hsp_account_id
+ clinical.bone_marrow           | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.bone_marrow           | hsp_account_id | clinical.op_medications        | hsp_account_id
+ clinical.bone_marrow           | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.bone_marrow           | hsp_account_id | clinical.op_visits             | hsp_account_id
+ clinical.bone_marrow           | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.bone_marrow           | patient_mrn    | clinical.unified_visits        | patient_mrn
+ clinical.bone_marrow           | component_id   | clinical.visit_associated_labs | component_id
+ clinical.bone_marrow           | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.unified_visits        | patient_mrn
+ clinical.demographics          | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.ip_admissions         | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.ip_admissions         | hsp_account_id | clinical.bone_marrow           | hsp_account_id
+ clinical.ip_admissions         | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.ip_admissions         | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.ip_admissions         | hsp_account_id | clinical.ip_medications        | hsp_account_id
+ clinical.ip_admissions         | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.ip_admissions         | hsp_account_id | clinical.op_medications        | hsp_account_id
+ clinical.ip_admissions         | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.ip_admissions         | hsp_account_id | clinical.op_visits             | hsp_account_id
+ clinical.ip_admissions         | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.ip_admissions         | patient_mrn    | clinical.unified_visits        | patient_mrn
+ clinical.ip_admissions         | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.ip_medications        | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.ip_medications        | hsp_account_id | clinical.bone_marrow           | hsp_account_id
+ clinical.ip_medications        | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.ip_medications        | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.ip_medications        | hsp_account_id | clinical.ip_admissions         | hsp_account_id
+ clinical.ip_medications        | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.ip_medications        | hsp_account_id | clinical.op_medications        | hsp_account_id
+ clinical.ip_medications        | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.ip_medications        | hsp_account_id | clinical.op_visits             | hsp_account_id
+ clinical.ip_medications        | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.ip_medications        | patient_mrn    | clinical.unified_visits        | patient_mrn
+ clinical.ip_medications        | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.op_medications        | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.op_medications        | hsp_account_id | clinical.bone_marrow           | hsp_account_id
+ clinical.op_medications        | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.op_medications        | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.op_medications        | hsp_account_id | clinical.ip_admissions         | hsp_account_id
+ clinical.op_medications        | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.op_medications        | hsp_account_id | clinical.ip_medications        | hsp_account_id
+ clinical.op_medications        | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.op_medications        | hsp_account_id | clinical.op_visits             | hsp_account_id
+ clinical.op_medications        | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.op_medications        | patient_mrn    | clinical.unified_visits        | patient_mrn
+ clinical.op_medications        | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.op_visits             | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.op_visits             | hsp_account_id | clinical.bone_marrow           | hsp_account_id
+ clinical.op_visits             | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.op_visits             | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.op_visits             | hsp_account_id | clinical.ip_admissions         | hsp_account_id
+ clinical.op_visits             | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.op_visits             | hsp_account_id | clinical.ip_medications        | hsp_account_id
+ clinical.op_visits             | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.op_visits             | hsp_account_id | clinical.op_medications        | hsp_account_id
+ clinical.op_visits             | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.op_visits             | patient_mrn    | clinical.unified_visits        | patient_mrn
+ clinical.op_visits             | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.unified_visits        | patient_mrn    | clinical.visit_associated_labs | patient_mrn
+ clinical.visit_associated_labs | component_id   | clinical.Labs                  | component_id
+ clinical.visit_associated_labs | patient_mrn    | clinical.Labs                  | patient_mrn
+ clinical.visit_associated_labs | component_id   | clinical.bone_marrow           | component_id
+ clinical.visit_associated_labs | patient_mrn    | clinical.bone_marrow           | patient_mrn
+ clinical.visit_associated_labs | patient_mrn    | clinical.demographics          | patient_mrn
+ clinical.visit_associated_labs | patient_mrn    | clinical.ip_admissions         | patient_mrn
+ clinical.visit_associated_labs | patient_mrn    | clinical.ip_medications        | patient_mrn
+ clinical.visit_associated_labs | patient_mrn    | clinical.op_medications        | patient_mrn
+ clinical.visit_associated_labs | patient_mrn    | clinical.op_visits             | patient_mrn
+ clinical.visit_associated_labs | patient_mrn    | clinical.unified_visits        | patient_mrn
+(98 rows)
+
