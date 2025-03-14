@@ -1,8 +1,8 @@
-import { prisma } from '@/db'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { notFound } from 'next/navigation'
 import { SubjectViewer } from '@/components/subjects/SubjectViewer'
 import { convertToNumber } from '@/lib/utils'
+import { getOmicsSubjectById } from '@/lib/supabase/operations'
 
 interface SubjectPageProps {
   params: {
@@ -10,46 +10,22 @@ interface SubjectPageProps {
   }
 }
 
-async function getSubjectData(subjectId: string) {
-  const subject = await prisma.omics_subjects.findUnique({
-    where: { subject_id: subjectId },
-    include: {
-      patients: {
-        select: {
-          first_name: true,
-          last_name: true,
-          birth_date: true,
-          sex: true,
-          race: true,
-          ethnicity: true
-        }
-      },
-      omics_results: {
-        orderBy: {
-          date_of_collection: 'desc'
-        }
-      }
-    }
-  })
-
-  if (!subject) {
-    return null
-  }
-
-  // Convert all Decimal values to numbers
-  return convertToNumber(subject)
-}
-
 export default async function SubjectPage({ params }: SubjectPageProps) {
-  const subject = await getSubjectData(params.id)
+  // Convert params to a regular object to avoid the async property access error
+  const id = params.id;
+  
+  const subject = await getOmicsSubjectById(id);
   
   if (!subject) {
-    notFound()
+    notFound();
   }
+
+  // Convert all numeric values to numbers
+  const processedSubject = convertToNumber(subject);
 
   return (
     <DashboardLayout>
-      <SubjectViewer subject={subject} />
+      <SubjectViewer subject={processedSubject} />
     </DashboardLayout>
-  )
+  );
 } 

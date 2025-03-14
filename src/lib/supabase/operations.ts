@@ -238,7 +238,7 @@ export async function createOmicsSubject(data: Partial<OmicsSubject>) {
 
 export async function getOmicsSubjectById(subject_id: string) {
   try {
-    const supabase = await getSupabaseServerClient();
+    const supabase = getSupabaseServerClient();
     
     // Get the subject data
     const { data: subject, error: subjectError } = await supabase
@@ -270,10 +270,23 @@ export async function getOmicsSubjectById(subject_id: string) {
       }
     }
     
+    // Get all samples for this subject
+    const { data: samples, error: samplesError } = await supabase
+      .schema('laboratory')
+      .from('omics_results')
+      .select('*')
+      .eq('subject_id', subject_id)
+      .order('date_of_collection', { ascending: false });
+    
+    if (samplesError) {
+      console.error('Error fetching samples:', samplesError);
+    }
+    
     // Combine the data
     return {
       ...subject,
-      patients: patient
+      patients: patient || {},
+      omics_results: samples || []
     };
   } catch (error) {
     handleSupabaseError(error);
@@ -281,9 +294,68 @@ export async function getOmicsSubjectById(subject_id: string) {
   }
 }
 
+export async function getAllOmicsSubjects() {
+  try {
+    const supabase = getSupabaseServerClient();
+    
+    // Get all subjects
+    const { data: subjects, error: subjectsError } = await supabase
+      .schema('laboratory')
+      .from('omics_subjects')
+      .select('*')
+      .order('subject_id');
+    
+    if (subjectsError) {
+      console.error('Error fetching subjects:', subjectsError);
+      return [];
+    }
+    
+    // Get sample counts and latest sample dates for each subject
+    const subjectsWithSampleInfo = await Promise.all(
+      subjects.map(async (subject) => {
+        // Get sample count
+        const { count: sampleCount, error: countError } = await supabase
+          .schema('laboratory')
+          .from('omics_results')
+          .select('*', { count: 'exact', head: true })
+          .eq('subject_id', subject.subject_id);
+        
+        if (countError) {
+          console.error(`Error counting samples for subject ${subject.subject_id}:`, countError);
+        }
+        
+        // Get latest sample date
+        const { data: latestSample, error: latestError } = await supabase
+          .schema('laboratory')
+          .from('omics_results')
+          .select('date_of_collection')
+          .eq('subject_id', subject.subject_id)
+          .order('date_of_collection', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (latestError && latestError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+          console.error(`Error getting latest sample for subject ${subject.subject_id}:`, latestError);
+        }
+        
+        return {
+          ...subject,
+          sample_count: sampleCount || 0,
+          latest_sample_date: latestSample?.date_of_collection || null
+        };
+      })
+    );
+    
+    return subjectsWithSampleInfo;
+  } catch (error) {
+    handleSupabaseError(error);
+    return [];
+  }
+}
+
 export async function updateOmicsSubject(subject_id: string, data: Partial<OmicsSubject>) {
   try {
-    const supabase = await getSupabaseServerClient();
+    const supabase = getSupabaseServerClient();
     const { data: result, error } = await supabase
       .schema('laboratory')
       .from('omics_subjects')
@@ -302,7 +374,7 @@ export async function updateOmicsSubject(subject_id: string, data: Partial<Omics
 // Patient Operations
 export async function createPatient(data: Partial<Patient>) {
   try {
-    const supabase = await getSupabaseServerClient();
+    const supabase = getSupabaseServerClient();
     const { data: result, error } = await supabase
       .schema('phi')
       .from('patients')
@@ -317,9 +389,86 @@ export async function createPatient(data: Partial<Patient>) {
   }
 }
 
+export async function getAllPatients() {
+  try {
+    const supabase = getSupabaseServerClient();
+    
+    // Get all patients
+    const { data: patients, error: patientsError } = await supabase
+      .schema('phi')
+      .from('patients')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (patientsError) {
+      console.error('Error fetching patients:', patientsError);
+      return [];
+    }
+    
+    // For each patient, get their omics_subjects and registrations
+    const patientsWithRelations = await Promise.all(
+      patients.map(async (patient) => {
+        // Get omics_subjects for this patient
+        const { data: omicsSubjects, error: omicsError } = await supabase
+          .schema('laboratory')
+          .from('omics_subjects')
+          .select('*')
+          .eq('patient_mrn', patient.patient_mrn);
+        
+        if (omicsError) {
+          console.error(`Error fetching omics subjects for patient ${patient.patient_mrn}:`, omicsError);
+        }
+        
+        // Get registrations for this patient
+        const { data: registrations, error: regError } = await supabase
+          .schema('phi')
+          .from('subject_registration')
+          .select('*')
+          .eq('patient_mrn', patient.patient_mrn);
+        
+        if (regError) {
+          console.error(`Error fetching registrations for patient ${patient.patient_mrn}:`, regError);
+        }
+        
+        // For each omics subject, get their samples
+        const omicsSubjectsWithSamples = await Promise.all(
+          (omicsSubjects || []).map(async (subject) => {
+            const { data: samples, error: samplesError } = await supabase
+              .schema('laboratory')
+              .from('omics_results')
+              .select('*')
+              .eq('subject_id', subject.subject_id)
+              .order('date_of_collection', { ascending: false });
+            
+            if (samplesError) {
+              console.error(`Error fetching samples for subject ${subject.subject_id}:`, samplesError);
+            }
+            
+            return {
+              ...subject,
+              omics_results: samples || []
+            };
+          })
+        );
+        
+        return {
+          ...patient,
+          omics_subjects: omicsSubjectsWithSamples || [],
+          registrations: registrations || []
+        };
+      })
+    );
+    
+    return patientsWithRelations;
+  } catch (error) {
+    handleSupabaseError(error);
+    return [];
+  }
+}
+
 export async function getPatientByMRN(patient_mrn: string) {
   try {
-    const supabase = await getSupabaseServerClient();
+    const supabase = getSupabaseServerClient();
     const { data: result, error } = await supabase
       .schema('phi')
       .from('patients')

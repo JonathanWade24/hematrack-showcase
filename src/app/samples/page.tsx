@@ -188,11 +188,20 @@ interface PageProps {
 }
 
 export default async function SamplesPage({ searchParams }: PageProps) {
-  const currentPage = Number(searchParams.page) || 1
-  const pageSize = Number(searchParams.pageSize) || DEFAULT_PAGE_SIZE
-  const search = searchParams.search || undefined
-  const sort = searchParams.sort || 'date_of_collection'
-  const order = (searchParams.order || 'desc') as 'asc' | 'desc'
+  // Convert searchParams to a regular object to avoid the async property access error
+  const params = {
+    page: searchParams.page,
+    pageSize: searchParams.pageSize,
+    search: searchParams.search,
+    sort: searchParams.sort,
+    order: searchParams.order
+  };
+
+  const currentPage = Number(params.page) || 1
+  const pageSize = Number(params.pageSize) || DEFAULT_PAGE_SIZE
+  const search = params.search || undefined
+  const sort = params.sort || 'date_of_collection'
+  const order = (params.order || 'desc') as 'asc' | 'desc'
 
   const { samples, totalCount, totalPages } = await getSamplesData(
     currentPage,

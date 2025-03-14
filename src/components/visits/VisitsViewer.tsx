@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendar, faStethoscope, faPills, faChartLine } from '@fortawesome/free-solid-svg-icons'
 import { format } from 'date-fns'
-import Timeline from '@/components/ui/timeline'
+import Timeline from '@/components/ui/Timeline'
 import { useRouter } from 'next/navigation'
 import { ClinicalLabCharts } from './ClinicalLabCharts'
 

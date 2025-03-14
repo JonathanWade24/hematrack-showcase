@@ -74,7 +74,10 @@ async function getSampleData(sampleId: string) {
 }
 
 export default async function SamplePage({ params }: SamplePageProps) {
-  const sample = await getSampleData(params.id)
+  // Convert params to a regular object to avoid the async property access error
+  const id = params.id;
+  
+  const sample = await getSampleData(id)
   
   if (!sample) {
     notFound()

@@ -1,89 +1,55 @@
-import { prisma } from '@/db'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { VisitsViewer } from '@/components/visits/VisitsViewer'
 import type { Visit } from '@/components/visits/VisitsViewer'
 import { convertToNumber } from '@/lib/utils'
 import { notFound } from 'next/navigation'
-
-interface VitalsResult {
-  bp_systolic: number | null
-  bp_diastolic: number | null
-  weight_kg: number | null
-  weight_lbs: number | null
-}
-
-interface DiagnosisResult {
-  diagnoses: {
-    admit_dx: string
-    final_dx: string
-    admit_desc: string
-    final_desc: string
-  }
-}
-
-interface MedicationResult {
-  medication_data: {
-    id: number
-    medication: string
-    dosage?: string
-    unit?: string
-    frequency?: string
-    taken_time?: string
-    order_time?: string
-    status?: string
-    source: 'ip' | 'op'
-  }
-}
-
-interface LabResult {
-  lab_component_description: string
-  lab_result_value: string
-  result_time: Date
-  proc_name: string
-}
+import { getSupabaseServerClient } from '@/lib/supabase/db'
 
 async function getVisitData(patientMrn: string) {
+  const supabase = await getSupabaseServerClient()
+  
   // Get patient information
-  const patient = await prisma.patients.findUnique({
-    where: { patient_mrn: patientMrn },
-    select: {
-      first_name: true,
-      last_name: true,
-      birth_date: true,
-      sex: true,
-      race: true,
-      ethnicity: true
-    }
-  })
+  const { data: patient, error: patientError } = await supabase
+    .schema('phi')
+    .from('patients')
+    .select('first_name, last_name, birth_date, sex, race, ethnicity')
+    .eq('patient_mrn', patientMrn)
+    .single()
 
-  if (!patient) {
+  if (patientError || !patient) {
+    console.error('Error fetching patient:', patientError)
     return null
   }
 
-  // Get visits with raw SQL
-  const visits = await prisma.$queryRaw<Array<{
-    id: string
-    visit_id: string
-    visit_type: string
-    start_date: Date
-    end_date: Date | null
-    department: string | null
-    icu_admission_yn: string | null
-  }>>`
-    SELECT id, visit_id, visit_type, start_date, end_date, department, icu_admission_yn
-    FROM clinical.unified_visits
-    WHERE patient_mrn = ${patientMrn}
-    ORDER BY start_date DESC
-  `
+  // Get visits
+  const { data: visits, error: visitsError } = await supabase
+    .schema('clinical')
+    .from('unified_visits')
+    .select('id, visit_id, visit_type, start_date, end_date, department, icu_admission_yn')
+    .eq('patient_mrn', patientMrn)
+    .order('start_date', { ascending: false })
+
+  if (visitsError) {
+    console.error('Error fetching visits:', visitsError)
+    return null
+  }
 
   // Get associated data for each visit
   const visitsWithDetails = await Promise.all(
     visits.map(async (visit) => {
       // Get vitals
-      const vitalsResult = await prisma.$queryRaw<VitalsResult[]>`
-        SELECT * FROM clinical.visit_vitals_view WHERE visit_id = ${visit.id}
-      `
-      const vitals = vitalsResult[0] || {
+      const { data: vitalsResult, error: vitalsError } = await supabase
+        .schema('clinical')
+        .from('visit_vitals_view')
+        .select('*')
+        .eq('visit_id', visit.id)
+        .single()
+      
+      if (vitalsError && vitalsError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+        console.error(`Error fetching vitals for visit ${visit.id}:`, vitalsError)
+      }
+      
+      const vitals = vitalsResult || {
         bp_systolic: null,
         bp_diastolic: null,
         weight_kg: null,
@@ -91,10 +57,17 @@ async function getVisitData(patientMrn: string) {
       }
 
       // Get diagnoses
-      const diagnosesResult = await prisma.$queryRaw<DiagnosisResult[]>`
-        SELECT * FROM clinical.visit_diagnoses_view WHERE visit_id = ${visit.id}
-      `
-      const diagnoses = diagnosesResult.map(d => [
+      const { data: diagnosesResult, error: diagnosesError } = await supabase
+        .schema('clinical')
+        .from('visit_diagnoses_view')
+        .select('diagnoses')
+        .eq('visit_id', visit.id)
+      
+      if (diagnosesError) {
+        console.error(`Error fetching diagnoses for visit ${visit.id}:`, diagnosesError)
+      }
+      
+      const diagnoses = (diagnosesResult || []).map(d => [
         { code: d.diagnoses.admit_dx, description: d.diagnoses.admit_desc },
         { code: d.diagnoses.final_dx, description: d.diagnoses.final_desc }
       ]).flat().filter((d, i, arr) => 
@@ -103,10 +76,17 @@ async function getVisitData(patientMrn: string) {
       )
 
       // Get medications
-      const medicationsResult = await prisma.$queryRaw<MedicationResult[]>`
-        SELECT * FROM clinical.visit_associated_medications WHERE visit_id = ${visit.id}
-      `
-      const medications = medicationsResult.map(m => ({
+      const { data: medicationsResult, error: medicationsError } = await supabase
+        .schema('clinical')
+        .from('visit_associated_medications')
+        .select('medication_data')
+        .eq('visit_id', visit.id)
+      
+      if (medicationsError) {
+        console.error(`Error fetching medications for visit ${visit.id}:`, medicationsError)
+      }
+      
+      const medications = (medicationsResult || []).map(m => ({
         name: m.medication_data.medication,
         dosage: m.medication_data.dosage,
         unit: m.medication_data.unit,
@@ -116,9 +96,16 @@ async function getVisitData(patientMrn: string) {
       }))
 
       // Get labs
-      const labsResult = await prisma.$queryRaw<LabResult[]>`
-        SELECT * FROM clinical.visit_associated_labs WHERE visit_id = ${visit.id}
-      `
+      const { data: labsResult, error: labsError } = await supabase
+        .schema('clinical')
+        .from('visit_associated_labs')
+        .select('lab_component_description, lab_result_value, result_time, proc_name')
+        .eq('visit_id', visit.id)
+      
+      if (labsError) {
+        console.error(`Error fetching labs for visit ${visit.id}:`, labsError)
+      }
+      
       const labs = (labsResult || []).map(lab => ({
         name: lab.lab_component_description,
         value: lab.lab_result_value,
@@ -128,31 +115,37 @@ async function getVisitData(patientMrn: string) {
       }))
 
       // Get OMICs samples collected during the visit
-      const omicsSamplesResult = await prisma.omics_results.findMany({
-        where: {
-          omics_subjects: {
-            patient_mrn: patientMrn
-          },
-          date_of_collection: {
-            gte: visit.start_date,
-            lte: visit.end_date || visit.start_date
-          }
-        },
-        select: {
-          sample_id: true,
-          date_of_collection: true,
-          genotype: true,
-          steady_state: true,
-          transfusion_status: true,
-          hb_advia: true,
-          hct_advia: true,
-          wbc_advia: true,
-          plt_advia: true,
-          percent_f_cells: true
-        }
-      })
+      console.log(`Fetching omics samples for visit ${visit.id} (${visit.start_date} to ${visit.end_date || visit.start_date})`);
+      const { data: omicsSamplesResult, error: omicsSamplesError } = await supabase
+        .schema('laboratory')
+        .from('omics_results')
+        .select(`
+          sample_id, 
+          date_of_collection, 
+          genotype, 
+          steady_state, 
+          transfusion_status, 
+          hb_advia, 
+          hct_advia, 
+          wbc_advia, 
+          plt_advia, 
+          percent_f_cells,
+          omics_subjects!inner(patient_mrn)
+        `)
+        .eq('omics_subjects.patient_mrn', patientMrn)
+        .gte('date_of_collection', visit.start_date)
+        .lte('date_of_collection', visit.end_date || visit.start_date)
+      
+      if (omicsSamplesError) {
+        console.error(`Error fetching omics samples for visit ${visit.id}:`, omicsSamplesError)
+      }
+      
+      console.log(`Found ${omicsSamplesResult?.length || 0} omics samples for visit ${visit.id}`);
+      if (omicsSamplesResult?.length) {
+        console.log('Sample dates:', omicsSamplesResult.map(s => s.date_of_collection));
+      }
 
-      const omics_samples = omicsSamplesResult.map(sample => ({
+      const omics_samples = (omicsSamplesResult || []).map(sample => ({
         sample_id: sample.sample_id,
         date_of_collection: sample.date_of_collection!,
         sample_type: 'Blood', // Default to blood for now, can be expanded later

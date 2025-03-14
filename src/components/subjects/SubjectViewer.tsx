@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faVial, faCalendar, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
-import { SamplesTable } from '../dashboard/SamplesTable'
+import SamplesTable from '../dashboard/SamplesTable'
 import { OmicsCharts } from './OmicsCharts'
 import { PHIMask } from '../ui/phi-mask'
 

@@ -1,33 +1,11 @@
-import { prisma } from '@/db'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { PatientsTable } from '@/components/patients/PatientsTable'
 import { convertToNumber } from '@/lib/utils'
-
-async function getAllPatients() {
-  // Get all patients from both registration and omics subjects
-  const patients = await prisma.patients.findMany({
-    include: {
-      registrations: true,
-      omics_subjects: {
-        include: {
-          omics_results: {
-            orderBy: {
-              date_of_collection: 'desc'
-            }
-          }
-        }
-      }
-    },
-    orderBy: {
-      created_at: 'desc'
-    }
-  })
-
-  return convertToNumber(patients)
-}
+import { getAllPatients } from '@/lib/supabase/operations'
 
 export default async function PatientsPage() {
-  const patients = await getAllPatients()
+  const patientsData = await getAllPatients()
+  const patients = convertToNumber(patientsData)
 
   return (
     <DashboardLayout>
