@@ -1,146 +1,57 @@
-import { NextResponse } from 'next/server'
-import { createOmicsResult, getOmicsResultBySampleId } from '@/lib/operations'
-import { prisma } from '@/db'
+import { NextRequest, NextResponse } from 'next/server'
+import { createOmicsResult, createOmicsSubject, createPatient, getOmicsResultBySampleId, getOmicsSubjectById } from '@/lib/supabase/operations'
 
-export async function POST(request: Request) {
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const sampleId = searchParams.get('sampleId')
+  const subjectId = searchParams.get('subjectId')
+  
   try {
-    const data = await request.json()
-    
-    // Check if subject exists
-    const existingSubject = await prisma.omics_subjects.findUnique({
-      where: { subject_id: data.subject_id }
-    })
-
-    // If subject doesn't exist and force_create_subject flag is not set, return info response
-    if (!existingSubject && !data.force_create_subject) {
-      return NextResponse.json(
-        {
-          status: 'new_subject',
-          message: `Subject ${data.subject_id} does not exist in the database.`,
-          action_required: true,
-          details: {
-            subject_id: data.subject_id,
-            warning: 'This subject will be flagged as pending until a matching MRN is provided through clinical data integration.',
-            confirmation_needed: true
-          }
-        },
-        { status: 409 }
-      )
-    }
-
-    // If force_create_subject is true and subject doesn't exist, create a provisional subject
-    if (!existingSubject && data.force_create_subject) {
-      try {
-        // First create a provisional patient record
-        const provisionalMRN = `PROV-${data.subject_id}`
-        await prisma.patients.create({
-          data: {
-            patient_mrn: provisionalMRN,
-            created_at: new Date(),
-            updated_at: new Date()
-          }
-        })
-
-        // Then create the omics subject with the provisional MRN
-        await prisma.omics_subjects.create({
-          data: {
-            subject_id: data.subject_id,
-            patient_mrn: provisionalMRN,
-            project: 'OMI',
-            created_at: new Date(),
-            updated_at: new Date()
-          }
-        })
-      } catch (subjectError) {
-        console.error('Error creating provisional subject:', subjectError)
-        return NextResponse.json(
-          { error: 'Failed to create new subject' },
-          { status: 500 }
-        )
-      }
-    }
-
-    // Generate sample_id from subject_id and sample_number
-    const sample_id = `${data.subject_id}-${data.sample_number}`
-
-    // Check if sample already exists
-    const existingSample = await prisma.omics_results.findUnique({
-      where: { sample_id }
-    })
-
-    if (existingSample) {
-      return NextResponse.json(
-        { error: `Sample ${sample_id} already exists.` },
-        { status: 400 }
-      )
+    if (sampleId) {
+      const sample = await getOmicsResultBySampleId(sampleId)
+      return NextResponse.json(sample)
     }
     
-    // Format date_of_collection as ISO DateTime if it exists
-    const { force_create_subject, ...omicsData } = data
-    const formattedData = {
-      ...omicsData,
-      date_of_collection: data.date_of_collection ? new Date(data.date_of_collection).toISOString() : null,
-      sample_id,
-      created_at: new Date(),
-      updated_at: new Date()
+    if (subjectId) {
+      const subject = await getOmicsSubjectById(subjectId)
+      return NextResponse.json(subject)
     }
-
-    // Create the omics result
-    await createOmicsResult(formattedData)
-
-    // Verify the submission by fetching the created record
-    const verifiedResult = await getOmicsResultBySampleId(sample_id)
     
-    if (!verifiedResult) {
-      return NextResponse.json(
-        { error: 'Data was submitted but could not be verified' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      ...verifiedResult,
-      message: data.force_create_subject ? 
-        'Sample created successfully. Note: A new subject was created with a provisional MRN.' :
-        'Sample created successfully.'
-    })
-
+    return NextResponse.json({ error: 'Missing sampleId or subjectId parameter' }, { status: 400 })
   } catch (error) {
-    console.error('Error creating omics result:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create omics result' },
-      { status: 500 }
-    )
+    console.error('Error fetching omics data:', error)
+    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 })
   }
 }
 
-export async function GET(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const sample_id = searchParams.get('sample_id')
-
-    if (!sample_id) {
-      return NextResponse.json(
-        { error: 'Sample ID is required' },
-        { status: 400 }
-      )
-    }
-
-    const result = await getOmicsResultBySampleId(sample_id)
+    const body = await request.json()
+    const { type, data } = body
     
-    if (!result) {
-      return NextResponse.json(
-        { error: 'Sample not found' },
-        { status: 404 }
-      )
+    if (!type || !data) {
+      return NextResponse.json({ error: 'Missing type or data' }, { status: 400 })
     }
-
+    
+    let result
+    
+    switch (type) {
+      case 'patient':
+        result = await createPatient(data)
+        break
+      case 'subject':
+        result = await createOmicsSubject(data)
+        break
+      case 'sample':
+        result = await createOmicsResult(data)
+        break
+      default:
+        return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
+    }
+    
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Error fetching omics result:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch omics result' },
-      { status: 500 }
-    )
+    console.error('Error creating omics data:', error)
+    return NextResponse.json({ error: 'Failed to create data' }, { status: 500 })
   }
 } 

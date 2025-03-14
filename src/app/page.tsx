@@ -1,155 +1,181 @@
-import { prisma } from '@/db'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import DashboardClient from '@/components/dashboard/DashboardClient'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { Decimal } from '@prisma/client/runtime/library'
 
-// Utility function to convert Decimal values to numbers
-function convertToNumber<T>(data: T): T {
-  if (data === null || data === undefined) return data
-  if (data instanceof Decimal) return Number(data.toString()) as T
-  if (Array.isArray(data)) return data.map(convertToNumber) as T
-  if (typeof data === 'object') {
-    const result = {} as T
-    for (const [key, value] of Object.entries(data)) {
-      result[key as keyof T] = convertToNumber(value)
-    }
-    return result
-  }
-  return data
-}
-
+// Define types for our data structures
 interface ProcessingStatus {
   hasDNA: boolean
   hasPBMC: boolean
   hasPlasma: boolean
 }
 
-interface SampleBase {
-  sample_id: string
-  subject_id: string
-  date_of_collection: Date | null
-  genotype: string | null
-  qc_pass_advia: string | null
-  qc_pass_lorrca: string | null
-  qc_notes_advia: string | null
-  qc_notes_lorrca: string | null
-  concentration_1_dna: Decimal | null
-  cell_number_1_pbmc: Decimal | null
-  vol_plasma_1: Decimal | null
-  rbc_advia: Decimal | null
-  hb_advia: Decimal | null
-  hct_advia: Decimal | null
-  mcv_advia: Decimal | null
-  mch_advia: Decimal | null
-  mchc_advia: Decimal | null
-  rdw_advia: Decimal | null
-  plt_advia: Decimal | null
-  wbc_advia: Decimal | null
-  omics_subjects?: {
-    subject_id: string
-    patient_mrn: string
-    project: string
-  }
-}
-
-interface OmicsResult {
+interface OmicsSample {
   id: string
-  project: string | null
+  project?: string | null
   subject_id: string
-  sample_number: number
+  sample_number?: number
   sample_id: string
-  date_of_collection: Date | null
-  concentration_1_dna: Decimal | null
-  cell_number_1_pbmc: Decimal | null
-  vol_plasma_1: Decimal | null
-  qc_pass_advia: string | null
-  qc_pass_lorrca: string | null
-  qc_notes_advia: string | null
-  qc_notes_lorrca: string | null
-  rbc_advia: Decimal | null
-  hb_advia: Decimal | null
-  hct_advia: Decimal | null
-  mcv_advia: Decimal | null
-  mch_advia: Decimal | null
-  mchc_advia: Decimal | null
-  rdw_advia: Decimal | null
-  plt_advia: Decimal | null
-  wbc_advia: Decimal | null
+  date_of_collection?: string | null
+  genotype?: string | null
+  qc_pass_advia?: string | null
+  qc_pass_lorrca?: string | null
+  qc_notes_advia?: string | null
+  qc_notes_lorrca?: string | null
+  concentration_1_dna?: number | null
+  cell_number_1_pbmc?: number | null
+  vol_plasma_1?: number | null
+  rbc_advia?: number | null
+  hb_advia?: number | null
+  hct_advia?: number | null
+  mcv_advia?: number | null
+  mch_advia?: number | null
+  mchc_advia?: number | null
+  rdw_advia?: number | null
+  plt_advia?: number | null
+  wbc_advia?: number | null
   processing_status?: 'Complete' | 'Partial' | 'Pending'
   qc_status?: 'Passed' | 'Failed' | 'Review'
   qc_notes?: string | null
 }
 
-async function getDashboardData() {
+interface SubjectStatusCounts {
+  complete: number
+  partial: number
+  pending: number
+}
+
+interface ProcessingStatusCounts {
+  complete: number
+  partial: number
+  pending: number
+}
+
+interface DashboardData {
+  recentSamples: OmicsSample[]
+  totalSamples: number
+  totalSubjects: number
+  qcPassedSamples: number
+  fullyProcessedSamples: number
+  partiallyProcessedSamples: number
+  pendingSamples: number
+  subjectCounts: SubjectStatusCounts
+}
+
+export default async function Home() {
+  const cookieStore = cookies()
+  const supabase = await createClient(cookieStore)
+  
+  // Check if user is authenticated
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  if (error || !user) {
+    // Redirect to login if not authenticated
+    redirect('/login')
+  }
+  
   try {
-    // Get all samples with their DNA, PBMC, and plasma data
-    const recentSamples = await prisma.omics_results.findMany({
-      take: 10,
-      orderBy: {
-        date_of_collection: 'desc'
-      },
-      select: {
-        sample_id: true,
-        subject_id: true,
-        date_of_collection: true,
-        genotype: true,
-        qc_pass_advia: true,
-        qc_pass_lorrca: true,
-        qc_notes_advia: true,
-        qc_notes_lorrca: true,
-        concentration_1_dna: true,
-        cell_number_1_pbmc: true,
-        vol_plasma_1: true,
-        rbc_advia: true,
-        hb_advia: true,
-        hct_advia: true,
-        mcv_advia: true,
-        mch_advia: true,
-        mchc_advia: true,
-        rdw_advia: true,
-        plt_advia: true,
-        wbc_advia: true,
-        omics_subjects: {
-          select: {
-            subject_id: true,
-            patient_mrn: true,
-            project: true
-          }
-        }
-      }
-    })
-
-    // Get all samples for processing status calculation
-    const allSamples = await prisma.omics_results.findMany({
-      select: {
-        subject_id: true,
-        concentration_1_dna: true,
-        cell_number_1_pbmc: true,
-        vol_plasma_1: true,
-        qc_pass_advia: true,
-        qc_pass_lorrca: true,
-        rbc_advia: true,
-        hb_advia: true,
-        hct_advia: true,
-        mcv_advia: true,
-        mch_advia: true,
-        mchc_advia: true,
-        rdw_advia: true,
-        plt_advia: true,
-        wbc_advia: true
-      }
-    })
-
     // Helper function to check if a value is non-zero
-    const isNonZero = (value: Decimal | number | null): boolean => {
-      if (value === null) return false
+    const isNonZero = (value: unknown): boolean => {
+      if (value === null || value === undefined) return false
       if (typeof value === 'number') return value !== 0
-      return !value.equals(new Decimal(0))
+      if (typeof value === 'string') return value !== '0' && value !== ''
+      // For any other type, convert to number and check
+      return Number(value) !== 0
+    }
+
+    // Get recent samples - Fix schema reference
+    const { data: recentSamples, error: samplesError } = await supabase
+      .schema('laboratory')
+      .from('omics_results')
+      .select(`
+        id,
+        project,
+        subject_id,
+        sample_number,
+        sample_id,
+        date_of_collection,
+        genotype,
+        qc_pass_advia,
+        qc_pass_lorrca,
+        qc_notes_advia,
+        qc_notes_lorrca,
+        concentration_1_dna,
+        cell_number_1_pbmc,
+        vol_plasma_1,
+        rbc_advia,
+        hb_advia,
+        hct_advia,
+        mcv_advia,
+        mch_advia,
+        mchc_advia,
+        rdw_advia,
+        plt_advia,
+        wbc_advia
+      `)
+      .order('date_of_collection', { ascending: false })
+      .limit(10)
+    
+    if (samplesError) {
+      console.error('Error fetching recent samples:', samplesError)
+      throw samplesError
+    }
+
+    // Get all samples for processing status calculation - Fix schema reference
+    const { data: allSamples, error: allSamplesError } = await supabase
+      .schema('laboratory')
+      .from('omics_results')
+      .select(`
+        id,
+        subject_id,
+        concentration_1_dna,
+        cell_number_1_pbmc,
+        vol_plasma_1,
+        rbc_advia,
+        hb_advia,
+        hct_advia,
+        mcv_advia,
+        mch_advia,
+        mchc_advia,
+        rdw_advia,
+        plt_advia,
+        wbc_advia
+      `)
+    
+    if (allSamplesError) {
+      console.error('Error fetching all samples:', allSamplesError)
+      throw allSamplesError
+    }
+
+    // Count total samples and subjects - Fix schema references
+    const { count: totalSamples, error: totalSamplesError } = await supabase
+      .schema('laboratory')
+      .from('omics_results')
+      .select('*', { count: 'exact', head: true })
+    
+    if (totalSamplesError) {
+      console.error('Error counting total samples:', totalSamplesError)
+      throw totalSamplesError
+    }
+
+    const { count: totalSubjects, error: totalSubjectsError } = await supabase
+      .schema('laboratory')
+      .from('omics_subjects')
+      .select('*', { count: 'exact', head: true })
+    
+    if (totalSubjectsError) {
+      console.error('Error counting total subjects:', totalSubjectsError)
+      throw totalSubjectsError
     }
 
     // Calculate subject processing status
     const subjectProcessingStatus = new Map<string, ProcessingStatus>()
-    allSamples.forEach((sample: SampleBase) => {
+    
+    // Use type assertion to match the expected type
+    const typedAllSamples = allSamples as unknown as OmicsSample[]
+    
+    typedAllSamples.forEach((sample) => {
       const currentStatus = subjectProcessingStatus.get(sample.subject_id) || {
         hasDNA: false,
         hasPBMC: false,
@@ -178,14 +204,8 @@ async function getDashboardData() {
     })
 
     // Count subjects by processing status
-    interface SubjectStatusCounts {
-      complete: number
-      partial: number
-      pending: number
-    }
-
     const subjectCounts = Array.from(subjectProcessingStatus.entries()).reduce<SubjectStatusCounts>(
-      (acc, [_, status]) => {
+      (acc, [, status]) => {
         if (status.hasDNA && status.hasPBMC && status.hasPlasma) {
           acc.complete++
         } else if (status.hasDNA || status.hasPBMC || status.hasPlasma) {
@@ -199,7 +219,10 @@ async function getDashboardData() {
     )
 
     // Process recent samples with status information
-    const processedSamples = recentSamples.map((sample: SampleBase) => {
+    // Use type assertion to match the expected type
+    const typedRecentSamples = recentSamples as unknown as OmicsSample[]
+    
+    const processedSamples = typedRecentSamples.map((sample) => {
       // Check if ADVIA has any non-zero values
       const hasValidAdvia = [
         sample.rbc_advia,
@@ -229,7 +252,7 @@ async function getDashboardData() {
       }
 
       // Parse QC notes for detailed failure reasons
-      const parseQCNotes = (status: string | null, notes: string | null) => {
+      const parseQCNotes = (status: string | null | undefined, notes: string | null | undefined) => {
         if (status !== 'No') return null
         return notes ? notes.split(',').map(note => note.trim()) : []
       }
@@ -259,43 +282,19 @@ async function getDashboardData() {
         processing_status,
         qc_status,
         qc_notes: qc_notes.length > 0 ? qc_notes.join(', ') : null,
-        date_of_collection: sample.date_of_collection ? sample.date_of_collection.toISOString() : null
+        date_of_collection: sample.date_of_collection ? new Date(sample.date_of_collection).toISOString() : null
       }
     })
-
-    // Count total samples and subjects
-    const totalSamples = await prisma.omics_results.count()
-    const totalSubjects = await prisma.omics_subjects.count()
 
     // Count QC passed samples (only considering ADVIA and Lorrca failures)
-    const qcPassedSamples = await prisma.omics_results.count({
-      where: {
-        AND: [
-          {
-            OR: [
-              { qc_pass_advia: { not: 'No' } },
-              { qc_pass_advia: null }
-            ]
-          },
-          {
-            OR: [
-              { qc_pass_lorrca: { not: 'No' } },
-              { qc_pass_lorrca: null }
-            ]
-          }
-        ]
-      }
-    })
+    const qcPassedSamples = typedAllSamples.filter((sample) => {
+      return (sample.qc_pass_advia !== 'No' || sample.qc_pass_advia === null) && 
+             (sample.qc_pass_lorrca !== 'No' || sample.qc_pass_lorrca === null)
+    }).length
 
     // Count samples by processing status
-    interface ProcessingStatusCounts {
-      complete: number
-      partial: number
-      pending: number
-    }
-
     const initialCounts: ProcessingStatusCounts = { complete: 0, partial: 0, pending: 0 }
-    const processingStatusCounts = allSamples.reduce((acc: ProcessingStatusCounts, sample: SampleBase) => {
+    const processingStatusCounts = typedAllSamples.reduce((acc: ProcessingStatusCounts, sample) => {
       const hasValidAdvia = [
         sample.rbc_advia,
         sample.hb_advia,
@@ -325,10 +324,11 @@ async function getDashboardData() {
 
     // Filter out any results with null or empty sample_ids
     const filteredSamples = processedSamples.filter(
-      (sample: OmicsResult) => sample.sample_id && sample.sample_id.trim() !== ''
+      (sample) => sample.sample_id && sample.sample_id.trim() !== ''
     )
 
-    return {
+    // Create the dashboard data object
+    const dashboardData: DashboardData = {
       recentSamples: filteredSamples || [],
       totalSamples: totalSamples || 0,
       totalSubjects: totalSubjects || 0,
@@ -342,9 +342,17 @@ async function getDashboardData() {
         pending: subjectCounts.pending || 0
       }
     }
+    
+    return (
+      <DashboardLayout>
+        <DashboardClient initialData={dashboardData} />
+      </DashboardLayout>
+    )
   } catch (error) {
     console.error('Error fetching dashboard data:', error)
-    return {
+    
+    // Return a fallback UI with empty data
+    const emptyData: DashboardData = {
       recentSamples: [],
       totalSamples: 0,
       totalSubjects: 0,
@@ -358,18 +366,11 @@ async function getDashboardData() {
         pending: 0
       }
     }
+    
+    return (
+      <DashboardLayout>
+        <DashboardClient initialData={emptyData} />
+      </DashboardLayout>
+    )
   }
-}
-
-export default async function DashboardPage() {
-  const rawData = await getDashboardData()
-  
-  // Convert all Decimal values to numbers before passing to client
-  const data = convertToNumber(rawData)
-  
-  return (
-    <DashboardLayout>
-      <DashboardClient initialData={data} />
-    </DashboardLayout>
-  )
 }

@@ -20,7 +20,7 @@ interface SamplesTableProps {
 
 type SortField = 'subject_id' | 'sample_id' | 'date_of_collection' | 'genotype' | 'processing_status' | 'qc_status'
 
-export function SamplesTable({ samples }: SamplesTableProps) {
+export default function SamplesTable({ samples = [] }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -48,6 +48,8 @@ export function SamplesTable({ samples }: SamplesTableProps) {
       return 'Invalid date'
     }
   }
+
+  const sampleData = Array.isArray(samples) ? samples : [];
 
   return (
     <div className="overflow-x-auto">
@@ -83,54 +85,62 @@ export function SamplesTable({ samples }: SamplesTableProps) {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {samples.map((sample) => (
-            <tr key={sample.sample_id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sample.subject_id}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sample.sample_id}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {formatDate(sample.date_of_collection)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sample.genotype || 'Not available'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                  ${sample.processing_status === 'Complete' ? 'bg-green-100 text-green-800' :
-                    sample.processing_status === 'Partial' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'}`}>
-                  {sample.processing_status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                  ${sample.qc_status === 'Passed' ? 'bg-green-100 text-green-800' :
-                    sample.qc_status === 'Failed' ? 'bg-red-100 text-red-800' :
-                    'bg-yellow-100 text-yellow-800'}`}>
-                  {sample.qc_status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div className="flex space-x-4">
-                  <Link
-                    href={`/data-entry/individual/${sample.sample_id}`}
-                    className="text-indigo-600 hover:text-indigo-900"
-                  >
-                    <FontAwesomeIcon icon={faEdit} className="h-5 w-5" />
-                  </Link>
-                  <Link
-                    href={`/samples/${sample.sample_id}`}
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    <FontAwesomeIcon icon={faEye} className="h-5 w-5" />
-                  </Link>
-                </div>
+          {sampleData.length > 0 ? (
+            sampleData.map((sample) => (
+              <tr key={sample.sample_id || index} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {sample.subject_id}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {sample.sample_id}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {formatDate(sample.date_of_collection)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {sample.genotype || 'Not available'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                    ${sample.processing_status === 'Complete' ? 'bg-green-100 text-green-800' :
+                      sample.processing_status === 'Partial' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'}`}>
+                    {sample.processing_status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                    ${sample.qc_status === 'Passed' ? 'bg-green-100 text-green-800' :
+                      sample.qc_status === 'Failed' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'}`}>
+                    {sample.qc_status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex space-x-4">
+                    <Link
+                      href={`/data-entry/individual/${sample.sample_id}`}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      <FontAwesomeIcon icon={faEdit} className="h-5 w-5" />
+                    </Link>
+                    <Link
+                      href={`/samples/${sample.sample_id}`}
+                      className="text-gray-600 hover:text-gray-900"
+                    >
+                      <FontAwesomeIcon icon={faEye} className="h-5 w-5" />
+                    </Link>
+                  </div>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                No samples found
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

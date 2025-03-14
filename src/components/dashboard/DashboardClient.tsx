@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { SearchBar } from './SearchBar'
-import { SamplesTable } from './SamplesTable'
+import SamplesTable from './SamplesTable'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faVial, faCheckCircle, faCalendarCheck, faDna,
@@ -27,24 +27,18 @@ interface DashboardOmicsResult {
   qc_status: 'Passed' | 'Failed' | 'Review'
 }
 
-interface DashboardProps {
-  initialData: {
-    recentSamples: DashboardOmicsResult[]
-    totalSamples: number
-    totalSubjects: number
-    qcPassedSamples: number
-    fullyProcessedSamples: number
-    partiallyProcessedSamples: number
-    pendingSamples: number
-    subjectCounts: {
-      complete: number
-      partial: number
-      pending: number
-    }
-  }
+interface DashboardClientProps {
+  patients?: any[];
+  totalSamples?: number;
+  totalSubjects?: number;
+  // Add other props as needed
+  initialData?: any; // This is the problematic prop
 }
 
-export default function DashboardClient({ initialData }: DashboardProps) {
+export default function DashboardClient(props) {
+  // Create a safe version of initialData
+  const initialData = props.initialData || {};
+  
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState(initialData.recentSamples)
   const [loading, setLoading] = useState(false)
@@ -106,7 +100,7 @@ export default function DashboardClient({ initialData }: DashboardProps) {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Subjects</p>
-                <p className="text-2xl font-semibold text-gray-800">{initialData.totalSubjects}</p>
+                <p className="text-2xl font-semibold text-gray-800">{props.totalSubjects}</p>
               </div>
             </div>
             <div className="mt-4">
@@ -116,21 +110,21 @@ export default function DashboardClient({ initialData }: DashboardProps) {
               <div className="flex flex-col gap-1 mt-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-green-600">Complete:</span>
-                  <span className="text-xs font-semibold">{initialData.subjectCounts.complete}</span>
+                  <span className="text-xs font-semibold">{initialData.subjectCounts?.complete || 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-yellow-600">Partial:</span>
-                  <span className="text-xs font-semibold">{initialData.subjectCounts.partial}</span>
+                  <span className="text-xs font-semibold">{initialData.subjectCounts?.partial || 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-600">Pending:</span>
-                  <span className="text-xs font-semibold">{initialData.subjectCounts.pending}</span>
+                  <span className="text-xs font-semibold">{initialData.subjectCounts?.pending || 0}</span>
                 </div>
               </div>
               <div className="mt-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500" style={{ width: `${(initialData.subjectCounts.complete / initialData.totalSubjects) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-yellow-500" style={{ width: `${(initialData.subjectCounts.partial / initialData.totalSubjects) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-gray-400" style={{ width: `${(initialData.subjectCounts.pending / initialData.totalSubjects) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-green-500" style={{ width: `${(initialData.subjectCounts?.complete / props.totalSubjects) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-yellow-500" style={{ width: `${(initialData.subjectCounts?.partial / props.totalSubjects) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-gray-400" style={{ width: `${(initialData.subjectCounts?.pending / props.totalSubjects) * 100}%`, float: 'left' }} />
               </div>
             </div>
           </div>
@@ -142,7 +136,7 @@ export default function DashboardClient({ initialData }: DashboardProps) {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Samples</p>
-                <p className="text-2xl font-semibold text-gray-800">{initialData.totalSamples}</p>
+                <p className="text-2xl font-semibold text-gray-800">{props.totalSamples}</p>
               </div>
             </div>
             <div className="mt-4">
@@ -163,15 +157,15 @@ export default function DashboardClient({ initialData }: DashboardProps) {
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-green-600">Complete:</span>
-                    <span className="text-sm font-semibold">{initialData.fullyProcessedSamples}</span>
+                    <span className="text-sm font-semibold">{initialData.fullyProcessedSamples || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-yellow-600">Partial:</span>
-                    <span className="text-sm font-semibold">{initialData.partiallyProcessedSamples}</span>
+                    <span className="text-sm font-semibold">{initialData.partiallyProcessedSamples || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Pending:</span>
-                    <span className="text-sm font-semibold">{initialData.pendingSamples}</span>
+                    <span className="text-sm font-semibold">{initialData.pendingSamples || 0}</span>
                   </div>
                 </div>
               </div>
@@ -181,9 +175,9 @@ export default function DashboardClient({ initialData }: DashboardProps) {
                 Processing breakdown
               </span>
               <div className="mt-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500" style={{ width: `${(initialData.fullyProcessedSamples / initialData.totalSamples) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-yellow-500" style={{ width: `${(initialData.partiallyProcessedSamples / initialData.totalSamples) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-gray-400" style={{ width: `${(initialData.pendingSamples / initialData.totalSamples) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-green-500" style={{ width: `${(initialData.fullyProcessedSamples / props.totalSamples) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-yellow-500" style={{ width: `${(initialData.partiallyProcessedSamples / props.totalSamples) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-gray-400" style={{ width: `${(initialData.pendingSamples / props.totalSamples) * 100}%`, float: 'left' }} />
               </div>
             </div>
           </div>

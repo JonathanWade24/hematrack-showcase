@@ -1,5 +1,5 @@
 // Export the Prisma client
-export { prisma } from './client';
+export * from './client';
 
 // Export any database utility functions
 export * from './utils';

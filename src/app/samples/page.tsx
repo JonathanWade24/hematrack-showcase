@@ -1,11 +1,10 @@
-import { prisma } from '@/db'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { SamplesTable } from '@/components/dashboard/SamplesTable'
+import SamplesTable from '@/components/dashboard/SamplesTable'
 import { convertToNumber } from '@/lib/utils'
-import { Decimal } from '@prisma/client/runtime/library'
 import Link from 'next/link'
 import { PageSizeSelector } from '@/components/samples/PageSizeSelector'
 import { SamplesSearchBar } from '@/components/samples/SamplesSearchBar'
+import { getSupabaseServerClient } from '@/lib/supabase/db'
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 const DEFAULT_PAGE_SIZE = 20
@@ -15,18 +14,18 @@ interface OmicsResultWithSubject {
   subject_id: string
   date_of_collection: Date | null
   genotype: string | null
-  rbc_advia: Decimal | null
-  hb_advia: Decimal | null
-  hct_advia: Decimal | null
-  mcv_advia: Decimal | null
-  mch_advia: Decimal | null
-  mchc_advia: Decimal | null
-  rdw_advia: Decimal | null
-  plt_advia: Decimal | null
-  wbc_advia: Decimal | null
-  concentration_1_dna: Decimal | null
-  cell_number_1_pbmc: Decimal | null
-  vol_plasma_1: Decimal | null
+  rbc_advia: number | null
+  hb_advia: number | null
+  hct_advia: number | null
+  mcv_advia: number | null
+  mch_advia: number | null
+  mchc_advia: number | null
+  rdw_advia: number | null
+  plt_advia: number | null
+  wbc_advia: number | null
+  concentration_1_dna: number | null
+  cell_number_1_pbmc: number | null
+  vol_plasma_1: number | null
   qc_pass_advia: string | null
   qc_pass_lorrca: string | null
   qc_pass_dna: string | null
@@ -45,90 +44,136 @@ async function getSamplesData(
   order: 'asc' | 'desc' = 'desc'
 ) {
   const skip = (page - 1) * pageSize
-
-  // Build the where clause for search
-  const where = search ? {
-    OR: [
-      { sample_id: { contains: search, mode: 'insensitive' } },
-      { subject_id: { contains: search, mode: 'insensitive' } },
-      { genotype: { contains: search, mode: 'insensitive' } }
-    ]
-  } : {}
+  const supabase = await getSupabaseServerClient()
   
-  const [samples, totalCount] = await Promise.all([
-    prisma.omics_results.findMany({
-      take: pageSize,
-      skip,
-      where,
-      orderBy: {
-        [sort]: order
-      },
-      include: {
-        omics_subjects: true
+  try {
+    // Get total count first
+    const { count: totalCount, error: countError } = await supabase
+      .schema('laboratory')
+      .from('omics_results')
+      .select('*', { count: 'exact', head: true })
+      
+    if (countError) {
+      console.error('Error counting samples:', countError)
+      throw countError
+    }
+    
+    // Build the query for samples
+    let query = supabase
+      .schema('laboratory')
+      .from('omics_results')
+      .select('*')
+      
+    // Add search filter if provided
+    if (search) {
+      query = query.or(`sample_id.ilike.%${search}%,subject_id.ilike.%${search}%,genotype.ilike.%${search}%`)
+    }
+    
+    // Add pagination and ordering
+    query = query
+      .order(sort, { ascending: order === 'asc' })
+      .range(skip, skip + pageSize - 1)
+    
+    // Execute the query
+    const { data: samples, error } = await query
+    
+    if (error) {
+      console.error('Error fetching samples:', error)
+      throw error
+    }
+    
+    // Get subject information for all samples
+    const subjectIds = [...new Set(samples.map(sample => sample.subject_id))]
+    
+    const { data: subjects, error: subjectsError } = await supabase
+      .schema('laboratory')
+      .from('omics_subjects')
+      .select('*')
+      .in('subject_id', subjectIds)
+    
+    if (subjectsError) {
+      console.error('Error fetching subjects:', subjectsError)
+    }
+    
+    // Create a map of subjects by ID for quick lookup
+    const subjectMap = (subjects || []).reduce((map, subject) => {
+      map[subject.subject_id] = subject
+      return map
+    }, {})
+    
+    // Combine sample data with subject data
+    const samplesWithSubjects = samples.map(sample => ({
+      ...sample,
+      omics_subjects: subjectMap[sample.subject_id] || null
+    }))
+
+    // Process samples to include processing and QC status
+    const processedSamples = samplesWithSubjects.map((sample: OmicsResultWithSubject) => {
+      // Helper function to check if a value is non-zero
+      const isNonZero = (value: number | null) => {
+        if (value === null || value === undefined) return false
+        return value !== 0
       }
-    }),
-    prisma.omics_results.count({ where })
-  ])
 
-  // Process samples to include processing and QC status
-  const processedSamples = samples.map((sample: OmicsResultWithSubject) => {
-    // Helper function to check if a Decimal value is non-zero
-    const isNonZero = (value: Decimal | null) => {
-      if (!value) return false
-      return Number(value.toString()) !== 0
-    }
+      // Check if ADVIA has any non-zero values
+      const hasValidAdvia = [
+        sample.rbc_advia,
+        sample.hb_advia,
+        sample.hct_advia,
+        sample.mcv_advia,
+        sample.mch_advia,
+        sample.mchc_advia,
+        sample.rdw_advia,
+        sample.plt_advia,
+        sample.wbc_advia
+      ].some(isNonZero)
 
-    // Check if ADVIA has any non-zero values
-    const hasValidAdvia = [
-      sample.rbc_advia,
-      sample.hb_advia,
-      sample.hct_advia,
-      sample.mcv_advia,
-      sample.mch_advia,
-      sample.mchc_advia,
-      sample.rdw_advia,
-      sample.plt_advia,
-      sample.wbc_advia
-    ].some(isNonZero)
+      // Check other components for non-zero values
+      const hasValidDNA = isNonZero(sample.concentration_1_dna)
+      const hasValidPBMC = isNonZero(sample.cell_number_1_pbmc)
+      const hasValidPlasma = isNonZero(sample.vol_plasma_1)
 
-    // Check other components for non-zero values
-    const hasValidDNA = isNonZero(sample.concentration_1_dna)
-    const hasValidPBMC = isNonZero(sample.cell_number_1_pbmc)
-    const hasValidPlasma = isNonZero(sample.vol_plasma_1)
+      // Determine processing status
+      let processing_status: 'Complete' | 'Partial' | 'Pending'
+      if (!hasValidAdvia) {
+        processing_status = 'Pending'
+      } else if (hasValidDNA && hasValidPBMC && hasValidPlasma) {
+        processing_status = 'Complete'
+      } else {
+        processing_status = 'Partial'
+      }
 
-    // Determine processing status
-    let processing_status: 'Complete' | 'Partial' | 'Pending'
-    if (!hasValidAdvia) {
-      processing_status = 'Pending'
-    } else if (hasValidDNA && hasValidPBMC && hasValidPlasma) {
-      processing_status = 'Complete'
-    } else {
-      processing_status = 'Partial'
-    }
+      // Determine QC status
+      let qc_status: 'Passed' | 'Failed' | 'Review'
+      if (sample.qc_pass_advia === 'No' || sample.qc_pass_lorrca === 'No' || sample.qc_pass_dna === 'No') {
+        qc_status = 'Failed'
+      } else if (sample.qc_pass_advia === 'Review' || sample.qc_pass_lorrca === 'Review' || sample.qc_pass_dna === 'Review') {
+        qc_status = 'Review'
+      } else {
+        qc_status = 'Passed'
+      }
 
-    // Determine QC status
-    let qc_status: 'Passed' | 'Failed' | 'Review'
-    if (sample.qc_pass_advia === 'No' || sample.qc_pass_lorrca === 'No' || sample.qc_pass_dna === 'No') {
-      qc_status = 'Failed'
-    } else if (sample.qc_pass_advia === 'Review' || sample.qc_pass_lorrca === 'Review' || sample.qc_pass_dna === 'Review') {
-      qc_status = 'Review'
-    } else {
-      qc_status = 'Passed'
-    }
+      return {
+        ...sample,
+        processing_status,
+        qc_status,
+        // Ensure date is properly formatted for the table
+        date_of_collection: sample.date_of_collection ? new Date(sample.date_of_collection).toISOString() : null
+      }
+    })
 
     return {
-      ...sample,
-      processing_status,
-      qc_status,
-      // Ensure date is properly formatted for the table
-      date_of_collection: sample.date_of_collection ? sample.date_of_collection.toISOString() : null
+      samples: convertToNumber(processedSamples),
+      totalCount: totalCount || 0,
+      totalPages: Math.ceil((totalCount || 0) / pageSize)
     }
-  })
-
-  return {
-    samples: convertToNumber(processedSamples),
-    totalCount,
-    totalPages: Math.ceil(totalCount / pageSize)
+  } catch (error) {
+    console.error('Error in getSamplesData:', error)
+    return {
+      samples: [],
+      totalCount: 0,
+      totalPages: 0
+    }
   }
 }
 
