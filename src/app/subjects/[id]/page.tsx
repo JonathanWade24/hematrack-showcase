@@ -11,8 +11,9 @@ interface SubjectPageProps {
 }
 
 export default async function SubjectPage({ params }: SubjectPageProps) {
-  // Convert params to a regular object to avoid the async property access error
-  const id = params.id;
+  // For Next.js 15, we need to await params before accessing properties
+  const parameters = await params;
+  const id = parameters.id;
   
   const subject = await getOmicsSubjectById(id);
   

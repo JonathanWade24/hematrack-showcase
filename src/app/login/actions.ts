@@ -3,14 +3,13 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const redirectTo = formData.get('redirect') as string || '/'
   
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
   
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -22,16 +21,22 @@ export async function login(formData: FormData) {
     return redirect('/login?error=' + encodeURIComponent(error.message))
   }
   
+  // If there's a specific URL to redirect to (e.g., from middleware), use that
+  if (redirectTo && redirectTo !== '/login') {
+    revalidatePath('/', 'layout')
+    return redirect(redirectTo)
+  }
+  
+  // Otherwise redirect to root page
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  return redirect('/')
 }
 
 export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
   
   const { error } = await supabase.auth.signUp({
     email,

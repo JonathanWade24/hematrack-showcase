@@ -1,37 +1,58 @@
-import { prisma } from './db'
-import { Prisma } from '@prisma/client'
+import { createClient } from '@/lib/supabase/client'
+import { Database } from '@/types/supabase'
 import { AssayType } from './types'
 
 // Omics Results Operations
-export async function createOmicsResult(data: Partial<Prisma.omics_resultsUncheckedCreateInput>) {
-  return prisma.omics_results.create({
-    data: data as Prisma.omics_resultsUncheckedCreateInput
-  })
+export async function createOmicsResult(data: any) {
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_results')
+    .insert(data)
+    .select()
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 export async function updateOmicsResult(
   sample_id: string, 
   data: Partial<Prisma.omics_resultsUncheckedUpdateInput>
 ) {
-  return prisma.omics_results.update({
-    where: { sample_id },
-    data
-  })
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_results')
+    .update(data)
+    .eq('sample_id', sample_id)
+    .select()
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 export async function getOmicsResultBySampleId(sample_id: string) {
-  return prisma.omics_results.findUnique({
-    where: { sample_id },
-    include: { omics_subjects: true }
-  })
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_results')
+    .select('*')
+    .eq('sample_id', sample_id)
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 export async function getOmicsResultsBySubjectId(subject_id: string) {
-  return prisma.omics_results.findMany({
-    where: { subject_id },
-    include: { omics_subjects: true },
-    orderBy: { date_of_collection: 'desc' }
-  })
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_results')
+    .select('*')
+    .eq('subject_id', subject_id)
+    .order('date_of_collection', { ascending: false })
+    
+  if (error) throw error
+  return result
 }
 
 export async function getOmicsResultsByAssayType(
@@ -43,6 +64,7 @@ export async function getOmicsResultsByAssayType(
     qc_pass?: boolean
   }
 ) {
+  const supabase = createClient()
   const dateField = `date_${assay_type.toLowerCase()}`
   const qcField = `qc_pass_${assay_type.toLowerCase()}`
   
@@ -65,83 +87,105 @@ export async function getOmicsResultsByAssayType(
     }
   }
   
-  return prisma.omics_results.findMany({
-    where,
-    include: { omics_subjects: true },
-    orderBy: { [dateField]: 'desc' }
-  })
+  const { data: result, error } = await supabase
+    .from('omics_results')
+    .select('*')
+    .eq(where)
+    .order(dateField, { ascending: false })
+    
+  if (error) throw error
+  return result
 }
 
 // Subject Operations
-export async function createOmicsSubject(data: Prisma.omics_subjectsUncheckedCreateInput) {
-  return prisma.omics_subjects.create({
-    data
-  })
+export async function createOmicsSubject(data: any) {
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_subjects')
+    .insert(data)
+    .select()
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 export async function getOmicsSubjectById(subject_id: string) {
-  return prisma.omics_subjects.findUnique({
-    where: { subject_id },
-    include: { patients: true }
-  })
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_subjects')
+    .select('*')
+    .eq('subject_id', subject_id)
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
-export async function updateOmicsSubject(
-  subject_id: string, 
-  data: Partial<Prisma.omics_subjectsUncheckedUpdateInput>
-) {
-  return prisma.omics_subjects.update({
-    where: { subject_id },
-    data
-  })
+export async function updateOmicsSubject(subject_id: string, data: any) {
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_subjects')
+    .update(data)
+    .eq('subject_id', subject_id)
+    .select()
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 // Patient Operations
-export async function createPatient(data: Prisma.patientsCreateInput) {
-  return prisma.patients.create({
-    data
-  })
+export async function createPatient(data: any) {
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('patients')
+    .insert(data)
+    .select()
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 export async function getPatientByMRN(patient_mrn: string) {
-  return prisma.patients.findUnique({
-    where: { patient_mrn },
-    include: {
-      omics_subjects: {
-        include: {
-          omics_results: true
-        }
-      }
-    }
-  })
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('patient_mrn', patient_mrn)
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 export async function updatePatient(
   patient_mrn: string,
   data: Prisma.patientsUpdateInput
 ) {
-  return prisma.patients.update({
-    where: { patient_mrn },
-    data
-  })
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('patients')
+    .update(data)
+    .eq('patient_mrn', patient_mrn)
+    .select()
+    .single()
+    
+  if (error) throw error
+  return result
 }
 
 // Search Operations
 export async function searchSubjects(query: string) {
-  return prisma.omics_subjects.findMany({
-    where: {
-      OR: [
-        { subject_id: { contains: query, mode: 'insensitive' } },
-        { patient_mrn: { contains: query, mode: 'insensitive' } }
-      ]
-    },
-    include: {
-      patients: true,
-      omics_results: {
-        orderBy: { date_of_collection: 'desc' }
-      }
-    }
-  })
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('omics_subjects')
+    .select('*')
+    .or(`subject_id.ilike.%${query}%`, `patient_mrn.ilike.%${query}%`)
+    
+  if (error) throw error
+  return result
 }
 
 // Audit Operations
@@ -152,13 +196,19 @@ export async function logAuditEvent(
   new_data: Record<string, unknown>,
   changed_by: string
 ) {
-  return prisma.audit_log.create({
-    data: {
+  const supabase = createClient()
+  const { data: result, error } = await supabase
+    .from('audit_log')
+    .insert({
       table_name,
       action,
-      old_data: old_data as Prisma.JsonObject,
-      new_data: new_data as Prisma.JsonObject,
+      old_data,
+      new_data,
       changed_by
-    }
-  })
+    })
+    .select()
+    .single()
+    
+  if (error) throw error
+  return result
 } 

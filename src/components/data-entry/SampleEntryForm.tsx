@@ -115,7 +115,7 @@ type FormSection = 'basic' | 'advia' | 'dna' | 'pbmc' | 'plasma' | 'lorrca' | 'v
 export function SampleEntryForm({ initialData }: SampleEntryFormProps) {
   const router = useRouter()
   const [formData, setFormData] = useState<SampleData>(initialData || defaultFormData)
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showNewSubjectConfirm, setShowNewSubjectConfirm] = useState(false)
@@ -134,7 +134,7 @@ export function SampleEntryForm({ initialData }: SampleEntryFormProps) {
 
   const handleSubmit = async (forceCreateSubject: boolean = false) => {
     try {
-      setLoading(true)
+      setIsSubmitting(true)
       setError(null)
       setSuccess(null)
 
@@ -155,7 +155,7 @@ export function SampleEntryForm({ initialData }: SampleEntryFormProps) {
         })
       })
 
-      const data: { status?: string; message?: string; error?: string } = await response.json()
+      const data = await response.json()
 
       if (response.status === 409 && data.status === 'new_subject') {
         setShowNewSubjectConfirm(true)
@@ -174,7 +174,7 @@ export function SampleEntryForm({ initialData }: SampleEntryFormProps) {
         setFormData(prev => ({
           ...defaultFormData,
           subject_id: prev.subject_id,
-          sample_number: prev.sample_number + 1,
+          sample_number: prev.sample_number ? prev.sample_number + 1 : 1,
           date_of_collection: new Date().toISOString().split('T')[0]
         }))
       } else if (isEditMode) {
@@ -183,9 +183,10 @@ export function SampleEntryForm({ initialData }: SampleEntryFormProps) {
       }
 
     } catch (err: unknown) {
+      console.error('Error submitting form:', err)
       setError(err instanceof Error ? err.message : 'An unexpected error occurred')
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -219,97 +220,104 @@ export function SampleEntryForm({ initialData }: SampleEntryFormProps) {
       onInputChange: handleInputChange
     }
 
-    switch (activeSection) {
-      case 'basic':
-        return <BasicInfoSection {...commonProps} />
-      case 'advia':
-        return <AdviaSection {...commonProps} />
-      case 'dna':
-        return <DNASection {...commonProps} />
-      case 'pbmc':
-        return <PBMCSection {...commonProps} />
-      case 'plasma':
-        return <PlasmaSection {...commonProps} />
-      case 'lorrca':
-        return <LorrcaSection {...commonProps} />
-      case 'viscosity':
-        return <ViscositySection {...commonProps} />
-      case 'hvr':
-        return <HVRSection {...commonProps} />
-      case 'fcells':
-        return <FCellsSection {...commonProps} />
-      case 'adhesion':
-        return <AdhesionSection {...commonProps} />
-      case 'hplc':
-        return <HPLCSection {...commonProps} />
-      default:
-        return <div>Section under development</div>
-    }
+    // Wrap the active section in a div with form-section class
+    return (
+      <div className="relative form-section">
+        {(() => {
+          switch (activeSection) {
+            case 'basic':
+              return <BasicInfoSection {...commonProps} />
+            case 'advia':
+              return <AdviaSection {...commonProps} />
+            case 'dna':
+              return <DNASection {...commonProps} />
+            case 'pbmc':
+              return <PBMCSection {...commonProps} />
+            case 'plasma':
+              return <PlasmaSection {...commonProps} />
+            case 'lorrca':
+              return <LorrcaSection {...commonProps} />
+            case 'viscosity':
+              return <ViscositySection {...commonProps} />
+            case 'hvr':
+              return <HVRSection {...commonProps} />
+            case 'fcells':
+              return <FCellsSection {...commonProps} />
+            case 'adhesion':
+              return <AdhesionSection {...commonProps} />
+            case 'hplc':
+              return <HPLCSection {...commonProps} />
+            default:
+              return <div>Section under development</div>
+          }
+        })()}
+      </div>
+    )
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-white rounded-lg shadow-sm p-6">
       {showSubjectIdWarning && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
-          <p className="text-yellow-700 font-medium">Warning: Changing Subject ID</p>
-          <p className="text-yellow-600">
-            You are about to change the Subject ID. This will affect data relationships and should only be done if absolutely necessary.
-            Please double-check that this change is intended.
+          <p className="text-yellow-700">
+            Warning: Changing the Subject ID will create a new subject record. This should only be done if the original ID was entered incorrectly.
           </p>
         </div>
       )}
-
+      
       {renderTabs()}
-
-      <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+      
+      <div className="mb-16 pb-12">
         {renderActiveSection()}
-
+        
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 text-red-600">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mt-8 text-red-600">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 rounded-md p-4 text-green-600">
+          <div className="bg-green-50 border border-green-200 rounded-md p-4 mt-8 text-green-600">
             {success}
           </div>
         )}
+      </div>
 
+      <div className="flex justify-end space-x-4 mt-12 pt-6 border-t border-gray-200">
         {showNewSubjectConfirm ? (
-          <div className="space-y-4">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-              <p className="text-yellow-700">
-                This will create a new subject in the database. The subject will be flagged as pending until a matching MRN is provided through clinical data integration.
-              </p>
-            </div>
-            <div className="flex space-x-4">
-              <Button
-                onClick={() => handleSubmit(true)}
-                disabled={loading}
-                isLoading={loading}
-              >
-                Confirm New Subject
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowNewSubjectConfirm(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
+          <>
+            <Button
+              onClick={() => handleSubmit(true)}
+              disabled={isSubmitting}
+            >
+              Confirm New Subject
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowNewSubjectConfirm(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+          </>
         ) : (
-          <Button
-            type="submit"
-            disabled={loading}
-            isLoading={loading}
-          >
-            {activeSection === 'basic' ? 'Save Initial Sample Data' : 'Update Sample Data'}
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              onClick={() => router.push('/data-entry')}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleSubmit()}
+              disabled={!formData.subject_id || !formData.sample_number || !formData.date_of_collection || isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Save Sample'}
+            </Button>
+          </>
         )}
-      </form>
+      </div>
     </div>
   )
 } 

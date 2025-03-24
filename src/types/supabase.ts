@@ -122,3 +122,17 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export interface User {
+  id: string
+  email?: string
+  user_metadata: {
+    full_name?: string
+    [key: string]: any
+  }
+  app_metadata: {
+    [key: string]: any
+  }
+  created_at?: string
+  updated_at?: string
+}

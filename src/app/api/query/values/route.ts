@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
-
-// Initialize Prisma client
-const prisma = new PrismaClient();
 
 // Define the request schema
 const ColumnValuesRequestSchema = z.object({
@@ -14,55 +12,53 @@ const ColumnValuesRequestSchema = z.object({
   limit: z.number().optional().default(100),
 });
 
-export async function POST(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const body = await request.json();
-    const { schema, table, column, search, limit } = ColumnValuesRequestSchema.parse(body);
+    const { searchParams } = new URL(request.url);
+    const schema = searchParams.get('schema');
+    const table = searchParams.get('table');
+    const column = searchParams.get('column');
+    const search = searchParams.get('search');
     
-    // Validate table, schema, and column names to prevent SQL injection
-    if (!/^[a-zA-Z0-9_]+$/.test(table) || !/^[a-zA-Z0-9_]+$/.test(schema) || !/^[a-zA-Z0-9_]+$/.test(column)) {
-      throw new Error('Invalid table, schema, or column name');
+    if (!schema || !table || !column) {
+      return NextResponse.json(
+        { error: 'Missing required parameters' },
+        { status: 400 }
+      );
     }
     
-    // Build the SQL query to get distinct values and their counts
-    let sql = `
-      SELECT 
-        "${column}" as value, 
-        COUNT(*) as count
-      FROM 
-        "${schema}"."${table}"
-      WHERE 
-        "${column}" IS NOT NULL
-    `;
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
     
-    // Add search condition if provided
+    // Build the query
+    let query = supabase
+      .schema(schema)
+      .from(table)
+      .select(column)
+      .order(column);
+    
+    // Add search filter if provided
     if (search) {
-      sql += ` AND "${column}"::text ILIKE $1`;
+      query = query.ilike(column, `%${search}%`);
     }
-    
-    // Group by and order by
-    sql += `
-      GROUP BY 
-        "${column}"
-      ORDER BY 
-        count DESC, 
-        "${column}"
-      LIMIT ${limit}
-    `;
     
     // Execute the query
-    const values = search 
-      ? await prisma.$queryRawUnsafe(sql, `%${search}%`)
-      : await prisma.$queryRawUnsafe(sql);
+    const { data: values, error } = await query;
     
-    // Return the results
-    return NextResponse.json({ values }, { status: 200 });
+    if (error) {
+      throw error;
+    }
+    
+    // Extract unique values
+    const uniqueValues = [...new Set(values?.map(v => v[column as keyof typeof v]))]
+      .filter((v): v is string | number => v !== null)
+      .sort();
+    
+    return NextResponse.json(uniqueValues);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch column values';
-    console.error('Error fetching column values:', errorMessage);
-    
+    console.error('Error fetching values:', error);
     return NextResponse.json(
-      { error: errorMessage },
+      { error: 'Failed to fetch values' },
       { status: 500 }
     );
   }

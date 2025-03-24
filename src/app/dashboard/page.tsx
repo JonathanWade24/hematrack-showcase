@@ -1,11 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  // First create the client properly - must await it
+  const supabase = await createClient()
 
   const { data: { user }, error } = await supabase.auth.getUser()
   

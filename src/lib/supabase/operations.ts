@@ -1,4 +1,5 @@
 import { getSupabaseServerClient, getSupabaseAdminClient, handleSupabaseError } from './db';
+import { createPhiClient, createClient } from './server';
 import { AssayType } from '../types';
 
 // Type definitions for our database tables
@@ -52,10 +53,17 @@ export type Patient = {
 export async function createOmicsResult(data: Partial<OmicsResult>) {
   try {
     const supabase = await getSupabaseServerClient();
+    
+    // Generate a UUID for the id field if not provided
+    const dataWithId = {
+      ...data,
+      id: data.id || crypto.randomUUID()
+    };
+    
     const { data: result, error } = await supabase
       .schema('laboratory')
       .from('omics_results')
-      .insert(data)
+      .insert(dataWithId)
       .select()
       .single();
     
@@ -222,10 +230,17 @@ export async function getOmicsResultsByAssayType(
 export async function createOmicsSubject(data: Partial<OmicsSubject>) {
   try {
     const supabase = await getSupabaseServerClient();
+    
+    // Generate a UUID for the id field if not provided
+    const dataWithId = {
+      ...data,
+      id: data.id || crypto.randomUUID()
+    };
+    
     const { data: result, error } = await supabase
       .schema('laboratory')
       .from('omics_subjects')
-      .insert(data)
+      .insert(dataWithId)
       .select()
       .single();
     
@@ -238,41 +253,28 @@ export async function createOmicsSubject(data: Partial<OmicsSubject>) {
 
 export async function getOmicsSubjectById(subject_id: string) {
   try {
-    const supabase = getSupabaseServerClient();
+    const labClient = await createClient(); // laboratory schema
+    const phiClient = await createPhiClient(); // phi schema
     
     // Get the subject data
-    const { data: subject, error: subjectError } = await supabase
-      .schema('laboratory')
+    const { data: subject, error } = await labClient
       .from('omics_subjects')
       .select('*')
       .eq('subject_id', subject_id)
-      .single();
+      .maybeSingle();
     
-    if (subjectError) {
-      console.error('Error fetching subject:', subjectError);
+    if (error) {
+      handleSupabaseError(error);
       return null;
     }
     
-    // If we have a subject with a patient_mrn, get the patient data
-    let patient = null;
-    if (subject && subject.patient_mrn) {
-      const { data: patientData, error: patientError } = await supabase
-        .schema('phi')
-        .from('patients')
-        .select('*')
-        .eq('patient_mrn', subject.patient_mrn)
-        .single();
-      
-      if (patientError) {
-        console.error('Error fetching patient:', patientError);
-      } else {
-        patient = patientData;
-      }
+    if (!subject) {
+      console.log(`Subject with ID ${subject_id} not found`);
+      return null;
     }
     
-    // Get all samples for this subject
-    const { data: samples, error: samplesError } = await supabase
-      .schema('laboratory')
+    // Get the samples data for this subject
+    const { data: samples, error: samplesError } = await labClient
       .from('omics_results')
       .select('*')
       .eq('subject_id', subject_id)
@@ -282,17 +284,44 @@ export async function getOmicsSubjectById(subject_id: string) {
       console.error('Error fetching samples:', samplesError);
     }
     
-    // Combine the data
+    // If subject has a patient_mrn, get the patient data
+    let patient = null;
+    if (subject?.patient_mrn) {
+      try {
+        const { data: patientData, error: patientError } = await phiClient
+          .from('patients')
+          .select('*')
+          .eq('patient_mrn', subject.patient_mrn)
+          .maybeSingle(); // Use maybeSingle to avoid errors if not found
+        
+        if (patientError) {
+          console.error('Error fetching patient data:', patientError);
+        } else if (patientData) {
+          patient = patientData;
+        } else {
+          console.log(`Patient with MRN ${subject.patient_mrn} not found`);
+        }
+      } catch (phiError) {
+        console.error('Error accessing PHI data:', phiError);
+        // Continue without PHI data - the user might not have access
+      }
+    }
+    
+    // Return the combined object
     return {
       ...subject,
-      patients: patient || {},
-      omics_results: samples || []
+      omics_results: samples || [], // Add the samples to the subject data
+      patients: patient // Renamed from patient to patients to match expected structure
     };
   } catch (error) {
+    console.error('Error in getOmicsSubjectById:', error);
     handleSupabaseError(error);
     return null;
   }
 }
+
+// Alias for getOmicsSubjectById for clarity
+export const getOmicsSubjectBySubjectId = getOmicsSubjectById;
 
 export async function getAllOmicsSubjects() {
   try {
@@ -374,11 +403,18 @@ export async function updateOmicsSubject(subject_id: string, data: Partial<Omics
 // Patient Operations
 export async function createPatient(data: Partial<Patient>) {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = await getSupabaseServerClient();
+    
+    // Generate a UUID for the id field if not provided
+    const dataWithId = {
+      ...data,
+      id: data.id || crypto.randomUUID()
+    };
+    
     const { data: result, error } = await supabase
       .schema('phi')
       .from('patients')
-      .insert(data)
+      .insert(dataWithId)
       .select()
       .single();
     
@@ -391,11 +427,11 @@ export async function createPatient(data: Partial<Patient>) {
 
 export async function getAllPatients() {
   try {
-    const supabase = getSupabaseServerClient();
+    const phiClient = await createPhiClient();
+    const labClient = await createClient(); // laboratory schema by default
     
     // Get all patients
-    const { data: patients, error: patientsError } = await supabase
-      .schema('phi')
+    const { data: patients, error: patientsError } = await phiClient
       .from('patients')
       .select('*')
       .order('created_at', { ascending: false });
@@ -405,12 +441,16 @@ export async function getAllPatients() {
       return [];
     }
     
+    if (!patients || patients.length === 0) {
+      console.log('No patients found');
+      return [];
+    }
+    
     // For each patient, get their omics_subjects and registrations
     const patientsWithRelations = await Promise.all(
       patients.map(async (patient) => {
         // Get omics_subjects for this patient
-        const { data: omicsSubjects, error: omicsError } = await supabase
-          .schema('laboratory')
+        const { data: omicsSubjects, error: omicsError } = await labClient
           .from('omics_subjects')
           .select('*')
           .eq('patient_mrn', patient.patient_mrn);
@@ -420,8 +460,7 @@ export async function getAllPatients() {
         }
         
         // Get registrations for this patient
-        const { data: registrations, error: regError } = await supabase
-          .schema('phi')
+        const { data: registrations, error: regError } = await phiClient
           .from('subject_registration')
           .select('*')
           .eq('patient_mrn', patient.patient_mrn);
@@ -433,8 +472,7 @@ export async function getAllPatients() {
         // For each omics subject, get their samples
         const omicsSubjectsWithSamples = await Promise.all(
           (omicsSubjects || []).map(async (subject) => {
-            const { data: samples, error: samplesError } = await supabase
-              .schema('laboratory')
+            const { data: samples, error: samplesError } = await labClient
               .from('omics_results')
               .select('*')
               .eq('subject_id', subject.subject_id)
@@ -461,6 +499,7 @@ export async function getAllPatients() {
     
     return patientsWithRelations;
   } catch (error) {
+    console.error('Error in getAllPatients:', error);
     handleSupabaseError(error);
     return [];
   }

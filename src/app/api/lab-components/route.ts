@@ -1,30 +1,30 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/db'
+import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
 export async function GET() {
   try {
-    const components = await prisma.labs.findMany({
-      select: {
-        lab_component_description: true
-      },
-      where: {
-        lab_component_description: {
-          not: null
-        }
-      },
-      distinct: ['lab_component_description'],
-      orderBy: {
-        lab_component_description: 'asc'
-      }
-    })
-
-    const descriptions = components
-      .map((c: { lab_component_description: string | null }) => c.lab_component_description)
-      .filter((desc: string | null): desc is string => desc !== null)
-
-    return NextResponse.json(descriptions)
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
+    
+    const { data: components, error } = await supabase
+      .from('labs')
+      .select('lab_component_description')
+      .order('lab_component_description')
+    
+    if (error) {
+      throw error
+    }
+    
+    // Get unique component descriptions
+    const uniqueComponents = [...new Set(components.map(c => c.lab_component_description))]
+    
+    return NextResponse.json(uniqueComponents)
   } catch (error) {
     console.error('Error fetching lab components:', error)
-    return NextResponse.json({ error: 'Failed to fetch lab components' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch lab components' },
+      { status: 500 }
+    )
   }
 } 

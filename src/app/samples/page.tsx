@@ -4,7 +4,7 @@ import { convertToNumber } from '@/lib/utils'
 import Link from 'next/link'
 import { PageSizeSelector } from '@/components/samples/PageSizeSelector'
 import { SamplesSearchBar } from '@/components/samples/SamplesSearchBar'
-import { getSupabaseServerClient } from '@/lib/supabase/db'
+import { createClient } from '@/lib/supabase/server'
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 const DEFAULT_PAGE_SIZE = 20
@@ -44,12 +44,11 @@ async function getSamplesData(
   order: 'asc' | 'desc' = 'desc'
 ) {
   const skip = (page - 1) * pageSize
-  const supabase = await getSupabaseServerClient()
+  const labClient = await createClient() // Default is laboratory schema
   
   try {
     // Get total count first
-    const { count: totalCount, error: countError } = await supabase
-      .schema('laboratory')
+    const { count: totalCount, error: countError } = await labClient
       .from('omics_results')
       .select('*', { count: 'exact', head: true })
       
@@ -59,8 +58,7 @@ async function getSamplesData(
     }
     
     // Build the query for samples
-    let query = supabase
-      .schema('laboratory')
+    let query = labClient
       .from('omics_results')
       .select('*')
       
@@ -85,8 +83,7 @@ async function getSamplesData(
     // Get subject information for all samples
     const subjectIds = [...new Set(samples.map(sample => sample.subject_id))]
     
-    const { data: subjects, error: subjectsError } = await supabase
-      .schema('laboratory')
+    const { data: subjects, error: subjectsError } = await labClient
       .from('omics_subjects')
       .select('*')
       .in('subject_id', subjectIds)
@@ -188,20 +185,15 @@ interface PageProps {
 }
 
 export default async function SamplesPage({ searchParams }: PageProps) {
-  // Convert searchParams to a regular object to avoid the async property access error
-  const params = {
-    page: searchParams.page,
-    pageSize: searchParams.pageSize,
-    search: searchParams.search,
-    sort: searchParams.sort,
-    order: searchParams.order
-  };
+  // For Next.js 15, we need to await searchParams before accessing properties
+  const awaitedParams = await searchParams;
 
-  const currentPage = Number(params.page) || 1
-  const pageSize = Number(params.pageSize) || DEFAULT_PAGE_SIZE
-  const search = params.search || undefined
-  const sort = params.sort || 'date_of_collection'
-  const order = (params.order || 'desc') as 'asc' | 'desc'
+  // Now use the awaited params
+  const currentPage = Number(awaitedParams.page) || 1
+  const pageSize = Number(awaitedParams.pageSize) || DEFAULT_PAGE_SIZE
+  const search = awaitedParams.search || undefined
+  const sort = awaitedParams.sort || 'date_of_collection'
+  const order = (awaitedParams.order || 'desc') as 'asc' | 'desc'
 
   const { samples, totalCount, totalPages } = await getSamplesData(
     currentPage,
@@ -248,80 +240,112 @@ export default async function SamplesPage({ searchParams }: PageProps) {
     if (middleEnd < totalPages - 1) range.push('ellipsis')
 
     // Always show last page
-    range.push(totalPages)
+    if (totalPages > 1) range.push(totalPages)
 
     return range
   }
 
   const paginationRange = generatePaginationRange(currentPage, totalPages)
 
+  // Generate URL for pagination links
+  const getPaginationUrl = (page: number) => {
+    const url = new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+    url.pathname = '/samples'
+    
+    if (page !== 1) url.searchParams.set('page', page.toString())
+    if (pageSize !== DEFAULT_PAGE_SIZE) url.searchParams.set('pageSize', pageSize.toString())
+    if (search) url.searchParams.set('search', search)
+    if (sort !== 'date_of_collection') url.searchParams.set('sort', sort)
+    if (order !== 'desc') url.searchParams.set('order', order)
+    
+    return url.pathname + url.search
+  }
+
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">All Samples</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Showing {samples.length} of {totalCount} total samples
-            </p>
+      <div className="py-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold text-gray-900">Samples</h1>
+            <Link
+              href="/data-entry/individual"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Add New Sample
+            </Link>
           </div>
-
-          {/* Search and Page Size Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          
+          <div className="flex justify-between mb-4">
             <SamplesSearchBar />
-            <PageSizeSelector pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTIONS} />
+            <PageSizeSelector 
+              pageSize={pageSize} 
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+            />
           </div>
-
-          {/* Samples Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <SamplesTable samples={samples} />
-          </div>
-
+          
+          <SamplesTable samples={samples} />
+          
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2">
-              <Link
-                href={`/samples?page=${Math.max(1, currentPage - 1)}&pageSize=${pageSize}&search=${search}&sort=${sort}&order=${order}`}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage === 1
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Previous
-              </Link>
-              
-              {paginationRange.map((page, index) => (
-                page === 'ellipsis' ? (
-                  <span key={`ellipsis-${index}`} className="px-3 py-2">
-                    ...
-                  </span>
-                ) : (
-                  <Link
-                    key={page}
-                    href={`/samples?page=${page}&pageSize=${pageSize}&search=${search}&sort=${sort}&order=${order}`}
-                    className={`px-3 py-2 rounded-md ${
-                      currentPage === page
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {page}
-                  </Link>
-                )
-              ))}
-
-              <Link
-                href={`/samples?page=${Math.min(totalPages, currentPage + 1)}&pageSize=${pageSize}&search=${search}&sort=${sort}&order=${order}`}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage === totalPages
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Next
-              </Link>
+            <div className="mt-6">
+              <nav className="flex justify-center">
+                <ul className="flex items-center space-x-2">
+                  {/* Previous button */}
+                  <li>
+                    <Link
+                      href={currentPage > 1 ? getPaginationUrl(currentPage - 1) : '#'}
+                      className={`px-3 py-2 rounded-md ${
+                        currentPage > 1
+                          ? 'text-gray-700 hover:bg-gray-50'
+                          : 'text-gray-400 cursor-not-allowed'
+                      }`}
+                      aria-disabled={currentPage <= 1}
+                      tabIndex={currentPage <= 1 ? -1 : undefined}
+                    >
+                      &laquo;
+                    </Link>
+                  </li>
+                  
+                  {/* Page numbers */}
+                  {paginationRange.map((page, index) => (
+                    <li key={index}>
+                      {page === 'ellipsis' ? (
+                        <span className="px-3 py-2">...</span>
+                      ) : (
+                        <Link
+                          href={getPaginationUrl(page as number)}
+                          className={`px-3 py-2 rounded-md ${
+                            currentPage === page
+                              ? 'bg-indigo-600 text-white'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                  
+                  {/* Next button */}
+                  <li>
+                    <Link
+                      href={currentPage < totalPages ? getPaginationUrl(currentPage + 1) : '#'}
+                      className={`px-3 py-2 rounded-md ${
+                        currentPage < totalPages
+                          ? 'text-gray-700 hover:bg-gray-50'
+                          : 'text-gray-400 cursor-not-allowed'
+                      }`}
+                      aria-disabled={currentPage >= totalPages}
+                      tabIndex={currentPage >= totalPages ? -1 : undefined}
+                    >
+                      &raquo;
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
+              <p className="mt-3 text-center text-sm text-gray-700">
+                Showing page {currentPage} of {totalPages} ({totalCount} total samples)
+              </p>
             </div>
           )}
         </div>

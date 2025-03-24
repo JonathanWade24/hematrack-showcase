@@ -1,9 +1,9 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { prisma } from '@/db'
 import { convertToNumber } from '@/lib/utils'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHospital, faUserDoctor } from '@fortawesome/free-solid-svg-icons'
+import { createClinicalClient, createPhiClient } from '@/lib/supabase/server'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -16,40 +16,80 @@ interface PageProps {
 }
 
 async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) {
-  const where = type ? { visit_type: type } : {}
+  const clinicalClient = await createClinicalClient()
+  const phiClient = await createPhiClient()
   
-  const [visits, totalCount] = await Promise.all([
-    prisma.unified_visits.findMany({
-      where,
-      take: pageSize,
-      skip: (page - 1) * pageSize,
-      orderBy: {
-        start_date: 'desc'
-      },
-      include: {
-        patient: {
-          select: {
-            first_name: true,
-            last_name: true,
-            patient_mrn: true
-          }
-        }
-      }
-    }),
-    prisma.unified_visits.count({ where })
-  ])
+  // Build the query for visits
+  let query = clinicalClient
+    .from('unified_visits')
+    .select('*', { count: 'exact' })
+    .order('start_date', { ascending: false })
+    .range((page - 1) * pageSize, page * pageSize - 1)
+  
+  // Add type filter if specified
+  if (type) {
+    query = query.eq('visit_type', type)
+  }
+  
+  // Execute the query
+  const { data: visitsData, count, error } = await query
+  
+  if (error) {
+    console.error('Error fetching visits:', error)
+    return {
+      visits: [],
+      totalCount: 0,
+      totalPages: 0
+    }
+  }
 
+  // Get unique patient MRNs
+  const patientMrns = [...new Set(visitsData?.map(visit => visit.patient_mrn) || [])]
+  
+  // Fetch patient data for these MRNs
+  const { data: patientsData, error: patientsError } = await phiClient
+    .from('patients')
+    .select('first_name, last_name, patient_mrn')
+    .in('patient_mrn', patientMrns)
+  
+  if (patientsError) {
+    console.error('Error fetching patients:', patientsError)
+    return {
+      visits: [],
+      totalCount: 0,
+      totalPages: 0
+    }
+  }
+  
+  // Create a map of patient data by MRN
+  const patientMap: Record<string, any> = (patientsData || []).reduce((acc: Record<string, any>, patient: any) => {
+    acc[patient.patient_mrn] = patient
+    return acc
+  }, {})
+  
+  // Combine visit data with patient data
+  const visits = (visitsData || []).map((visit: any) => ({
+    ...visit,
+    patient: patientMap[visit.patient_mrn] || { 
+      first_name: 'Unknown', 
+      last_name: 'Patient',
+      patient_mrn: visit.patient_mrn
+    }
+  }))
+  
   return {
     visits: convertToNumber(visits),
-    totalCount,
-    totalPages: Math.ceil(totalCount / pageSize)
+    totalCount: count || 0,
+    totalPages: Math.ceil((count || 0) / pageSize)
   }
 }
 
 export default async function VisitsPage({ searchParams }: PageProps) {
-  const currentPage = Number(searchParams.page) || 1
-  const pageSize = Number(searchParams.pageSize) || DEFAULT_PAGE_SIZE
-  const type = searchParams.type
+  // With Next.js 14+, searchParams needs to be awaited
+  const params = await searchParams;
+  const currentPage = Number(params.page) || 1
+  const pageSize = Number(params.pageSize) || DEFAULT_PAGE_SIZE
+  const type = params.type
 
   const { visits, totalPages } = await getVisits(currentPage, pageSize, type)
 

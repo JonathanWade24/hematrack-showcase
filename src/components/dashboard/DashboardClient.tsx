@@ -7,7 +7,7 @@ import SamplesTable from './SamplesTable'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faVial, faCheckCircle, faCalendarCheck, faDna,
-  faPlus, faFileExport, faChartPie, faCog
+  faPlus, faFileExport, faChartPie
 } from '@fortawesome/free-solid-svg-icons'
 import Link from 'next/link'
 
@@ -66,6 +66,51 @@ export default function DashboardClient(props) {
       setLoading(false)
     }
   }
+
+  // Function to handle exporting data to CSV
+  const handleExportData = () => {
+    try {
+      // Generate CSV content
+      const headers = [
+        'Sample ID', 
+        'Subject ID', 
+        'Date of Collection', 
+        'Genotype', 
+        'Processing Status', 
+        'QC Status'
+      ];
+      
+      const csvContent = [
+        headers.join(','),
+        ...results.map(sample => [
+          sample.sample_id || '',
+          sample.subject_id || '',
+          sample.date_of_collection || '',
+          sample.genotype || '',
+          sample.processing_status || '',
+          sample.qc_status || ''
+        ].map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      // Set up download attributes
+      link.setAttribute('href', url);
+      link.setAttribute('download', `samples_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
 
   // Calculate QC pass percentage
   const qcPassPercentage = ((initialData.qcPassedSamples / initialData.totalSamples) * 100).toFixed(1)
@@ -203,17 +248,16 @@ export default function DashboardClient(props) {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap justify-center sm:justify-start gap-4">
-          <button className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
+          <Link href="/data-entry/individual" className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
             <FontAwesomeIcon icon={faPlus} className="mr-2" /> Add New Sample
-          </button>
-          <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md">
+          </Link>
+          <button 
+            onClick={handleExportData}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md">
             <FontAwesomeIcon icon={faFileExport} className="mr-2" /> Export Data
           </button>
           <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md">
             <FontAwesomeIcon icon={faChartPie} className="mr-2" /> Generate Report
-          </button>
-          <button className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors shadow-md">
-            <FontAwesomeIcon icon={faCog} className="mr-2" /> Settings
           </button>
         </div>
 

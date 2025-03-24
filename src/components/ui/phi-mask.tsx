@@ -1,6 +1,7 @@
 'use client'
 
 import { usePHI } from '@/contexts/PHIContext'
+import { ReactNode } from 'react'
 
 type PHIType = 
   | 'name'           // Full names
@@ -16,20 +17,44 @@ type PHIType =
   | 'age'            // Age at collection (not masked)
   | 'lab_value'      // Laboratory values (not masked)
 
-interface PHIMaskProps {
-  type: PHIType
-  value: string | number | Date | null | undefined
+interface BasePhiMaskProps {
   maskWith?: string
   showPartial?: boolean // Whether to show partial information
 }
 
-export function PHIMask({ 
-  type, 
-  value, 
-  maskWith = '••••',
-  showPartial = true 
-}: PHIMaskProps) {
+// Original props with type and value
+interface PhiMaskValueProps extends BasePhiMaskProps {
+  type: PHIType
+  value: string | number | Date | null | undefined
+  children?: never
+}
+
+// New props with children
+interface PhiMaskChildrenProps extends BasePhiMaskProps {
+  type?: never
+  value?: never
+  children: ReactNode
+}
+
+// Union type to handle both ways of using the component
+type PHIMaskProps = PhiMaskValueProps | PhiMaskChildrenProps
+
+export function PHIMask(props: PHIMaskProps) {
   const { showPHI } = usePHI()
+  const maskWith = props.maskWith || '••••'
+  const showPartial = props.showPartial !== undefined ? props.showPartial : true
+
+  // If children are provided, use those
+  if ('children' in props && props.children) {
+    return showPHI ? <>{props.children}</> : <span className="phi-masked">{maskWith}</span>
+  }
+
+  // Extract type and value for the original usage
+  if (!('type' in props) || !('value' in props)) {
+    return null
+  }
+
+  const { type, value } = props
 
   if (!value) return null
 

@@ -3,18 +3,19 @@ import { VisitsViewer } from '@/components/visits/VisitsViewer'
 import type { Visit } from '@/components/visits/VisitsViewer'
 import { convertToNumber } from '@/lib/utils'
 import { notFound } from 'next/navigation'
-import { getSupabaseServerClient } from '@/lib/supabase/db'
+import { createClient, createPhiClient, createClinicalClient } from '@/lib/supabase/server'
 
 async function getVisitData(patientMrn: string) {
-  const supabase = await getSupabaseServerClient()
+  const phiClient = await createPhiClient()
+  const clinicalClient = await createClinicalClient()
+  const labClient = await createClient() // default is laboratory
   
   // Get patient information
-  const { data: patient, error: patientError } = await supabase
-    .schema('phi')
+  const { data: patient, error: patientError } = await phiClient
     .from('patients')
     .select('first_name, last_name, birth_date, sex, race, ethnicity')
     .eq('patient_mrn', patientMrn)
-    .single()
+    .maybeSingle()
 
   if (patientError || !patient) {
     console.error('Error fetching patient:', patientError)
@@ -22,8 +23,7 @@ async function getVisitData(patientMrn: string) {
   }
 
   // Get visits
-  const { data: visits, error: visitsError } = await supabase
-    .schema('clinical')
+  const { data: visits, error: visitsError } = await clinicalClient
     .from('unified_visits')
     .select('id, visit_id, visit_type, start_date, end_date, department, icu_admission_yn')
     .eq('patient_mrn', patientMrn)
@@ -38,12 +38,11 @@ async function getVisitData(patientMrn: string) {
   const visitsWithDetails = await Promise.all(
     visits.map(async (visit) => {
       // Get vitals
-      const { data: vitalsResult, error: vitalsError } = await supabase
-        .schema('clinical')
+      const { data: vitalsResult, error: vitalsError } = await clinicalClient
         .from('visit_vitals_view')
         .select('*')
         .eq('visit_id', visit.id)
-        .single()
+        .maybeSingle()
       
       if (vitalsError && vitalsError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
         console.error(`Error fetching vitals for visit ${visit.id}:`, vitalsError)
@@ -57,8 +56,7 @@ async function getVisitData(patientMrn: string) {
       }
 
       // Get diagnoses
-      const { data: diagnosesResult, error: diagnosesError } = await supabase
-        .schema('clinical')
+      const { data: diagnosesResult, error: diagnosesError } = await clinicalClient
         .from('visit_diagnoses_view')
         .select('diagnoses')
         .eq('visit_id', visit.id)
@@ -76,8 +74,7 @@ async function getVisitData(patientMrn: string) {
       )
 
       // Get medications
-      const { data: medicationsResult, error: medicationsError } = await supabase
-        .schema('clinical')
+      const { data: medicationsResult, error: medicationsError } = await clinicalClient
         .from('visit_associated_medications')
         .select('medication_data')
         .eq('visit_id', visit.id)
@@ -96,8 +93,7 @@ async function getVisitData(patientMrn: string) {
       }))
 
       // Get labs
-      const { data: labsResult, error: labsError } = await supabase
-        .schema('clinical')
+      const { data: labsResult, error: labsError } = await clinicalClient
         .from('visit_associated_labs')
         .select('lab_component_description, lab_result_value, result_time, proc_name')
         .eq('visit_id', visit.id)
@@ -116,8 +112,7 @@ async function getVisitData(patientMrn: string) {
 
       // Get OMICs samples collected during the visit
       console.log(`Fetching omics samples for visit ${visit.id} (${visit.start_date} to ${visit.end_date || visit.start_date})`);
-      const { data: omicsSamplesResult, error: omicsSamplesError } = await supabase
-        .schema('laboratory')
+      const { data: omicsSamplesResult, error: omicsSamplesError } = await labClient
         .from('omics_results')
         .select(`
           sample_id, 
@@ -200,7 +195,11 @@ interface PageProps {
 }
 
 export default async function VisitsPage({ params }: PageProps) {
-  const data = await getVisitData(params.id)
+  // For Next.js, we need to await params before using its properties
+  const parameters = await params;
+  const id = parameters.id;
+  
+  const data = await getVisitData(id)
 
   if (!data) {
     notFound()

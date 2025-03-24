@@ -9,13 +9,14 @@ import {
   SelectValue,
 } from '../../ui/select'
 import { FormSectionProps } from './types'
+import { FormSectionWrapper } from './FormSectionWrapper'
 
 export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
   return (
-    <div className="space-y-6">
+    <FormSectionWrapper>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Date
           </label>
           <Input
@@ -26,9 +27,9 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             EI Min
           </label>
           <Input
@@ -38,8 +39,8 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
             step="0.001"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             EI Max
           </label>
           <Input
@@ -49,8 +50,8 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
             step="0.001"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             EI Delta
           </label>
           <Input
@@ -62,9 +63,9 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Position
           </label>
           <Input
@@ -74,8 +75,8 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
             step="1"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Instrument
           </label>
           <Input
@@ -86,11 +87,11 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">QC Pass</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">QC Pass</label>
           <Select value={formData.qc_pass_lorrca || ''} onValueChange={(value) => onInputChange('qc_pass_lorrca', value)}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select QC status..." />
             </SelectTrigger>
             <SelectContent>
@@ -100,8 +101,8 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">QC Notes</label>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">QC Notes</label>
           <Input
             type="text"
             value={formData.qc_notes_lorrca || ''}
@@ -110,6 +111,6 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           />
         </div>
       </div>
-    </div>
+    </FormSectionWrapper>
   )
 } 

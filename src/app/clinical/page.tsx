@@ -1,6 +1,7 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { prisma } from '@/db'
 import { ClinicalDataBrowser } from '@/components/clinical/ClinicalDataBrowser'
+import { createClient } from '@supabase/supabase-js'
 
 const DEFAULT_PAGE_SIZE = 25
 
@@ -103,151 +104,50 @@ async function getClinicalData(
 ) {
   const skip = (page - 1) * pageSize
   const take = pageSize
-
-  // Base search condition for patient_mrn
-  const baseSearch = search ? {
-    patient_mrn: { contains: search, mode: 'insensitive' as const }
-  } : {}
-
-  let data: ClinicalData[] = []
+  
+  const supabase = createClient()
+  let data: any[] = []
   let totalCount = 0
-
-  // Normalize the type parameter
-  const normalizedType = type?.toLowerCase() as DataType
-
-  switch (normalizedType) {
-    case DATA_TYPES.LABS:
-      // Query both labs and bone marrow tables
-      const dateFilter = startDate || endDate ? {
-        AND: [
-          ...(startDate ? [{ result_time: { gte: new Date(startDate) } }] : []),
-          ...(endDate ? [{ result_time: { lte: new Date(endDate) } }] : [])
-        ]
-      } : {}
-
-      // Get regular lab results
-      const labResults = await prisma.labs.findMany({
-        where: {
-          ...baseSearch,
-          ...dateFilter,
-        },
-        orderBy: { result_time: 'desc' },
-        skip,
-        take: take / 2
-      })
-
-      // Get bone marrow results
-      const boneMarrowResults = await prisma.bone_marrow.findMany({
-        where: {
-          ...baseSearch,
-          ...dateFilter,
-        },
-        orderBy: { result_time: 'desc' },
-        skip,
-        take: take / 2
-      })
-
-      // Combine and format results
-      data = [
-        ...labResults.map(lab => ({
-          id: Number(lab.id),
-          patient_mrn: lab.patient_mrn,
-          result_time: lab.result_time || new Date(),
-          lab_component_description: lab.lab_component_description || '',
-          bone_marrow_results_by_component: null,
-          lab_code: lab.component_id,
-          lab_name: lab.lab_component_description,
-          type: 'lab' as const
-        })),
-        ...boneMarrowResults.map(bm => ({
-          id: Number(bm.id),
-          patient_mrn: bm.patient_mrn,
-          result_time: bm.result_time || new Date(),
-          lab_component_description: bm.lab_component_description || '',
-          bone_marrow_results_by_component: bm.bone_marrow_results_by_component,
-          lab_code: bm.lab_code,
-          lab_name: bm.lab_name,
-          type: 'lab' as const
-        }))
-      ].sort((a, b) => b.result_time.getTime() - a.result_time.getTime())
-
-      // Get total count from both tables
-      const [labCount, boneMarrowCount] = await Promise.all([
-        prisma.labs.count({ where: { ...baseSearch, ...dateFilter } }),
-        prisma.bone_marrow.count({ where: { ...baseSearch, ...dateFilter } })
-      ])
-      
-      totalCount = labCount + boneMarrowCount
-      break
-
-    case DATA_TYPES.IP_ADMISSIONS:
-      const admissionWhere = {
-        ...baseSearch,
-        ...(startDate || endDate ? {
-          AND: [
-            ...(startDate ? [{ adm_date_time: { gte: new Date(startDate) } }] : []),
-            ...(endDate ? [{ adm_date_time: { lte: new Date(endDate) } }] : [])
-          ]
-        } : {})
-      }
-
-      const admissions = await prisma.ip_admissions.findMany({
-        where: admissionWhere,
-        include: {
-          patients: {
-            select: {
-              first_name: true,
-              last_name: true,
-              birth_date: true
-            }
-          }
-        },
-        orderBy: { adm_date_time: 'desc' },
-        skip,
-        take
-      })
-      data = admissions.map(admission => ({
-        id: Number(admission.id),
-        patient_mrn: admission.patient_mrn,
-        adm_date_time: admission.adm_date_time,
-        disch_date_time: admission.disch_date_time,
-        discharge_department: admission.discharge_department,
-        discharge_disposition: admission.discharge_disposition,
-        icu_admission_yn: admission.icu_admission_yn,
-        admit_dx_description_1: admission.admit_dx_description_1,
-        final_dx_description_1: admission.final_dx_description_1,
-        type: 'admission' as const
-      }))
-      totalCount = await prisma.ip_admissions.count({ where: admissionWhere })
-      break
-
+  
+  // Build base search filter
+  const baseSearch = search ? {
+    patient_mrn: { ilike: `%${search}%` }
+  } : {}
+  
+  switch (type) {
     case DATA_TYPES.OP_VISITS:
-      const visitWhere = {
-        ...baseSearch,
-        ...(startDate || endDate ? {
-          AND: [
-            ...(startDate ? [{ visit_date: { gte: new Date(startDate) } }] : []),
-            ...(endDate ? [{ visit_date: { lte: new Date(endDate) } }] : [])
-          ]
-        } : {})
+      // Build visit query filters
+      let visitQuery = supabase
+        .from('op_visits')
+        .select(`
+          *,
+          patients (
+            first_name,
+            last_name,
+            birth_date
+          )
+        `, { count: 'exact' })
+        
+      if (search) {
+        visitQuery = visitQuery.ilike('patient_mrn', `%${search}%`)
       }
-
-      const visits = await prisma.op_visits.findMany({
-        where: visitWhere,
-        include: {
-          patients: {
-            select: {
-              first_name: true,
-              last_name: true,
-              birth_date: true
-            }
-          }
-        },
-        orderBy: { visit_date: 'desc' },
-        skip,
-        take
-      })
-      data = visits.map(visit => ({
+      
+      if (startDate) {
+        visitQuery = visitQuery.gte('visit_date', startDate)
+      }
+      
+      if (endDate) {
+        visitQuery = visitQuery.lte('visit_date', endDate)
+      }
+      
+      // Execute query with pagination
+      const { data: visits, count, error: visitError } = await visitQuery
+        .order('visit_date', { ascending: false })
+        .range(skip, skip + take - 1)
+      
+      if (visitError) throw visitError
+      
+      data = (visits || []).map(visit => ({
         id: Number(visit.id),
         patient_mrn: visit.patient_mrn,
         visit_date: visit.visit_date,
@@ -260,97 +160,96 @@ async function getClinicalData(
         weight_lbs: visit.weight_lbs ? Number(visit.weight_lbs) : null,
         type: 'visit' as const
       }))
-      totalCount = await prisma.op_visits.count({ where: visitWhere })
+      
+      totalCount = count || 0
       break
-
+      
     case DATA_TYPES.MEDICATIONS:
     default:
-      const ipMedWhere = {
-        ...baseSearch,
-        ...(startDate || endDate ? {
-          AND: [
-            ...(startDate ? [{ adm_date_time: { gte: new Date(startDate) } }] : []),
-            ...(endDate ? [{ adm_date_time: { lte: new Date(endDate) } }] : [])
-          ]
-        } : {})
+      // Build medication queries
+      let ipMedQuery = supabase
+        .from('ip_medications')
+        .select(`
+          *,
+          patients (
+            first_name,
+            last_name,
+            birth_date
+          )
+        `, { count: 'exact' })
+        
+      let opMedQuery = supabase
+        .from('op_medications')
+        .select(`
+          *,
+          patients (
+            first_name,
+            last_name,
+            birth_date
+          )
+        `, { count: 'exact' })
+        
+      if (search) {
+        ipMedQuery = ipMedQuery.ilike('patient_mrn', `%${search}%`)
+        opMedQuery = opMedQuery.ilike('patient_mrn', `%${search}%`)
       }
-
-      const opMedWhere = {
-        ...baseSearch,
-        ...(startDate || endDate ? {
-          AND: [
-            ...(startDate ? [{ visit_date: { gte: new Date(startDate) } }] : []),
-            ...(endDate ? [{ visit_date: { lte: new Date(endDate) } }] : [])
-          ]
-        } : {})
+      
+      if (startDate) {
+        ipMedQuery = ipMedQuery.gte('adm_date_time', startDate)
+        opMedQuery = opMedQuery.gte('visit_date', startDate)
       }
-
-      const ipMeds = await prisma.ip_medications.findMany({
-        where: ipMedWhere,
-        include: {
-          patients: {
-            select: {
-              first_name: true,
-              last_name: true,
-              birth_date: true
-            }
-          }
-        },
-        orderBy: { adm_date_time: 'desc' },
-        skip,
-        take: take / 2
-      })
-
-      const opMeds = await prisma.op_medications.findMany({
-        where: opMedWhere,
-        include: {
-          patients: {
-            select: {
-              first_name: true,
-              last_name: true,
-              birth_date: true
-            }
-          }
-        },
-        orderBy: { visit_date: 'desc' },
-        skip,
-        take: take / 2
-      })
-
-      data = [
-        ...ipMeds.map(med => ({
-          id: Number(med.id),
-          patient_mrn: med.patient_mrn,
-          adm_date_time: med.adm_date_time,
-          medication: med.medication || '',
-          dosage: med.dosage,
-          unit: med.unit,
-          frequency: med.frequency,
-          rx_class_name: med.rx_class_name,
-          type: 'ip_medication' as const
-        })),
-        ...opMeds.map(med => ({
-          id: Number(med.id),
-          patient_mrn: med.patient_mrn,
-          visit_date: med.visit_date,
-          generic_description: med.generic_description,
-          rx_status: med.rx_status,
-          type: 'op_medication' as const
-        }))
-      ].sort((a, b) => {
-        const dateA = a.type === 'ip_medication' ? a.adm_date_time : a.visit_date
-        const dateB = b.type === 'ip_medication' ? b.adm_date_time : b.visit_date
-        return dateB.getTime() - dateA.getTime()
-      })
-
-      totalCount = await prisma.$transaction([
-        prisma.ip_medications.count({ where: ipMedWhere }),
-        prisma.op_medications.count({ where: opMedWhere })
-      ]).then(counts => counts.reduce((a, b) => a + b, 0))
+      
+      if (endDate) {
+        ipMedQuery = ipMedQuery.lte('adm_date_time', endDate)
+        opMedQuery = opMedQuery.lte('visit_date', endDate)
+      }
+      
+      // Execute both queries with pagination
+      const [ipMedResult, opMedResult] = await Promise.all([
+        ipMedQuery
+          .order('adm_date_time', { ascending: false })
+          .range(skip, skip + Math.floor(take/2) - 1),
+        opMedQuery
+          .order('visit_date', { ascending: false })
+          .range(skip, skip + Math.floor(take/2) - 1)
+      ])
+      
+      if (ipMedResult.error) throw ipMedResult.error
+      if (opMedResult.error) throw opMedResult.error
+      
+      // Combine and format results
+      const ipMeds = (ipMedResult.data || []).map(med => ({
+        id: Number(med.id),
+        patient_mrn: med.patient_mrn,
+        date: med.adm_date_time,
+        medication: med.medication,
+        dosage: med.dosage,
+        unit: med.unit,
+        frequency: med.frequency,
+        type: 'inpatient' as const
+      }))
+      
+      const opMeds = (opMedResult.data || []).map(med => ({
+        id: Number(med.id),
+        patient_mrn: med.patient_mrn,
+        date: med.visit_date,
+        medication: med.generic_description || '',
+        status: med.rx_status,
+        type: 'outpatient' as const
+      }))
+      
+      data = [...ipMeds, ...opMeds].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      )
+      
+      totalCount = (ipMedResult.count || 0) + (opMedResult.count || 0)
       break
   }
-
-  return { data, totalCount }
+  
+  return {
+    data,
+    totalCount
+  }
 }
 
 export default async function ClinicalPage({ searchParams }: PageProps) {

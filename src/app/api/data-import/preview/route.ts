@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/db'
+import { getSupabaseServerClient } from '@/lib/supabase/db'
 import { convertToNumber } from '@/lib/utils'
 
 export async function GET(request: Request) {
@@ -15,53 +15,94 @@ export async function GET(request: Request) {
       )
     }
 
+    const supabase = await getSupabaseServerClient()
     let data
+
     switch (type) {
       case 'demographics':
-        data = await prisma.patients.findMany({
-          orderBy: { created_at: 'desc' },
-          take: limit
-        })
+        const { data: patients, error: patientsError } = await supabase
+          .schema('phi')
+          .from('patients')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(limit)
+        
+        if (patientsError) throw patientsError
+        data = patients
         break
+
       case 'bonemarrow':
-        data = await prisma.bone_marrow.findMany({
-          orderBy: { result_time: 'desc' },
-          take: limit
-        })
+        const { data: boneMarrow, error: boneMarrowError } = await supabase
+          .schema('clinical')
+          .from('bone_marrow')
+          .select('*')
+          .order('result_time', { ascending: false })
+          .limit(limit)
+        
+        if (boneMarrowError) throw boneMarrowError
+        data = boneMarrow
         break
+
       case 'ipadmissions':
-        data = await prisma.ip_admissions.findMany({
-          orderBy: { adm_date_time: 'desc' },
-          take: limit
-        })
+        const { data: ipAdmissions, error: ipAdmissionsError } = await supabase
+          .schema('clinical')
+          .from('ip_admissions')
+          .select('*')
+          .order('adm_date_time', { ascending: false })
+          .limit(limit)
+        
+        if (ipAdmissionsError) throw ipAdmissionsError
+        data = ipAdmissions
         break
+
       case 'opavsmeds':
-        data = await prisma.op_medications.findMany({
-          orderBy: { visit_date: 'desc' },
-          take: limit
-        })
+        const { data: opMeds, error: opMedsError } = await supabase
+          .schema('clinical')
+          .from('op_medications')
+          .select('*')
+          .order('visit_date', { ascending: false })
+          .limit(limit)
+        
+        if (opMedsError) throw opMedsError
+        data = opMeds
         break
+
       case 'opvisits':
-        data = await prisma.op_visits.findMany({
-          orderBy: { visit_date: 'desc' },
-          take: limit
-        })
+        const { data: opVisits, error: opVisitsError } = await supabase
+          .schema('clinical')
+          .from('op_visits')
+          .select('*')
+          .order('visit_date', { ascending: false })
+          .limit(limit)
+        
+        if (opVisitsError) throw opVisitsError
+        data = opVisits
         break
+
       case 'ipmeds':
-        data = await prisma.ip_medications.findMany({
-          orderBy: { adm_date_time: 'desc' },
-          take: limit
-        })
+        const { data: ipMeds, error: ipMedsError } = await supabase
+          .schema('clinical')
+          .from('ip_medications')
+          .select('*')
+          .order('adm_date_time', { ascending: false })
+          .limit(limit)
+        
+        if (ipMedsError) throw ipMedsError
+        data = ipMeds
         break
+
       case 'labs':
-        data = await prisma.bone_marrow.findMany({
-          where: {
-            NOT: { bone_marrow_results_by_component: { not: null } }
-          },
-          orderBy: { result_time: 'desc' },
-          take: limit
-        })
+        const { data: labs, error: labsError } = await supabase
+          .schema('clinical')
+          .from('Labs')
+          .select('*')
+          .order('result_time', { ascending: false })
+          .limit(limit)
+        
+        if (labsError) throw labsError
+        data = labs
         break
+
       default:
         return NextResponse.json(
           { error: 'Invalid data type' },
