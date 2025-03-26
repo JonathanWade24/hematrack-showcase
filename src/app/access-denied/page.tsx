@@ -10,10 +10,15 @@ export default function AccessDenied() {
   
   useEffect(() => {
     async function getUserRole() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setRole(user?.app_metadata?.role || null);
-      setLoading(false);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        setRole(user?.app_metadata?.role || null);
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+      } finally {
+        setLoading(false);
+      }
     }
     
     getUserRole();
@@ -38,21 +43,26 @@ export default function AccessDenied() {
               Your current role: <span className="font-semibold">{role}</span>
             </p>
           )}
+          
+          <p className="mt-4 text-sm text-gray-500">
+            This page requires a role with clinical data access permissions.
+            If you believe you should have access, please contact your administrator.
+          </p>
         </div>
         
         <div className="space-y-3">
           <Link 
-            href="/dashboard" 
+            href="/" 
             className="block w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
           >
-            Go to Dashboard
+            Go to Home
           </Link>
           
           <Link 
-            href="/" 
+            href="/subjects" 
             className="block w-full border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50 transition"
           >
-            Go to Home
+            Go to Subjects
           </Link>
         </div>
       </div>

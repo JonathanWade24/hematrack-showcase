@@ -1,12 +1,16 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function logout() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
-  await supabase.auth.signOut()
-  redirect('/login')
+  try {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    redirect('/login')
+  } catch (error) {
+    console.error('Error signing out:', error)
+    // Still redirect to login even if there was an error
+    redirect('/login')
+  }
 } 
