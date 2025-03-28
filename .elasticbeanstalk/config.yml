@@ -1,6 +1,18 @@
 branch-defaults:
   Auth-yolo:
-    environment: null
+    environment: Hematrack-env
     group_suffix: null
 global:
+  application_name: hematrack
+  branch: null
+  default_ec2_keyname: aws-eb
+  default_platform: Node.js 18
+  default_region: us-east-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
   profile: Administrator-366674299884
+  repository: https://github.com/JonathanWade24/hematrack.git
+  sc: git
+  workspace_type: Application
