@@ -33,4 +33,62 @@ yarn-error.log*
 .DS_Store
 *.pem
 README.md
-LICENSE 
+LICENSE
+
+# Data files
+*.csv
+*.tsv
+*.txt
+*.xlsx
+*.xls
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tailwind.config.js
+!jest.config.js
+!next.config.mjs
+!*.vercel.json
+!vercel.json
+
+# Scratch and analysis files
+data/
+scratch/
+analysis/
+**/data_analysis/
+**/scratch_files/
+
+# Large media files
+*.pdf
+*.zip
+*.tar
+*.gz
+*.7z
+*.rar
+*.mp4
+*.mov
+*.avi
+*.png
+*.jpg
+*.jpeg
+
+# Specific large directories
+Data Analysis Scratch/
+*/Data Analysis Scratch/*
+age_group_analysis.Rmd
+*analysis_files/
+*analysis_cache/
+**/figure-html/
+**/figure-pdf/
+**/*.RData
+**/*.rdb
+**/*.rdx
+**/*.qmd
+**/*.Rmd
+**/*.R
+**/*.md
+
+# Any other large directories
+.git/
+node_modules/
+.next/ 
