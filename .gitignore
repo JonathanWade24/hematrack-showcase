@@ -48,3 +48,8 @@ IN495734_SCD_Labs_Baseline.txt
 labs_clean.csv
 Labs_Lam_20241004.csv
 *.csv
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
