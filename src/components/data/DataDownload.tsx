@@ -1,13 +1,17 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faDownload, faPlus, faTrash, 
   faSearch, faChevronDown, faChevronRight, faExclamationCircle, faSpinner
 } from '@fortawesome/free-solid-svg-icons'
 import { debugDataDownload } from '@/utils/debugUtils'
-import { queryTemplates, QueryTemplate } from '@/lib/queryTemplates'
+// Import the type directly without the module
+import type { QueryTemplate } from '@/lib/queryTemplates'
+
+// Export the type
+export type { QueryTemplate }
 
 export interface GroupCriteria {
   id: string
@@ -788,23 +792,6 @@ export interface DataDownloadProps {
   onPreview: (filters: FilterCriteria) => Promise<PreviewData>
 }
 
-// Helper function to get current date in YYYY-MM-DD format
-function getCurrentDate() {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
-}
-
-// Helper function to handle time window changes
-function handleTimeWindowChange(field: 'start' | 'end', value: string) {
-  setFilters(prev => ({
-    ...prev,
-    timeWindow: {
-      ...prev.timeWindow,
-      [field]: new Date(value)
-    }
-  }));
-}
-
 export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
   const [filters, setFilters] = useState<FilterCriteria>({
     templateId: '',
@@ -839,56 +826,26 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [downloadError, setDownloadError] = useState<string | null>(null)
 
-  // Add state for selected template and inclusion criteria
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
-  const [inclusionCriteria, setInclusionCriteria] = useState<Record<string, { excludeNA: boolean }>>({})
+  // Helper function to get current date in YYYY-MM-DD format
+  function getCurrentDate() {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
+
+  // Helper function to handle time window changes - moved inside component scope
+  function handleTimeWindowChange(field: 'start' | 'end', value: string) {
+    // Convert the date string to ISO string for consistent storage
+    setFilters(prev => ({
+      ...prev,
+      timeWindow: {
+        ...prev.timeWindow,
+        [field]: value // Store as string instead of Date object
+      }
+    }));
+  }
   
-  // Get the selected template
-  const selectedTemplate = queryTemplates.find(t => t.id === selectedTemplateId)
-  
-  // Add template selection UI
-  const renderTemplateSelector = () => (
-    <div className="mb-6">
-      <h3 className="text-lg font-medium mb-2">Select Query Template</h3>
-      <div className="grid grid-cols-1 gap-4">
-        {queryTemplates.map(template => (
-          <div 
-            key={template.id}
-            className={`p-4 border rounded-md cursor-pointer ${
-              selectedTemplateId === template.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
-            }`}
-            onClick={() => setSelectedTemplateId(template.id)}
-          >
-            <h4 className="font-medium">{template.name}</h4>
-            <p className="text-sm text-gray-600">{template.description}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-  
-  // Add UI for inclusion criteria
-  const renderInclusionCriteria = (variableName: string, label: string) => (
-    <div className="flex items-center space-x-2">
-      <label className="flex items-center text-sm">
-        <input
-          type="checkbox"
-          checked={!!inclusionCriteria[variableName]?.excludeNA}
-          onChange={() => {
-            setInclusionCriteria(prev => ({
-              ...prev,
-              [variableName]: { excludeNA: !prev[variableName]?.excludeNA }
-            }))
-          }}
-          className="mr-1"
-        />
-        Exclude NA for {label}
-      </label>
-    </div>
-  )
-  
-  // Add function to fetch preview data
-  const fetchPreview = async () => {
+  // Add function to fetch preview data with useCallback
+  const fetchPreview = useCallback(async () => {
     setIsLoadingPreview(true)
     setPreviewError(null)
     try {
@@ -899,7 +856,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
     } finally {
       setIsLoadingPreview(false)
     }
-  }
+  }, [filters, onPreview])
 
   // Add useEffect to update preview when filters change
   useEffect(() => {
@@ -922,7 +879,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
     }, 500)
 
     return () => clearTimeout(debounceTimeout)
-  }, [filters])
+  }, [filters, fetchPreview])
 
   const addGroup = () => {
     const newGroup: GroupCriteria = {
@@ -985,7 +942,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
     if (isDownloading) return;
     
     // Validate filters
-    if (!selectedTemplateId) {
+    if (!filters.templateId) {
       setDownloadError('Please select a query template');
       return;
     }
@@ -1039,12 +996,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
       
       // Generate CSV
       if (data.headers && data.rows) {
-        const csvContent = [
-          data.headers.join(','),
-          ...data.rows.map((row: any[]) => row.map(cell => 
-            typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell
-          ).join(','))
-        ].join('\n');
+        const csvContent = generateCsv(data);
         
         // Create a download link
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1080,10 +1032,20 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
     }
   };
 
+  // Fix the CSV generation function
+  const generateCsv = (data: { headers: string[], rows: (string | number)[][] }) => {
+    const csvContent = [
+      data.headers.join(','),
+      ...data.rows.map((row: (string | number)[]) => row.map(cell => 
+        typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell
+      ).join(','))
+    ].join('\n');
+    
+    return csvContent;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {renderTemplateSelector()}
-      
       {/* Groups Section */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="space-y-4">
@@ -1309,7 +1271,11 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
                   id="startDate"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   type="date"
-                  value={filters.timeWindow.start || getCurrentDate()}
+                  value={typeof filters.timeWindow.start === 'string' 
+                    ? filters.timeWindow.start 
+                    : filters.timeWindow.start instanceof Date 
+                      ? filters.timeWindow.start.toISOString().split('T')[0] 
+                      : getCurrentDate()}
                   onChange={(e) => handleTimeWindowChange('start', e.target.value)}
                 />
               </div>
@@ -1324,7 +1290,11 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
                   id="endDate"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   type="date"
-                  value={filters.timeWindow.end || getCurrentDate()}
+                  value={typeof filters.timeWindow.end === 'string' 
+                    ? filters.timeWindow.end 
+                    : filters.timeWindow.end instanceof Date 
+                      ? filters.timeWindow.end.toISOString().split('T')[0] 
+                      : getCurrentDate()}
                   onChange={(e) => handleTimeWindowChange('end', e.target.value)}
                 />
               </div>

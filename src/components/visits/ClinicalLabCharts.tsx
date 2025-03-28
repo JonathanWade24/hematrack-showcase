@@ -25,6 +25,18 @@ interface ClinicalLabChartsProps {
   omicsResults: LabResultsData
 }
 
+interface ChartPoint {
+  date: string;
+  rawDate: Date;
+  [testName: string]: string | number | Date;
+}
+
+interface GroupedData {
+  date: string;
+  rawDate: Date;
+  [testName: string]: string | number | Date;
+}
+
 // Define lab categories and their components
 const LAB_CATEGORIES = {
   CBC: [
@@ -63,8 +75,21 @@ const LAB_CATEGORIES = {
     'Iron',
     'TIBC',
     'Transferrin Saturation'
+  ],
+  // Add missing LIVER category
+  LIVER: [
+    'AST',
+    'ALT',
+    'Alkaline Phosphatase',
+    'Total Bilirubin',
+    'Direct Bilirubin'
   ]
 } as const
+
+// Helper function to check if a test name is in a category
+const isInCategory = (category: readonly string[], testName: string): boolean => {
+  return category.includes(testName);
+};
 
 export function ClinicalLabCharts({ labResults, omicsResults }: ClinicalLabChartsProps) {
   // Combine lab and omics results for charting
@@ -90,10 +115,10 @@ export function ClinicalLabCharts({ labResults, omicsResults }: ClinicalLabChart
   
   // Create chart data for each lab category
   const chartData = useMemo(() => {
-    const cbcData: any[] = [];
-    const chemistryData: any[] = [];
-    const liverData: any[] = [];
-    const specialData: any[] = [];
+    const cbcData: ChartPoint[] = [];
+    const chemistryData: ChartPoint[] = [];
+    const liverData: ChartPoint[] = [];
+    const specialData: ChartPoint[] = [];
     
     // Process each lab test
     Object.entries(combinedResults).forEach(([testName, data]) => {
@@ -114,11 +139,11 @@ export function ClinicalLabCharts({ labResults, omicsResults }: ClinicalLabChart
       }));
       
       // Add to appropriate category
-      if (LAB_CATEGORIES.CBC.includes(testName)) {
+      if (isInCategory(LAB_CATEGORIES.CBC, testName)) {
         cbcData.push(...chartPoints);
-      } else if (LAB_CATEGORIES.CHEMISTRY?.includes(testName)) {
+      } else if (isInCategory(LAB_CATEGORIES.CHEMISTRY, testName)) {
         chemistryData.push(...chartPoints);
-      } else if (LAB_CATEGORIES.LIVER?.includes(testName)) {
+      } else if (isInCategory(LAB_CATEGORIES.LIVER, testName)) {
         liverData.push(...chartPoints);
       } else {
         specialData.push(...chartPoints);
@@ -126,8 +151,8 @@ export function ClinicalLabCharts({ labResults, omicsResults }: ClinicalLabChart
     });
     
     // Group data by date for each category
-    const groupByDate = (data: any[]) => {
-      const groupedData: Record<string, any> = {};
+    const groupByDate = (data: ChartPoint[]) => {
+      const groupedData: Record<string, GroupedData> = {};
       
       data.forEach(item => {
         const dateStr = item.date;
@@ -145,7 +170,7 @@ export function ClinicalLabCharts({ labResults, omicsResults }: ClinicalLabChart
       
       // Convert back to array and sort by date
       return Object.values(groupedData)
-        .sort((a: any, b: any) => a.rawDate.getTime() - b.rawDate.getTime());
+        .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime());
     };
     
     return {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getSupabaseServerClient, getSupabaseAdminClient, handleSupabaseError } from './db';
 import { createPhiClient, createClient } from './server';
 import { AssayType } from '../types';
@@ -67,10 +68,10 @@ export async function createOmicsResult(data: Partial<OmicsResult>) {
       .select()
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -85,10 +86,10 @@ export async function updateOmicsResult(sample_id: string, data: Partial<OmicsRe
       .select()
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -105,7 +106,7 @@ export async function getOmicsResultBySampleId(sample_id: string) {
       .single();
     
     if (error) {
-      handleSupabaseError(error);
+      handleSupabaseError(error as any);
       return null;
     }
     
@@ -131,7 +132,7 @@ export async function getOmicsResultBySampleId(sample_id: string) {
       omics_subjects: subject || null
     };
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
     return null;
   }
 }
@@ -160,7 +161,7 @@ export async function getOmicsResultsBySubjectId(subject_id: string) {
       .eq('subject_id', subject_id)
       .order('date_of_collection', { ascending: false });
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     
     // Combine the data
     const samplesWithSubject = samples?.map(sample => ({
@@ -170,7 +171,7 @@ export async function getOmicsResultsBySubjectId(subject_id: string) {
     
     return samplesWithSubject;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
     return [];
   }
 }
@@ -219,10 +220,10 @@ export async function getOmicsResultsByAssayType(
     
     const { data: results, error } = await query;
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return results;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -244,10 +245,10 @@ export async function createOmicsSubject(data: Partial<OmicsSubject>) {
       .select()
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -264,7 +265,7 @@ export async function getOmicsSubjectById(subject_id: string) {
       .maybeSingle();
     
     if (error) {
-      handleSupabaseError(error);
+      handleSupabaseError(error as any);
       return null;
     }
     
@@ -315,7 +316,7 @@ export async function getOmicsSubjectById(subject_id: string) {
     };
   } catch (error) {
     console.error('Error in getOmicsSubjectById:', error);
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
     return null;
   }
 }
@@ -325,7 +326,7 @@ export const getOmicsSubjectBySubjectId = getOmicsSubjectById;
 
 export async function getAllOmicsSubjects() {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = await getSupabaseServerClient();
     
     // Get all subjects
     const { data: subjects, error: subjectsError } = await supabase
@@ -377,14 +378,14 @@ export async function getAllOmicsSubjects() {
     
     return subjectsWithSampleInfo;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
     return [];
   }
 }
 
 export async function updateOmicsSubject(subject_id: string, data: Partial<OmicsSubject>) {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = await getSupabaseServerClient();
     const { data: result, error } = await supabase
       .schema('laboratory')
       .from('omics_subjects')
@@ -393,10 +394,10 @@ export async function updateOmicsSubject(subject_id: string, data: Partial<Omics
       .select()
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -418,10 +419,10 @@ export async function createPatient(data: Partial<Patient>) {
       .select()
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -500,14 +501,14 @@ export async function getAllPatients() {
     return patientsWithRelations;
   } catch (error) {
     console.error('Error in getAllPatients:', error);
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
     return [];
   }
 }
 
 export async function getPatientByMRN(patient_mrn: string) {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = await getSupabaseServerClient();
     const { data: result, error } = await supabase
       .schema('phi')
       .from('patients')
@@ -521,10 +522,10 @@ export async function getPatientByMRN(patient_mrn: string) {
       .eq('patient_mrn', patient_mrn)
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -539,10 +540,10 @@ export async function updatePatient(patient_mrn: string, data: Partial<Patient>)
       .select()
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -560,7 +561,7 @@ export async function searchSubjects(query: string) {
       `)
       .or(`subject_id.ilike.%${query}%,patient_mrn.ilike.%${query}%`);
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     
     // Sort results by date_of_collection in descending order
     if (results) {
@@ -577,7 +578,7 @@ export async function searchSubjects(query: string) {
     
     return results;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }
 
@@ -590,7 +591,7 @@ export async function logAuditEvent(
   changed_by: string
 ) {
   try {
-    const supabase = getSupabaseAdminClient();
+    const supabase = await getSupabaseAdminClient();
     const { data: result, error } = await supabase
       .from('audit_log')
       .insert({
@@ -603,9 +604,9 @@ export async function logAuditEvent(
       .select()
       .single();
     
-    if (error) handleSupabaseError(error);
+    if (error) handleSupabaseError(error as any);
     return result;
   } catch (error) {
-    handleSupabaseError(error);
+    handleSupabaseError(error as any);
   }
 }

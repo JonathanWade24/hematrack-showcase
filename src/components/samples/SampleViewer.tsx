@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
-  faVial, faCalendar, faDna, faTint, faFlask,
-  faVials, faMicroscope, faArrowLeft
+  faArrowLeft, faVial, faCalendar, faFlask, faMicroscope, 
+  faTint, faDna, faVials
 } from '@fortawesome/free-solid-svg-icons'
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 
 interface Patient {
   first_name: string | null
@@ -94,7 +95,7 @@ function AssayCard({
 }: { 
   title: string
   date: Date | null
-  icon: any
+  icon: IconDefinition
   qcStatus?: string | null
   qcNotes?: string | null
   data: { label: string; value: number | string | null }[]

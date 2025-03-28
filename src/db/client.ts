@@ -1,7 +1,4 @@
-import { createClient as createServerClient } from '@/lib/supabase/server';
-import { createClient as createBrowserClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-import { Database } from '@/types/supabase';
+import { createClient as createServerClient, createAdminClient } from '@/lib/supabase/server';
 
 // Export a named export 'prisma' for backward compatibility
 export const prisma = {
@@ -10,21 +7,27 @@ export const prisma = {
 };
 
 // This function can be used in server components/actions
-export function getSupabaseClient() {
-  const cookieStore = cookies();
-  return createServerClient(cookieStore);
+export async function getSupabaseClient() {
+  return createServerClient();
 }
 
 // For admin operations that need service role
 export function getSupabaseAdminClient() {
-  // Import the admin client from your server utility
-  const { createAdminClient } = require('@/lib/supabase/server');
   return createAdminClient();
 }
 
+// Define proper type for options instead of any
+interface QueryOptions {
+  select?: string;
+  where?: Record<string, unknown>;
+  orderBy?: Record<string, 'asc' | 'desc'>;
+  take?: number;
+  skip?: number;
+}
+
 // Helper function to convert Prisma-style queries to Supabase
-export async function query(table: string, options: any = {}) {
-  const supabase = getSupabaseClient();
+export async function query(table: string, options: QueryOptions = {}) {
+  const supabase = await getSupabaseClient();
   
   let query = supabase.from(table).select(options.select || '*');
   

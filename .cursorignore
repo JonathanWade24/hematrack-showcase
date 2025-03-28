@@ -1,0 +1,5 @@
+# Cursor ignore file
+# Add directories or files that should be ignored by Cursor
+
+# Ignore Data Analysis Scratch directory
+Data Analysis Scratch/ 

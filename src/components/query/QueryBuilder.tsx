@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
@@ -209,41 +209,36 @@ const QueryBuilder: React.FC = () => {
     }
   }, [selectedTable, selectedSchema, tables]);
 
-  // Add a new useEffect to update available columns when joins change
+  // Effect to populate available columns from selected table and joins
   useEffect(() => {
-    if (selectedTable && selectedSchema && joins.length > 0) {
-      // Get the main table columns
-      const mainTable = tables.find(t => t.name === selectedTable && t.schema === selectedSchema);
-      if (!mainTable) return;
+    if (selectedTable && selectedSchema) {
+      // Find the selected table in the tables array
+      const selectedTableInfo = tables.find(t => t.name === selectedTable && t.schema === selectedSchema);
       
-      // Start with the main table columns
+      // Initialize a Map to track columns and avoid duplicates
       const allColumns = new Map<string, Column>();
       
-      // Add main table columns with a prefix to avoid name collisions
-      mainTable.columns.forEach(col => {
-        const prefixedCol = {
-          ...col,
-          name: `${selectedTable}.${col.name}`,
-          originalTable: selectedTable,
-          originalSchema: selectedSchema,
-          originalName: col.name
-        };
-        allColumns.set(prefixedCol.name, prefixedCol);
-      });
+      // Add columns from the main table
+      if (selectedTableInfo) {
+        selectedTableInfo.columns.forEach(column => {
+          allColumns.set(column.name, column);
+        });
+      }
       
       // Add columns from joined tables
       joins.forEach(join => {
         const joinedTable = tables.find(t => t.name === join.table && t.schema === join.schema);
         if (joinedTable) {
-          joinedTable.columns.forEach(col => {
-            const prefixedCol = {
-              ...col,
-              name: `${join.table}.${col.name}`,
-              originalTable: join.table,
-              originalSchema: join.schema,
-              originalName: col.name
-            };
-            allColumns.set(prefixedCol.name, prefixedCol);
+          joinedTable.columns.forEach(column => {
+            // Prefix the column name with the table name to avoid conflicts
+            const prefixedName = `${join.table}.${column.name}`;
+            allColumns.set(prefixedName, {
+              ...column,
+              name: prefixedName,
+              originalTable: column.originalTable || column.name,
+              originalSchema: column.originalSchema || join.schema,
+              originalName: column.originalName || column.name
+            });
           });
         }
       });
@@ -252,6 +247,64 @@ const QueryBuilder: React.FC = () => {
       setAvailableColumns(Array.from(allColumns.values()));
     }
   }, [joins, selectedTable, selectedSchema, tables]);
+
+  // Update fetchColumnValues to handle prefixed column names
+  const fetchColumnValues = useCallback(async (column: string) => {
+    if (!selectedTable || !selectedSchema) return;
+    
+    // Extract the actual column name and table/schema if prefixed
+    let columnName = column;
+    let tableSchema = selectedSchema;
+    let tableName = selectedTable;
+    
+    if (column.includes('.')) {
+      const [tablePrefix, colName] = column.split('.');
+      columnName = colName;
+      
+      // Find the table from the prefix
+      const joinInfo = joins.find(j => j.table === tablePrefix);
+      if (joinInfo) {
+        tableSchema = joinInfo.schema;
+        tableName = joinInfo.table;
+      } else if (tablePrefix === selectedTable) {
+        // It's from the main table
+        tableSchema = selectedSchema;
+        tableName = selectedTable;
+      } else {
+        console.error(`Could not find table for column: ${column}`);
+        return;
+      }
+    }
+    
+    // Set loading state for this column
+    setIsLoadingValues(prev => ({ ...prev, [column]: true }));
+    
+    try {
+      const response = await fetch('/api/query/values', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          schema: tableSchema,
+          table: tableName,
+          column: columnName,
+          limit: 100
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch column values');
+      }
+      
+      const data = await response.json();
+      setColumnValues(prev => ({ ...prev, [column]: data.values }));
+    } catch (error) {
+      console.error('Error fetching column values:', error);
+    } finally {
+      setIsLoadingValues(prev => ({ ...prev, [column]: false }));
+    }
+  }, [selectedTable, selectedSchema, joins, setIsLoadingValues, setColumnValues]);
 
   // Add this effect to fetch column values when a condition's column changes
   useEffect(() => {
@@ -267,7 +320,7 @@ const QueryBuilder: React.FC = () => {
     if (selectedTable && selectedSchema) {
       fetchValuesForConditions();
     }
-  }, [selectedTable, selectedSchema, queryDefinition.conditionGroup.conditions]);
+  }, [selectedTable, selectedSchema, queryDefinition.conditionGroup.conditions, availableColumns, fetchColumnValues]);
 
   // Handle table selection
   const handleTableSelect = (tableName: string, schema: string) => {
@@ -565,64 +618,6 @@ const QueryBuilder: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  // Update fetchColumnValues to handle prefixed column names
-  const fetchColumnValues = async (column: string) => {
-    if (!selectedTable || !selectedSchema) return;
-    
-    // Extract the actual column name and table/schema if prefixed
-    let columnName = column;
-    let tableSchema = selectedSchema;
-    let tableName = selectedTable;
-    
-    if (column.includes('.')) {
-      const [tablePrefix, colName] = column.split('.');
-      columnName = colName;
-      
-      // Find the table from the prefix
-      const joinInfo = joins.find(j => j.table === tablePrefix);
-      if (joinInfo) {
-        tableSchema = joinInfo.schema;
-        tableName = joinInfo.table;
-      } else if (tablePrefix === selectedTable) {
-        // It's from the main table
-        tableSchema = selectedSchema;
-        tableName = selectedTable;
-      } else {
-        console.error(`Could not find table for column: ${column}`);
-        return;
-      }
-    }
-    
-    // Set loading state for this column
-    setIsLoadingValues(prev => ({ ...prev, [column]: true }));
-    
-    try {
-      const response = await fetch('/api/query/values', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          schema: tableSchema,
-          table: tableName,
-          column: columnName,
-          limit: 100
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch column values');
-      }
-      
-      const data = await response.json();
-      setColumnValues(prev => ({ ...prev, [column]: data.values }));
-    } catch (error) {
-      console.error('Error fetching column values:', error);
-    } finally {
-      setIsLoadingValues(prev => ({ ...prev, [column]: false }));
-    }
   };
 
   // Render a condition

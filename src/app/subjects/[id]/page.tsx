@@ -4,14 +4,22 @@ import { SubjectViewer } from '@/components/subjects/SubjectViewer'
 import { convertToNumber } from '@/lib/utils'
 import { getOmicsSubjectById } from '@/lib/supabase/operations'
 
-interface SubjectPageProps {
-  params: {
-    id: string
-  }
-}
+// Updated page props for Next.js 15
+type PageParams = {
+  id: string;
+};
+
+type SubjectPageProps = {
+  params: Promise<PageParams> | undefined;
+};
 
 export default async function SubjectPage({ params }: SubjectPageProps) {
-  // For Next.js 15, we need to await params before accessing properties
+  // Handle params correctly, checking for undefined
+  if (!params) {
+    throw new Error('Missing page parameters');
+  }
+  
+  // Resolve params if it's a Promise
   const parameters = await params;
   const id = parameters.id;
   

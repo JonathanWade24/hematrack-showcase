@@ -1,6 +1,11 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { RegistrationForm } from '@/components/registration/RegistrationForm'
 
+export const metadata = {
+  title: 'Patient Registration - SCD Dashboard',
+  description: 'Register new patients in the SCD research database'
+}
+
 export default function RegistrationPage() {
   return (
     <DashboardLayout>
@@ -10,7 +15,8 @@ export default function RegistrationPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Patient Registration</h1>
             <p className="mt-2 text-sm text-gray-600">
-              Register a new patient and create their subject record. Fields marked with * are required.
+              Register a new patient in the SCD research database and create their subject record.
+              This form collects PHI data - please ensure you have proper authorization. Fields marked with * are required.
             </p>
           </div>
 

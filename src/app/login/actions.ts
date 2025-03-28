@@ -9,6 +9,10 @@ export async function login(formData: FormData) {
   const password = formData.get('password') as string
   const redirectTo = formData.get('redirect') as string || '/'
   
+  if (!email || !password) {
+    throw new Error('Email and password are required')
+  }
+  
   const supabase = await createClient()
   
   const { error } = await supabase.auth.signInWithPassword({
@@ -18,23 +22,26 @@ export async function login(formData: FormData) {
   
   if (error) {
     console.error('Login error:', error.message)
-    return redirect('/login?error=' + encodeURIComponent(error.message))
+    throw new Error(error.message)
   }
   
-  // If there's a specific URL to redirect to (e.g., from middleware), use that
-  if (redirectTo && redirectTo !== '/login') {
-    revalidatePath('/', 'layout')
-    return redirect(redirectTo)
-  }
-  
-  // Otherwise redirect to root page
+  // Ensure the cache is invalidated before redirect
   revalidatePath('/', 'layout')
-  return redirect('/')
+  
+  // Always use the same redirect pattern
+  const targetUrl = redirectTo && redirectTo !== '/login' ? redirectTo : '/'
+  
+  // Redirect to the target URL
+  return redirect(targetUrl)
 }
 
 export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  
+  if (!email || !password) {
+    throw new Error('Email and password are required')
+  }
   
   const supabase = await createClient()
   
@@ -48,8 +55,12 @@ export async function signup(formData: FormData) {
   
   if (error) {
     console.error('Signup error:', error.message)
-    return redirect('/login?error=' + encodeURIComponent(error.message))
+    throw new Error(error.message)
   }
   
+  // Ensure cache is invalidated before redirect
+  revalidatePath('/login', 'page')
+  
+  // Return to login with success message
   return redirect('/login?message=Check your email to confirm your sign up')
 } 

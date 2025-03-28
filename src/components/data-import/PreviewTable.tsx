@@ -101,7 +101,7 @@ export function PreviewTable({ type, onClose }: PreviewTableProps) {
     !key.includes('id')
   )
 
-  const formatValue = (value: any) => {
+  const formatValue = (value: string | number | boolean | Date | null | undefined | object) => {
     if (value === null || value === undefined) return '-'
     if (value instanceof Date) return new Date(value).toLocaleDateString()
     if (typeof value === 'boolean') return value ? 'Yes' : 'No'

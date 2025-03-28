@@ -14,15 +14,16 @@ import {
 import { format } from 'date-fns'
 
 interface OmicsResult {
-  date_of_collection: Date | null
-  hb_advia: number | null
-  hct_advia: number | null
-  wbc_advia: number | null
-  plt_advia: number | null
-  mcv_advia: number | null
-  ei_min_lorrca: number | null
-  ei_max_lorrca: number | null
-  ei_delta_lorrca: number | null
+  date_of_collection: Date | string | null | undefined
+  hb_advia?: number | null | undefined
+  hct_advia?: number | null | undefined
+  wbc_advia?: number | null | undefined
+  plt_advia?: number | null | undefined
+  mcv_advia?: number | null | undefined
+  ei_min_lorrca?: number | null | undefined
+  ei_max_lorrca?: number | null | undefined
+  ei_delta_lorrca?: number | null | undefined
+  [key: string]: Date | string | number | boolean | null | undefined
 }
 
 interface OmicsChartsProps {
@@ -36,19 +37,27 @@ export function OmicsCharts({ samples }: OmicsChartsProps) {
       .filter(sample => sample.date_of_collection)
       .sort((a, b) => {
         if (!a.date_of_collection || !b.date_of_collection) return 0
-        return a.date_of_collection.getTime() - b.date_of_collection.getTime()
+        const dateA = a.date_of_collection instanceof Date ? a.date_of_collection : new Date(a.date_of_collection)
+        const dateB = b.date_of_collection instanceof Date ? b.date_of_collection : new Date(b.date_of_collection)
+        return dateA.getTime() - dateB.getTime()
       })
-      .map(sample => ({
-        date: format(sample.date_of_collection!, 'MMM d, yyyy'),
-        'Hemoglobin (g/dL)': sample.hb_advia,
-        'Hematocrit (%)': sample.hct_advia,
-        'WBC (K/µL)': sample.wbc_advia,
-        'Platelets (K/µL)': sample.plt_advia,
-        'MCV (fL)': sample.mcv_advia,
-        'EI Min': sample.ei_min_lorrca,
-        'EI Max': sample.ei_max_lorrca,
-        'EI Delta': sample.ei_delta_lorrca
-      }))
+      .map(sample => {
+        const date = sample.date_of_collection instanceof Date 
+          ? sample.date_of_collection 
+          : new Date(sample.date_of_collection!)
+        
+        return {
+          date: format(date, 'MMM d, yyyy'),
+          'Hemoglobin (g/dL)': sample.hb_advia,
+          'Hematocrit (%)': sample.hct_advia,
+          'WBC (K/µL)': sample.wbc_advia,
+          'Platelets (K/µL)': sample.plt_advia,
+          'MCV (fL)': sample.mcv_advia,
+          'EI Min': sample.ei_min_lorrca,
+          'EI Max': sample.ei_max_lorrca,
+          'EI Delta': sample.ei_delta_lorrca
+        }
+      })
   }, [samples])
 
   return (

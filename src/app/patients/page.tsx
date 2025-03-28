@@ -3,6 +3,9 @@ import { PatientsTable } from '@/components/patients/PatientsTable'
 import { convertToNumber } from '@/lib/utils'
 import { getAllPatients } from '@/lib/supabase/operations'
 
+// Add dynamic rendering to fix the cookies error
+export const dynamic = 'force-dynamic'
+
 export default async function PatientsPage() {
   const patientsData = await getAllPatients()
   const patients = convertToNumber(patientsData)

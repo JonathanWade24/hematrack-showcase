@@ -46,8 +46,10 @@ export function DatePicker({
           selected={selected}
           onSelect={onChange}
           initialFocus
-          minDate={minDate}
-          maxDate={maxDate}
+          disabled={minDate || maxDate ? {
+            before: minDate,
+            after: maxDate
+          } : undefined}
         />
       </PopoverContent>
     </Popover>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/db';
+import { getSupabaseAdminClient } from '@/db';
 import { z } from 'zod';
 
 // Define request schema
@@ -15,6 +15,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { schema, table, column, search, limit } = RequestSchema.parse(body);
+
+    // Get Supabase admin client for raw SQL queries
+    const supabase = await getSupabaseAdminClient();
 
     // Build and execute the query to get distinct values and their counts
     const query = `
@@ -33,7 +36,14 @@ export async function POST(request: Request) {
       ? [`%${search}%`, limit]
       : [limit];
 
-    const results = await prisma.$queryRawUnsafe(query, ...params);
+    const { data: results, error } = await supabase.rpc('execute_query', {
+      query_text: query,
+      query_params: params
+    });
+
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json(results);
   } catch (error) {

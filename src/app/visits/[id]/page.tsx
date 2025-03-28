@@ -202,18 +202,37 @@ async function getVisitData(patientMrn: string) {
   }
 }
 
-export default async function VisitsPage({ params }: { params: { id: string } }) {
-  // Get the visit data
-  const data = await getVisitData(params.id)
+// Add correct interface for Next.js 15
+type PageParams = {
+  id: string;
+};
 
-  // If no data was found, return 404
-  if (!data) {
-    return notFound()
+type VisitPageProps = {
+  params: Promise<PageParams> | undefined;
+};
+
+export default async function VisitsPage({ params }: VisitPageProps) {
+  // Handle params correctly, checking for undefined
+  if (!params) {
+    throw new Error('Missing page parameters');
   }
-
+  
+  // Resolve params if it's a Promise
+  const parameters = await params;
+  const id = parameters.id;
+  
+  const visitData = await getVisitData(id);
+  
+  if (!visitData) {
+    notFound();
+  }
+  
   return (
     <DashboardLayout>
-      <VisitsViewer patientMrn={params.id} data={data} />
+      <VisitsViewer 
+        patientMrn={id} 
+        data={visitData}
+      />
     </DashboardLayout>
-  )
+  );
 } 

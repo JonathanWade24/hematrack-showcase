@@ -38,7 +38,7 @@ export default function DataEntryPage() {
     }
 
     fetchRecentEntries()
-  }, [])
+  }, [supabase])
 
   const downloadTemplate = () => {
     // Template headers based on actual database structure

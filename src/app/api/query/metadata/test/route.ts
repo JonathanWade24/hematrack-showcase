@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    // Get Supabase client
+    const supabase = await createClient();
     
     // Execute a simplified version of the metadata query
     const { data, error } = await supabase.rpc('get_schema_metadata', {

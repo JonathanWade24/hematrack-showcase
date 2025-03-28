@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { SearchBar } from './SearchBar'
-import SamplesTable from './SamplesTable'
+import SamplesTable, { Sample } from './SamplesTable'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faVial, faCheckCircle, faCalendarCheck, faDna,
@@ -11,36 +11,32 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import Link from 'next/link'
 
-// Define a more specific type for what we actually receive from the API
-interface DashboardOmicsResult {
-  sample_id: string
-  subject_id: string
-  date_of_collection: string | null // Date comes as string from API
-  genotype: string | null
-  qc_pass_advia: string | null
-  omics_subjects: {
-    subject_id: string
-    patient_mrn: string
-    project: string
-  }
-  processing_status: 'Complete' | 'Partial' | 'Pending'
-  qc_status: 'Passed' | 'Failed' | 'Review'
-}
-
+// Define types for the props we expect
 interface DashboardClientProps {
-  patients?: any[];
+  patients?: unknown[];
   totalSamples?: number;
   totalSubjects?: number;
-  // Add other props as needed
-  initialData?: any; // This is the problematic prop
+  initialData?: {
+    recentSamples?: Sample[];
+    qcPassedSamples?: number;
+    fullyProcessedSamples?: number;
+    partiallyProcessedSamples?: number;
+    pendingSamples?: number;
+    totalSamples?: number;
+    subjectCounts?: {
+      complete?: number;
+      partial?: number;
+      pending?: number;
+    };
+  };
 }
 
-export default function DashboardClient(props) {
+export default function DashboardClient(props: DashboardClientProps) {
   // Create a safe version of initialData
   const initialData = props.initialData || {};
   
   const [searchQuery, setSearchQuery] = useState('')
-  const [results, setResults] = useState(initialData.recentSamples)
+  const [results, setResults] = useState<Sample[]>(initialData.recentSamples || [])
   const [loading, setLoading] = useState(false)
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
@@ -48,7 +44,7 @@ export default function DashboardClient(props) {
     if (debouncedSearchQuery.length >= 2) {
       handleSearch(debouncedSearchQuery)
     } else {
-      setResults(initialData.recentSamples)
+      setResults(initialData.recentSamples || [])
     }
   }, [debouncedSearchQuery, initialData.recentSamples])
 
@@ -82,7 +78,7 @@ export default function DashboardClient(props) {
       
       const csvContent = [
         headers.join(','),
-        ...results.map(sample => [
+        ...(results || []).map((sample: Sample) => [
           sample.sample_id || '',
           sample.subject_id || '',
           sample.date_of_collection || '',
@@ -113,10 +109,10 @@ export default function DashboardClient(props) {
   };
 
   // Calculate QC pass percentage
-  const qcPassPercentage = ((initialData.qcPassedSamples / initialData.totalSamples) * 100).toFixed(1)
+  const qcPassPercentage = (((initialData.qcPassedSamples || 0) / (initialData.totalSamples || 1)) * 100).toFixed(1)
   
   // Calculate processing percentage
-  const processedPercentage = ((initialData.fullyProcessedSamples / initialData.totalSamples) * 100).toFixed(1)
+  const processedPercentage = (((initialData.fullyProcessedSamples || 0) / (props.totalSamples || 1)) * 100).toFixed(1)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -167,9 +163,9 @@ export default function DashboardClient(props) {
                 </div>
               </div>
               <div className="mt-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500" style={{ width: `${(initialData.subjectCounts?.complete / props.totalSubjects) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-yellow-500" style={{ width: `${(initialData.subjectCounts?.partial / props.totalSubjects) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-gray-400" style={{ width: `${(initialData.subjectCounts?.pending / props.totalSubjects) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-green-500" style={{ width: `${((initialData.subjectCounts?.complete || 0) / (props.totalSubjects || 1)) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-yellow-500" style={{ width: `${((initialData.subjectCounts?.partial || 0) / (props.totalSubjects || 1)) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-gray-400" style={{ width: `${((initialData.subjectCounts?.pending || 0) / (props.totalSubjects || 1)) * 100}%`, float: 'left' }} />
               </div>
             </div>
           </div>
@@ -181,12 +177,12 @@ export default function DashboardClient(props) {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Samples</p>
-                <p className="text-2xl font-semibold text-gray-800">{props.totalSamples}</p>
+                <p className="text-2xl font-semibold text-gray-800">{props.totalSamples || 0}</p>
               </div>
             </div>
             <div className="mt-4">
               <span className="text-gray-500 text-sm font-medium flex items-center">
-                {initialData.fullyProcessedSamples} fully processed
+                {initialData.fullyProcessedSamples || 0} fully processed
               </span>
               <span className="text-xs text-green-500">{processedPercentage}% complete</span>
             </div>
@@ -220,9 +216,9 @@ export default function DashboardClient(props) {
                 Processing breakdown
               </span>
               <div className="mt-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500" style={{ width: `${(initialData.fullyProcessedSamples / props.totalSamples) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-yellow-500" style={{ width: `${(initialData.partiallyProcessedSamples / props.totalSamples) * 100}%`, float: 'left' }} />
-                <div className="h-full bg-gray-400" style={{ width: `${(initialData.pendingSamples / props.totalSamples) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-green-500" style={{ width: `${((initialData.fullyProcessedSamples || 0) / (props.totalSamples || 1)) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-yellow-500" style={{ width: `${((initialData.partiallyProcessedSamples || 0) / (props.totalSamples || 1)) * 100}%`, float: 'left' }} />
+                <div className="h-full bg-gray-400" style={{ width: `${((initialData.pendingSamples || 0) / (props.totalSamples || 1)) * 100}%`, float: 'left' }} />
               </div>
             </div>
           </div>

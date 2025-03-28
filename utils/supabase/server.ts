@@ -1,7 +1,8 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
+export const createClient = async () => {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,7 +33,11 @@ export const createAdminClient = () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_SUPABASE_SERVICE_KEY!,
     {
-      cookies: {} // No cookies for admin client
+      // No cookies needed for admin client
+      cookies: {
+        getAll: () => [],
+        setAll: () => {}
+      }
     }
   );
 }; 

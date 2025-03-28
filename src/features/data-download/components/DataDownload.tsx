@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faDownload, faPlus, faTrash, 
   faSearch, faChevronDown, faChevronRight, faExclamationCircle, faSpinner
 } from '@fortawesome/free-solid-svg-icons'
 import { debugDataDownload } from '@/utils/debugUtils'
-import { queryTemplates, QueryTemplate } from '@/lib/queryTemplates'
+import { queryTemplates } from '@/lib/queryTemplates'
 
 export interface GroupCriteria {
   id: string
@@ -794,19 +794,9 @@ function getCurrentDate() {
   return today.toISOString().split('T')[0];
 }
 
-// Helper function to handle time window changes
-function handleTimeWindowChange(field: 'start' | 'end', value: string) {
-  setFilters(prev => ({
-    ...prev,
-    timeWindow: {
-      ...prev.timeWindow,
-      [field]: new Date(value)
-    }
-  }));
-}
-
 export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
-  const [filters, setFilters] = useState<FilterCriteria>({
+  // Initial filter state
+  const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>({
     templateId: '',
     groups: [],
     variables: {
@@ -827,25 +817,29 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
       type: 'relative',
       relativeDays: 30
     },
-    requireOmiSample: false,
+    requireOmiSample: true,
     inclusionCriteria: {}
   })
 
-  // Add new state for preview data
-  const [previewData, setPreviewData] = useState<PreviewData | null>(null)
+  // Other state variables for UI
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [downloadError, setDownloadError] = useState<string | null>(null)
 
-  // Add state for selected template and inclusion criteria
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
-  const [inclusionCriteria, setInclusionCriteria] = useState<Record<string, { excludeNA: boolean }>>({})
-  
-  // Get the selected template
-  const selectedTemplate = queryTemplates.find(t => t.id === selectedTemplateId)
-  
+  // Helper function to handle time window changes
+  const handleTimeWindowChange = (field: 'start' | 'end', value: string) => {
+    setFilterCriteria(prev => ({
+      ...prev,
+      timeWindow: {
+        ...prev.timeWindow,
+        [field]: value ? new Date(value) : undefined
+      }
+    }));
+  };
+
   // Add template selection UI
   const renderTemplateSelector = () => (
     <div className="mb-6">
@@ -855,9 +849,9 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
           <div 
             key={template.id}
             className={`p-4 border rounded-md cursor-pointer ${
-              selectedTemplateId === template.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
+              filterCriteria.templateId === template.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
             }`}
-            onClick={() => setSelectedTemplateId(template.id)}
+            onClick={() => setFilterCriteria(prev => ({ ...prev, templateId: template.id }))}
           >
             <h4 className="font-medium">{template.name}</h4>
             <p className="text-sm text-gray-600">{template.description}</p>
@@ -866,54 +860,34 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
       </div>
     </div>
   )
-  
-  // Add UI for inclusion criteria
-  const renderInclusionCriteria = (variableName: string, label: string) => (
-    <div className="flex items-center space-x-2">
-      <label className="flex items-center text-sm">
-        <input
-          type="checkbox"
-          checked={!!inclusionCriteria[variableName]?.excludeNA}
-          onChange={() => {
-            setInclusionCriteria(prev => ({
-              ...prev,
-              [variableName]: { excludeNA: !prev[variableName]?.excludeNA }
-            }))
-          }}
-          className="mr-1"
-        />
-        Exclude NA for {label}
-      </label>
-    </div>
-  )
-  
-  // Add function to fetch preview data
-  const fetchPreview = async () => {
+
+  // Wrap the fetchPreview function with useCallback
+  const fetchPreview = useCallback(async () => {
     setIsLoadingPreview(true)
     setPreviewError(null)
     try {
-      const data = await onPreview(filters)
+      const data = await onPreview(filterCriteria)
       setPreviewData(data)
     } catch (error) {
       setPreviewError(error instanceof Error ? error.message : 'Failed to load preview')
     } finally {
       setIsLoadingPreview(false)
     }
-  }
+  }, [filterCriteria, onPreview]);
 
-  // Add useEffect to update preview when filters change
+  // Fix useEffect to include fetchPreview in dependencies
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
       if (
-        filters.groups.length > 0 || 
-        filters.variables.clinical.labs.length > 0 ||
-        filters.variables.clinical.medications.length > 0 ||
-        filters.variables.clinical.vitals.length > 0 ||
-        filters.variables.omics.advia.length > 0 ||
-        filters.variables.omics.lorrca.length > 0 ||
-        filters.variables.omics.viscosity.length > 0 ||
-        filters.variables.omics.research_hplc.length > 0 ||
-        filters.variables.demographics.length > 0
+        filterCriteria.groups.length > 0 || 
+        filterCriteria.variables.clinical.labs.length > 0 ||
+        filterCriteria.variables.clinical.medications.length > 0 ||
+        filterCriteria.variables.clinical.vitals.length > 0 ||
+        filterCriteria.variables.omics.advia.length > 0 ||
+        filterCriteria.variables.omics.lorrca.length > 0 ||
+        filterCriteria.variables.omics.viscosity.length > 0 ||
+        filterCriteria.variables.omics.research_hplc.length > 0 ||
+        filterCriteria.variables.demographics.length > 0
       ) {
         fetchPreview()
       } else {
@@ -922,29 +896,29 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
     }, 500)
 
     return () => clearTimeout(debounceTimeout)
-  }, [filters])
+  }, [filterCriteria, fetchPreview])
 
   const addGroup = () => {
     const newGroup: GroupCriteria = {
       id: `group-${Date.now()}`,
-      name: `Group ${filters.groups.length + 1}`,
+      name: `Group ${filterCriteria.groups.length + 1}`,
       conditions: []
     }
-    setFilters(prev => ({
+    setFilterCriteria(prev => ({
       ...prev,
       groups: [...prev.groups, newGroup]
     }))
   }
 
   const removeGroup = (groupId: string) => {
-    setFilters(prev => ({
+    setFilterCriteria(prev => ({
       ...prev,
       groups: prev.groups.filter(g => g.id !== groupId)
     }))
   }
 
   const updateGroup = (groupId: string, updates: Partial<GroupCriteria>) => {
-    setFilters(prev => ({
+    setFilterCriteria(prev => ({
       ...prev,
       groups: prev.groups.map(g => 
         g.id === groupId ? { ...g, ...updates } : g
@@ -959,19 +933,19 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
       value: ''
     }
     updateGroup(groupId, {
-      conditions: [...filters.groups.find(g => g.id === groupId)!.conditions, newCondition]
+      conditions: [...filterCriteria.groups.find(g => g.id === groupId)!.conditions, newCondition]
     })
   }
 
   const updateCondition = (groupId: string, index: number, updated: GroupCriteria['conditions'][0]) => {
-    const group = filters.groups.find(g => g.id === groupId)!
+    const group = filterCriteria.groups.find(g => g.id === groupId)!
     const newConditions = [...group.conditions]
     newConditions[index] = updated
     updateGroup(groupId, { conditions: newConditions })
   }
 
   const removeCondition = (groupId: string, index: number) => {
-    const group = filters.groups.find(g => g.id === groupId)!
+    const group = filterCriteria.groups.find(g => g.id === groupId)!
     const newConditions = group.conditions.filter((_, i) => i !== index)
     updateGroup(groupId, { conditions: newConditions })
   }
@@ -980,23 +954,23 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
     e.preventDefault();
     
     // Debug the current filters
-    debugDataDownload(filters);
+    debugDataDownload(filterCriteria);
     
     if (isDownloading) return;
     
     // Validate filters
-    if (!selectedTemplateId) {
+    if (!filterCriteria.templateId) {
       setDownloadError('Please select a query template');
       return;
     }
     
-    if (filters.variables.clinical.labs.length === 0 && 
-        filters.variables.clinical.medications.length === 0 && 
-        filters.variables.omics.advia.length === 0 && 
-        filters.variables.omics.lorrca.length === 0 && 
-        filters.variables.omics.viscosity.length === 0 && 
-        filters.variables.omics.research_hplc.length === 0 && 
-        filters.variables.demographics.length === 0) {
+    if (filterCriteria.variables.clinical.labs.length === 0 && 
+        filterCriteria.variables.clinical.medications.length === 0 && 
+        filterCriteria.variables.omics.advia.length === 0 && 
+        filterCriteria.variables.omics.lorrca.length === 0 && 
+        filterCriteria.variables.omics.viscosity.length === 0 && 
+        filterCriteria.variables.omics.research_hplc.length === 0 && 
+        filterCriteria.variables.demographics.length === 0) {
       setDownloadError('Please select at least one variable to include');
       return;
     }
@@ -1013,8 +987,8 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          templateId: filters.templateId,
-          filters: filters
+          templateId: filterCriteria.templateId,
+          filters: filterCriteria
         }),
       });
       
@@ -1041,7 +1015,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
       if (data.headers && data.rows) {
         const csvContent = [
           data.headers.join(','),
-          ...data.rows.map((row: any[]) => row.map(cell => 
+          ...data.rows.map((row: (string | number | null)[]) => row.map(cell => 
             typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell
           ).join(','))
         ].join('\n');
@@ -1058,7 +1032,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
         
         // Call onSubmit callback if provided
         if (onSubmit) {
-          await onSubmit(filters);
+          await onSubmit(filterCriteria);
         }
       } else {
         throw new Error('Invalid response format');
@@ -1103,8 +1077,8 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
             <input
               type="checkbox"
               id="requireOmiSample"
-              checked={filters.requireOmiSample}
-              onChange={e => setFilters(prev => ({
+              checked={filterCriteria.requireOmiSample}
+              onChange={e => setFilterCriteria(prev => ({
                 ...prev,
                 requireOmiSample: e.target.checked
               }))}
@@ -1117,7 +1091,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
         </div>
         
         <div className="space-y-4 mt-4">
-          {filters.groups.map(group => (
+          {filterCriteria.groups.map(group => (
             <div key={group.id} className="border rounded-md p-4">
               <div className="flex justify-between items-center mb-4">
                 <input
@@ -1171,18 +1145,18 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
               variables={variables}
               selected={
                 category === 'demographics' 
-                  ? filters.variables.demographics
+                  ? filterCriteria.variables.demographics
                   : category === 'clinical'
                     ? [
-                        ...filters.variables.clinical.labs.map(l => l.name),
-                        ...filters.variables.clinical.medications.map(m => m.name),
-                        ...filters.variables.clinical.vitals
+                        ...filterCriteria.variables.clinical.labs.map(l => l.name),
+                        ...filterCriteria.variables.clinical.medications.map(m => m.name),
+                        ...filterCriteria.variables.clinical.vitals
                       ]
-                    : filters.variables.omics[category as keyof typeof filters.variables.omics]
+                    : filterCriteria.variables.omics[category as keyof typeof filterCriteria.variables.omics]
               }
               onChange={(selected, customData) => {
                 if (category === 'demographics') {
-                  setFilters(prev => ({
+                  setFilterCriteria(prev => ({
                     ...prev,
                     variables: {
                       ...prev.variables,
@@ -1220,7 +1194,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
                   
                   const vitals = selected.filter(v => !v.startsWith('lab_') && !v.startsWith('med_'))
                   
-                  setFilters(prev => ({
+                  setFilterCriteria(prev => ({
                     ...prev,
                     variables: {
                       ...prev.variables,
@@ -1232,7 +1206,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
                     }
                   }))
                 } else {
-                  setFilters(prev => ({
+                  setFilterCriteria(prev => ({
                     ...prev,
                     variables: {
                       ...prev.variables,
@@ -1257,8 +1231,8 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
             <label className="inline-flex items-center">
               <input
                 type="radio"
-                checked={filters.timeWindow.type === 'relative'}
-                onChange={() => setFilters(prev => ({
+                checked={filterCriteria.timeWindow.type === 'relative'}
+                onChange={() => setFilterCriteria(prev => ({
                   ...prev,
                   timeWindow: { type: 'relative', relativeDays: 30 }
                 }))}
@@ -1269,8 +1243,8 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
             <label className="inline-flex items-center">
               <input
                 type="radio"
-                checked={filters.timeWindow.type === 'absolute'}
-                onChange={() => setFilters(prev => ({
+                checked={filterCriteria.timeWindow.type === 'absolute'}
+                onChange={() => setFilterCriteria(prev => ({
                   ...prev,
                   timeWindow: { type: 'absolute', start: new Date(), end: new Date() }
                 }))}
@@ -1280,13 +1254,13 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
             </label>
           </div>
 
-          {filters.timeWindow.type === 'relative' ? (
+          {filterCriteria.timeWindow.type === 'relative' ? (
             <div>
               <label className="block text-sm font-medium text-gray-700">Days window</label>
               <input
                 type="number"
-                value={filters.timeWindow.relativeDays}
-                onChange={e => setFilters(prev => ({
+                value={filterCriteria.timeWindow.relativeDays}
+                onChange={e => setFilterCriteria(prev => ({
                   ...prev,
                   timeWindow: {
                     ...prev.timeWindow,
@@ -1309,7 +1283,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
                   id="startDate"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   type="date"
-                  value={filters.timeWindow.start || getCurrentDate()}
+                  value={filterCriteria.timeWindow.start?.toISOString().split('T')[0] || getCurrentDate()}
                   onChange={(e) => handleTimeWindowChange('start', e.target.value)}
                 />
               </div>
@@ -1324,7 +1298,7 @@ export function DataDownload({ onSubmit, onPreview }: DataDownloadProps) {
                   id="endDate"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   type="date"
-                  value={filters.timeWindow.end || getCurrentDate()}
+                  value={filterCriteria.timeWindow.end?.toISOString().split('T')[0] || getCurrentDate()}
                   onChange={(e) => handleTimeWindowChange('end', e.target.value)}
                 />
               </div>

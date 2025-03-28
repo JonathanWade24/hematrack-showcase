@@ -1,9 +1,61 @@
 import { createClient } from '@/lib/supabase/client'
-import { Database } from '@/types/supabase'
 import { AssayType } from './types'
 
+// Define the types as interfaces instead of using a namespace
+export interface OmicsResultsUpdateInput {
+  sample_id?: string
+  subject_id?: string
+  date_of_collection?: Date | string | null
+  genotype?: string | null
+  age_at_collection?: number | null
+  [key: string]: unknown
+}
+
+export interface OmicsResultsWhereInput {
+  subject_id?: string
+  [key: string]: unknown
+}
+
+export interface DateTimeFilter {
+  gte?: Date
+  lte?: Date
+  [key: string]: unknown
+}
+
+export interface PatientsUpdateInput {
+  patient_mrn?: string
+  first_name?: string
+  last_name?: string
+  date_of_birth?: Date | string | null
+  [key: string]: unknown
+}
+
+// Define types for the data parameters
+interface OmicsResultData {
+  sample_id: string
+  subject_id: string
+  date_of_collection?: string | null
+  genotype?: string | null
+  [key: string]: unknown
+}
+
+interface OmicsSubjectData {
+  subject_id: string
+  patient_mrn: string
+  project?: string
+  [key: string]: unknown
+}
+
+interface PatientData {
+  patient_mrn: string
+  first_name?: string
+  last_name?: string
+  date_of_birth?: string | null
+  [key: string]: unknown
+}
+
 // Omics Results Operations
-export async function createOmicsResult(data: any) {
+export async function createOmicsResult(data: OmicsResultData) {
   const supabase = createClient()
   const { data: result, error } = await supabase
     .from('omics_results')
@@ -17,13 +69,13 @@ export async function createOmicsResult(data: any) {
 
 export async function updateOmicsResult(
   sample_id: string, 
-  data: Partial<Prisma.omics_resultsUncheckedUpdateInput>
+  data: Partial<OmicsResultsUpdateInput>
 ) {
   const supabase = createClient()
   const { data: result, error } = await supabase
     .from('omics_results')
     .update(data)
-    .eq('sample_id', sample_id)
+    .match({ sample_id })
     .select()
     .single()
     
@@ -36,7 +88,7 @@ export async function getOmicsResultBySampleId(sample_id: string) {
   const { data: result, error } = await supabase
     .from('omics_results')
     .select('*')
-    .eq('sample_id', sample_id)
+    .match({ sample_id })
     .single()
     
   if (error) throw error
@@ -48,7 +100,7 @@ export async function getOmicsResultsBySubjectId(subject_id: string) {
   const { data: result, error } = await supabase
     .from('omics_results')
     .select('*')
-    .eq('subject_id', subject_id)
+    .match({ subject_id })
     .order('date_of_collection', { ascending: false })
     
   if (error) throw error
@@ -68,37 +120,36 @@ export async function getOmicsResultsByAssayType(
   const dateField = `date_${assay_type.toLowerCase()}`
   const qcField = `qc_pass_${assay_type.toLowerCase()}`
   
-  const where: Prisma.omics_resultsWhereInput = {
-    subject_id: options?.subject_id
-  }
-
-  // Handle date field conditions
-  if (options?.start_date || options?.end_date) {
-    const dateConditions: Prisma.DateTimeFilter = {}
-    if (options.start_date) dateConditions.gte = options.start_date
-    if (options.end_date) dateConditions.lte = options.end_date
-    where[dateField as keyof Prisma.omics_resultsWhereInput] = dateConditions
-  }
-
-  // Handle QC pass condition
-  if (options?.qc_pass !== undefined) {
-    where[qcField as keyof Prisma.omics_resultsWhereInput] = {
-      equals: options.qc_pass ? 'Yes' : 'No'
-    }
-  }
-  
-  const { data: result, error } = await supabase
+  let query = supabase
     .from('omics_results')
     .select('*')
-    .eq(where)
-    .order(dateField, { ascending: false })
-    
+  
+  if (options?.subject_id) {
+    query = query.match({ subject_id: options.subject_id })
+  }
+  
+  if (options?.start_date) {
+    query = query.gte(dateField, options.start_date.toISOString())
+  }
+  
+  if (options?.end_date) {
+    query = query.lte(dateField, options.end_date.toISOString())
+  }
+  
+  if (options?.qc_pass !== undefined) {
+    query = query.match({ [qcField]: options.qc_pass ? 'Yes' : 'No' })
+  }
+  
+  query = query.order(dateField, { ascending: false })
+  
+  const { data: result, error } = await query
+  
   if (error) throw error
   return result
 }
 
 // Subject Operations
-export async function createOmicsSubject(data: any) {
+export async function createOmicsSubject(data: OmicsSubjectData) {
   const supabase = createClient()
   const { data: result, error } = await supabase
     .from('omics_subjects')
@@ -115,19 +166,19 @@ export async function getOmicsSubjectById(subject_id: string) {
   const { data: result, error } = await supabase
     .from('omics_subjects')
     .select('*')
-    .eq('subject_id', subject_id)
+    .match({ subject_id })
     .single()
     
   if (error) throw error
   return result
 }
 
-export async function updateOmicsSubject(subject_id: string, data: any) {
+export async function updateOmicsSubject(subject_id: string, data: Partial<OmicsSubjectData>) {
   const supabase = createClient()
   const { data: result, error } = await supabase
     .from('omics_subjects')
     .update(data)
-    .eq('subject_id', subject_id)
+    .match({ subject_id })
     .select()
     .single()
     
@@ -136,7 +187,7 @@ export async function updateOmicsSubject(subject_id: string, data: any) {
 }
 
 // Patient Operations
-export async function createPatient(data: any) {
+export async function createPatient(data: PatientData) {
   const supabase = createClient()
   const { data: result, error } = await supabase
     .from('patients')
@@ -153,7 +204,7 @@ export async function getPatientByMRN(patient_mrn: string) {
   const { data: result, error } = await supabase
     .from('patients')
     .select('*')
-    .eq('patient_mrn', patient_mrn)
+    .match({ patient_mrn })
     .single()
     
   if (error) throw error
@@ -162,13 +213,13 @@ export async function getPatientByMRN(patient_mrn: string) {
 
 export async function updatePatient(
   patient_mrn: string,
-  data: Prisma.patientsUpdateInput
+  data: PatientsUpdateInput
 ) {
   const supabase = createClient()
   const { data: result, error } = await supabase
     .from('patients')
     .update(data)
-    .eq('patient_mrn', patient_mrn)
+    .match({ patient_mrn })
     .select()
     .single()
     
@@ -182,7 +233,7 @@ export async function searchSubjects(query: string) {
   const { data: result, error } = await supabase
     .from('omics_subjects')
     .select('*')
-    .or(`subject_id.ilike.%${query}%`, `patient_mrn.ilike.%${query}%`)
+    .or(`subject_id.ilike.%${query}%,patient_mrn.ilike.%${query}%`)
     
   if (error) throw error
   return result

@@ -1,8 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import DashboardClient from '@/components/dashboard/DashboardClient'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+
+export const metadata = {
+  title: 'Home - SCD Dashboard',
+  description: 'Sample overview and status dashboard for SCD research'
+}
 
 // Define types for our data structures
 interface ProcessingStatus {
@@ -53,19 +57,26 @@ interface ProcessingStatusCounts {
 }
 
 interface DashboardData {
-  recentSamples: OmicsSample[]
-  totalSamples: number
-  totalSubjects: number
-  qcPassedSamples: number
-  fullyProcessedSamples: number
-  partiallyProcessedSamples: number
-  pendingSamples: number
-  subjectCounts: SubjectStatusCounts
+  recentSamples: {
+    sample_id: string;
+    subject_id: string;
+    date_of_collection: string | null;
+    genotype: string | null;
+    processing_status: 'Complete' | 'Partial' | 'Pending';
+    qc_status: 'Passed' | 'Failed' | 'Review';
+  }[];
+  totalSamples: number;
+  totalSubjects: number;
+  qcPassedSamples: number;
+  fullyProcessedSamples: number;
+  partiallyProcessedSamples: number;
+  pendingSamples: number;
+  subjectCounts: SubjectStatusCounts;
 }
 
 export default async function Home() {
-  const cookieStore = cookies()
-  const supabase = await createClient(cookieStore)
+  // Create supabase client with proper cookies handling
+  const supabase = await createClient()
   
   // Check if user is authenticated
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -329,7 +340,14 @@ export default async function Home() {
 
     // Create the dashboard data object
     const dashboardData: DashboardData = {
-      recentSamples: filteredSamples || [],
+      recentSamples: filteredSamples.map((sample) => ({
+        sample_id: sample.sample_id,
+        subject_id: sample.subject_id,
+        date_of_collection: sample.date_of_collection || null,
+        genotype: sample.genotype || null,
+        processing_status: sample.processing_status || 'Pending',
+        qc_status: sample.qc_status || 'Review',
+      })),
       totalSamples: totalSamples || 0,
       totalSubjects: totalSubjects || 0,
       qcPassedSamples: qcPassedSamples || 0,

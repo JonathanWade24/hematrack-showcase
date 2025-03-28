@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUser, faVial, faCalendar, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import { faUser } from '@fortawesome/free-solid-svg-icons'
 import SamplesTable from '../dashboard/SamplesTable'
 import { OmicsCharts } from './OmicsCharts'
 import { PHIMask } from '../ui/phi-mask'
@@ -49,7 +47,8 @@ export interface OmicsResult {
   processing_status?: 'Complete' | 'Partial' | 'Pending'
   qc_status?: 'Passed' | 'Failed' | 'Review'
   qc_notes?: string | null
-  [key: string]: any // Allow additional properties
+  // Allow other properties with string | number | null | undefined values
+  [key: string]: string | number | null | undefined | Date
 }
 
 export interface Subject {
@@ -110,90 +109,14 @@ export function SubjectViewer({ subject }: SubjectViewerProps) {
   }
   
   // Original component logic...
+  // commented out as variables below are not currently used in this component
+  /*
   const omicsResults = subject.omics_results;
   
-  // Process samples to include processing and QC status
+  // Process samples - commented out as it's not used in the current component
+  /*
   const samples = omicsResults.map(sample => {
-    // Check if ADVIA has any non-zero values
-    const hasValidAdvia = [
-      sample.rbc_advia,
-      sample.hb_advia,
-      sample.hct_advia,
-      sample.mcv_advia,
-      sample.mch_advia,
-      sample.mchc_advia,
-      sample.rdw_advia,
-      sample.plt_advia,
-      sample.wbc_advia
-    ].some(value => value !== null && value !== 0)
-
-    // Check other components for non-zero values
-    const hasValidDNA = sample.concentration_1_dna !== null && sample.concentration_1_dna !== 0
-    const hasValidPBMC = sample.cell_number_1_pbmc !== null && sample.cell_number_1_pbmc !== 0
-    const hasValidPlasma = sample.vol_plasma_1 !== null && sample.vol_plasma_1 !== 0
-
-    // Determine processing status
-    let processing_status: 'Complete' | 'Partial' | 'Pending'
-    if (!hasValidAdvia) {
-      processing_status = 'Pending'
-    } else if (hasValidDNA && hasValidPBMC && hasValidPlasma) {
-      processing_status = 'Complete'
-    } else {
-      processing_status = 'Partial'
-    }
-
-    // Parse QC notes for detailed failure reasons
-    const parseQCNotes = (status: string | null, notes: string | null) => {
-      if (status !== 'No') return null
-      return notes ? notes.split(',').map(note => note.trim()) : []
-    }
-
-    // Get specific QC failure reasons
-    const adviaFailures = parseQCNotes(sample.qc_pass_advia, sample.qc_notes_advia)
-    const lorrcaFailures = parseQCNotes(sample.qc_pass_lorrca, sample.qc_notes_lorrca)
-    const dnaFailures = parseQCNotes(sample.qc_pass_dna, sample.qc_notes_dna)
-
-    // Determine QC status with specific failure reasons
-    let qc_status: 'Passed' | 'Failed' | 'Review'
-    const qc_notes: string[] = []
-
-    if (sample.qc_pass_advia === 'No') {
-      qc_status = 'Failed'
-      if (adviaFailures) qc_notes.push(...adviaFailures)
-    } else if (sample.qc_pass_lorrca === 'No') {
-      qc_status = 'Failed'
-      if (lorrcaFailures) qc_notes.push(...lorrcaFailures.map(note => `Lorrca: ${note}`))
-    } else if (sample.qc_pass_dna === 'No') {
-      qc_status = 'Failed'
-      if (dnaFailures) qc_notes.push(...dnaFailures.map(note => `DNA: ${note}`))
-    } else if (sample.qc_pass_advia === 'Review' || sample.qc_pass_lorrca === 'Review' || sample.qc_pass_dna === 'Review') {
-      qc_status = 'Review'
-    } else {
-      qc_status = 'Passed'
-    }
-
-    return {
-      ...sample,
-      processing_status,
-      qc_status,
-      qc_notes: qc_notes.length > 0 ? qc_notes.join(', ') : null,
-      // Ensure date is properly formatted for the table
-      date_of_collection: sample.date_of_collection ? 
-        (typeof sample.date_of_collection === 'string' ? 
-          sample.date_of_collection : 
-          sample.date_of_collection.toISOString()
-        ) : null
-    }
-  })
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return 'Not available'
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
+  */
 
   const formatName = (patient?: Patient | null) => {
     if (!patient) return "Patient data unavailable";
@@ -265,7 +188,18 @@ export function SubjectViewer({ subject }: SubjectViewerProps) {
             </p>
           </div>
         ) : (
-          <SamplesTable samples={subject.omics_results} />
+          <SamplesTable 
+            samples={subject.omics_results.map(result => ({
+              sample_id: result.sample_id,
+              subject_id: result.subject_id,
+              date_of_collection: result.date_of_collection instanceof Date 
+                ? result.date_of_collection.toISOString() 
+                : result.date_of_collection,
+              genotype: result.genotype || null,
+              processing_status: result.processing_status || 'Pending',
+              qc_status: result.qc_status || 'Review'
+            }))} 
+          />
         )}
       </div>
       

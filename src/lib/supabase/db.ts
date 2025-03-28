@@ -1,9 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import { createClient as createServerClient } from './server';
 
+// Define a proper error type for Supabase errors
+interface SupabaseError {
+  code?: string;
+  message?: string;
+  details?: string;
+  hint?: string;
+  // Add index signature to make it compatible with PostgrestError
+  [key: string]: unknown;
+}
+
 // For server components
-export const getSupabaseServerClient = () => {
+export const getSupabaseServerClient = async () => {
   try {
     // Check if we're in an API route
     const isApiRoute = process.env.NEXT_RUNTIME === 'edge' || 
@@ -18,8 +27,8 @@ export const getSupabaseServerClient = () => {
     }
     
     // Use server client with cookies for regular server components
-    const cookieStore = cookies();
-    return createServerClient(cookieStore);
+    // Convert cookieStore to awaited result to fix type error
+    return await createServerClient();
   } catch (error) {
     // Fallback to direct client if there's any error
     console.error('Error creating Supabase client, falling back to direct client:', error);
@@ -61,7 +70,7 @@ export const getSupabaseAdminClient = () => {
 };
 
 // Helper to handle Supabase errors consistently
-export const handleSupabaseError = (error: any) => {
+export const handleSupabaseError = (error: SupabaseError) => {
   console.error('Supabase error:', error);
   
   // For API routes, we want to throw an error that can be caught and handled
@@ -79,24 +88,82 @@ export const handleSupabaseError = (error: any) => {
   }
 };
 
-// Type definitions to help with schema typing
+// Define basic record types for tables
+interface BaseRecord {
+  id: string | number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Type definitions with more specific types instead of 'any'
 export type Schema = {
   laboratory: {
-    omics_results: any;
-    omics_subjects: any;
+    omics_results: BaseRecord & {
+      sample_id: string;
+      subject_id: string;
+      date_of_collection: string;
+      genotype?: string;
+      [key: string]: unknown; // Allow other properties
+    };
+    omics_subjects: BaseRecord & {
+      subject_id: string;
+      patient_mrn?: string;
+      project?: string;
+      [key: string]: unknown; // Allow other properties
+    };
   };
   clinical: {
-    patients: any;
-    labs: any;
-    bone_marrow: any;
-    ip_admissions: any;
-    op_visits: any;
-    ip_medications: any;
-    op_medications: any;
-    unified_visits: any;
+    patients: BaseRecord & {
+      patient_mrn: string;
+      [key: string]: unknown;
+    };
+    labs: BaseRecord & {
+      patient_mrn: string;
+      lab_date?: string;
+      lab_result_value?: number | string;
+      lab_component_description?: string;
+      [key: string]: unknown;
+    };
+    bone_marrow: BaseRecord & {
+      patient_mrn: string;
+      [key: string]: unknown;
+    };
+    ip_admissions: BaseRecord & {
+      patient_mrn: string;
+      admit_date?: string;
+      discharge_date?: string;
+      [key: string]: unknown;
+    };
+    op_visits: BaseRecord & {
+      patient_mrn: string;
+      visit_date?: string;
+      [key: string]: unknown;
+    };
+    ip_medications: BaseRecord & {
+      patient_mrn: string;
+      [key: string]: unknown;
+    };
+    op_medications: BaseRecord & {
+      patient_mrn: string;
+      generic_description?: string;
+      [key: string]: unknown;
+    };
+    unified_visits: BaseRecord & {
+      patient_mrn: string;
+      visit_date?: string;
+      visit_type?: string;
+      [key: string]: unknown;
+    };
   };
   public: {
-    audit_log: any;
-    subject_registration: any;
+    audit_log: BaseRecord & {
+      action: string;
+      user_id: string;
+      [key: string]: unknown;
+    };
+    subject_registration: BaseRecord & {
+      subject_id: string;
+      [key: string]: unknown;
+    };
   };
 };

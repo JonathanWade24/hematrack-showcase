@@ -2,7 +2,7 @@
 export * from './client';
 
 // Export any database utility functions
-export * from './utils';
+// export * from './utils';
 
 // Export database procedures
 export const procedures = {

@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useDebounce } from '@/hooks/useDebounce'
 
@@ -306,8 +305,10 @@ export default function SimpleAdviaForm({
               id="sample_id"
               placeholder="Enter sample ID"
               {...register('sample_id')}
-              error={errors.sample_id?.message}
             />
+            {errors.sample_id && (
+              <p className="mt-1 text-sm text-red-600">{errors.sample_id.message}</p>
+            )}
           </div>
 
           <div>
@@ -318,8 +319,10 @@ export default function SimpleAdviaForm({
               id="date_advia"
               type="date"
               {...register('date_advia')}
-              error={errors.date_advia?.message}
             />
+            {errors.date_advia && (
+              <p className="mt-1 text-sm text-red-600">{errors.date_advia.message}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -333,8 +336,10 @@ export default function SimpleAdviaForm({
                 step="0.01"
                 placeholder="Enter RBC count"
                 {...register('rbc_advia', { valueAsNumber: true })}
-                error={errors.rbc_advia?.message}
               />
+              {errors.rbc_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.rbc_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -347,8 +352,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter hemoglobin"
                 {...register('hb_advia', { valueAsNumber: true })}
-                error={errors.hb_advia?.message}
               />
+              {errors.hb_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.hb_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -361,8 +368,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter hematocrit"
                 {...register('hct_advia', { valueAsNumber: true })}
-                error={errors.hct_advia?.message}
               />
+              {errors.hct_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.hct_advia.message}</p>
+              )}
             </div>
           </div>
 
@@ -377,8 +386,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter MCV"
                 {...register('mcv_advia', { valueAsNumber: true })}
-                error={errors.mcv_advia?.message}
               />
+              {errors.mcv_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.mcv_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -391,8 +402,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter MCH"
                 {...register('mch_advia', { valueAsNumber: true })}
-                error={errors.mch_advia?.message}
               />
+              {errors.mch_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.mch_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -405,8 +418,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter MCHC"
                 {...register('mchc_advia', { valueAsNumber: true })}
-                error={errors.mchc_advia?.message}
               />
+              {errors.mchc_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.mchc_advia.message}</p>
+              )}
             </div>
           </div>
 
@@ -421,8 +436,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter RDW"
                 {...register('rdw_advia', { valueAsNumber: true })}
-                error={errors.rdw_advia?.message}
               />
+              {errors.rdw_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.rdw_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -435,8 +452,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter HDW"
                 {...register('hdw_advia', { valueAsNumber: true })}
-                error={errors.hdw_advia?.message}
               />
+              {errors.hdw_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.hdw_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -449,8 +468,10 @@ export default function SimpleAdviaForm({
                 step="1"
                 placeholder="Enter platelet count"
                 {...register('plt_advia', { valueAsNumber: true })}
-                error={errors.plt_advia?.message}
               />
+              {errors.plt_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.plt_advia.message}</p>
+              )}
             </div>
           </div>
 
@@ -465,8 +486,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter MPV"
                 {...register('mpv_advia', { valueAsNumber: true })}
-                error={errors.mpv_advia?.message}
               />
+              {errors.mpv_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.mpv_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -479,8 +502,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter WBC count"
                 {...register('wbc_advia', { valueAsNumber: true })}
-                error={errors.wbc_advia?.message}
               />
+              {errors.wbc_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.wbc_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -493,8 +518,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter neutrophil count"
                 {...register('neut_advia', { valueAsNumber: true })}
-                error={errors.neut_advia?.message}
               />
+              {errors.neut_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.neut_advia.message}</p>
+              )}
             </div>
           </div>
 
@@ -509,8 +536,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter reticulocyte count"
                 {...register('retic_advia', { valueAsNumber: true })}
-                error={errors.retic_advia?.message}
               />
+              {errors.retic_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.retic_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -523,8 +552,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter CHr"
                 {...register('chr_advia', { valueAsNumber: true })}
-                error={errors.chr_advia?.message}
               />
+              {errors.chr_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.chr_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -537,8 +568,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter NRBC"
                 {...register('nrbc_advia', { valueAsNumber: true })}
-                error={errors.nrbc_advia?.message}
               />
+              {errors.nrbc_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.nrbc_advia.message}</p>
+              )}
             </div>
           </div>
 
@@ -553,8 +586,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter HC41 V120"
                 {...register('hc41_v120_advia', { valueAsNumber: true })}
-                error={errors.hc41_v120_advia?.message}
               />
+              {errors.hc41_v120_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.hc41_v120_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -567,8 +602,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter HC41 V60-120"
                 {...register('hc41_v60_120_advia', { valueAsNumber: true })}
-                error={errors.hc41_v60_120_advia?.message}
               />
+              {errors.hc41_v60_120_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.hc41_v60_120_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -581,8 +618,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter HC41 V60"
                 {...register('hc41_v60_advia', { valueAsNumber: true })}
-                error={errors.hc41_v60_advia?.message}
               />
+              {errors.hc41_v60_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.hc41_v60_advia.message}</p>
+              )}
             </div>
           </div>
 
@@ -597,8 +636,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter DRBC"
                 {...register('drbc_advia', { valueAsNumber: true })}
-                error={errors.drbc_advia?.message}
               />
+              {errors.drbc_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.drbc_advia.message}</p>
+              )}
             </div>
 
             <div>
@@ -611,8 +652,10 @@ export default function SimpleAdviaForm({
                 step="0.1"
                 placeholder="Enter Hyper"
                 {...register('hyper_advia', { valueAsNumber: true })}
-                error={errors.hyper_advia?.message}
               />
+              {errors.hyper_advia && (
+                <p className="mt-1 text-sm text-red-600">{errors.hyper_advia.message}</p>
+              )}
             </div>
           </div>
 
@@ -620,15 +663,18 @@ export default function SimpleAdviaForm({
             <label htmlFor="qc_pass_advia" className="block text-sm font-medium">
               QC Pass
             </label>
-            <Select
+            <select
               id="qc_pass_advia"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               {...register('qc_pass_advia')}
-              error={errors.qc_pass_advia?.message}
             >
               <option value="">Select...</option>
               <option value="Yes">Yes</option>
               <option value="No">No</option>
-            </Select>
+            </select>
+            {errors.qc_pass_advia && (
+              <p className="mt-1 text-sm text-red-600">{errors.qc_pass_advia.message}</p>
+            )}
           </div>
 
           <div>
@@ -639,8 +685,10 @@ export default function SimpleAdviaForm({
               id="qc_notes_advia"
               placeholder="Enter any QC notes or comments"
               {...register('qc_notes_advia')}
-              error={errors.qc_notes_advia?.message}
             />
+            {errors.qc_notes_advia && (
+              <p className="mt-1 text-sm text-red-600">{errors.qc_notes_advia.message}</p>
+            )}
           </div>
         </div>
 

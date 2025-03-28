@@ -174,18 +174,26 @@ async function getSamplesData(
   }
 }
 
-interface PageProps {
-  searchParams: { 
-    page?: string
-    pageSize?: string
-    search?: string
-    sort?: string
-    order?: 'asc' | 'desc'
-  }
-}
+// Update the interface
+type SearchParamsType = { 
+  page?: string
+  pageSize?: string
+  search?: string
+  sort?: string
+  order?: 'asc' | 'desc'
+};
+
+type PageProps = {
+  searchParams: Promise<SearchParamsType> | undefined;
+};
 
 export default async function SamplesPage({ searchParams }: PageProps) {
-  // For Next.js 15, we need to await searchParams before accessing properties
+  // Handle searchParams correctly, checking for undefined
+  if (!searchParams) {
+    throw new Error('Missing search parameters');
+  }
+  
+  // Resolve searchParams if it's a Promise
   const awaitedParams = await searchParams;
 
   // Now use the awaited params

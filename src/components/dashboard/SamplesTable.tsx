@@ -14,13 +14,9 @@ export interface Sample {
   qc_status: 'Passed' | 'Failed' | 'Review'
 }
 
-interface SamplesTableProps {
-  samples: Sample[]
-}
-
 type SortField = 'subject_id' | 'sample_id' | 'date_of_collection' | 'genotype' | 'processing_status' | 'qc_status'
 
-export default function SamplesTable({ samples = [] }) {
+export default function SamplesTable({ samples = [] }: { samples: Sample[] }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -86,8 +82,8 @@ export default function SamplesTable({ samples = [] }) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {sampleData.length > 0 ? (
-            sampleData.map((sample) => (
-              <tr key={sample.sample_id || index} className="hover:bg-gray-50">
+            sampleData.map((sample, index) => (
+              <tr key={sample.sample_id || `sample-${index}`} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {sample.subject_id}
                 </td>

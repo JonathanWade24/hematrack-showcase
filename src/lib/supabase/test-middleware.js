@@ -11,27 +11,9 @@ const mockRequest = {
   }
 };
 
-const mockNextResponse = {
-  next: () => ({ request: mockRequest }),
-  redirect: (url) => ({ url })
-};
+// Mock implementation removed as it's not used
 
-// Mock createServerClient
-const mockCreateServerClient = () => ({
-  auth: {
-    getUser: async () => ({
-      data: {
-        user: {
-          id: 'test-user',
-          app_metadata: {
-            role: 'lab_researcher'  // A role that doesn't have clinical access
-          }
-        }
-      },
-      error: null
-    })
-  }
-});
+// Mock implementation removed as it's not used
 
 // Mock the middleware implementation
 async function testMiddleware() {

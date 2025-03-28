@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 
 interface QueryOptions {
   schema: string
@@ -14,8 +13,8 @@ interface QueryOptions {
 export async function POST(request: Request) {
   try {
     const data: QueryOptions = await request.json()
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    // Get Supabase client
+    const supabase = await createClient()
     
     // Validate required fields
     if (!data.schema || !data.table || !data.columns || data.columns.length === 0) {

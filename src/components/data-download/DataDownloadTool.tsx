@@ -352,11 +352,11 @@ export function DataDownloadTool() {
                   id="where"
                   value={whereClause}
                   onChange={(e) => setWhereClause(e.target.value)}
-                  placeholder='column = "value" AND other_column > 100'
+                  placeholder='column = &quot;value&quot; AND other_column > 100'
                   className="mt-1"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  SQL format: column = "value" AND other_column &gt; 100
+                  SQL format: column = &quot;value&quot; AND other_column &gt; 100
                 </p>
               </div>
               

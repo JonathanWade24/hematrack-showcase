@@ -1,8 +1,7 @@
 'use client'
 
-import { Input } from '../../ui/input'
-import { Select } from '../../ui/select'
 import { FormSectionProps } from './types'
+import { Input } from '@/components/ui/input'
 
 export function PlasmaSection({ formData, onInputChange }: FormSectionProps) {
   return (

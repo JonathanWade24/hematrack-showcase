@@ -128,10 +128,10 @@ export interface User {
   email?: string
   user_metadata: {
     full_name?: string
-    [key: string]: any
+    [key: string]: unknown
   }
   app_metadata: {
-    [key: string]: any
+    [key: string]: unknown
   }
   created_at?: string
   updated_at?: string

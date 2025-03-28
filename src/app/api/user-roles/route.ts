@@ -2,6 +2,26 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
+interface AuthUser {
+  id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string;
+  raw_app_meta_data?: {
+    role?: string;
+  };
+}
+
+interface RoleAssignment {
+  user_id: string;
+  role_id: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+}
+
 // GET all users with their roles
 export async function GET() {
   try {
@@ -76,10 +96,10 @@ export async function GET() {
     }
     
     // Combine user data with role assignments
-    const users = authUsers?.map((user: any) => {
-      const roleAssignment = roleAssignments?.find((ra: any) => ra.user_id === user.id)
+    const users = authUsers?.map((user: AuthUser) => {
+      const roleAssignment = roleAssignments?.find((ra: RoleAssignment) => ra.user_id === user.id)
       const roleName = roleAssignment 
-        ? roles?.find((r: any) => r.id === roleAssignment.role_id)?.name
+        ? roles?.find((r: Role) => r.id === roleAssignment.role_id)?.name
         : null
       
       return {

@@ -5,11 +5,14 @@ import { SampleEntryForm } from '@/components/data-entry/SampleEntryForm'
 import { createClient } from '@/lib/supabase/server'
 import { SampleData } from '@/components/data-entry/form-sections/types'
 
-interface PageProps {
-  params: {
-    id: string
-  }
-}
+// Updated PageProps to match Next.js 15 expectations exactly
+type PageParams = {
+  id: string;
+};
+
+type PageProps = {
+  params: Promise<PageParams> | undefined;
+};
 
 interface OmicsSubject {
   subject_id: string
@@ -216,9 +219,14 @@ function transformToSampleData(raw: RawSampleData): SampleData {
 
 export default async function EditSamplePage({ params }: PageProps) {
   try {
-    // For Next.js 15, we need to await params before accessing properties
-    const parameters = await params;
-    const id = parameters.id;
+    // Handle params correctly, checking for undefined
+    if (!params) {
+      throw new Error('Missing page parameters');
+    }
+    
+    // Resolve params if it's a Promise
+    const paramsObj = await params;
+    const id = paramsObj.id;
     
     const rawSample = await getSampleData(id)
 

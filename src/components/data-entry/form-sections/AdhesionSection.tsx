@@ -1,12 +1,20 @@
 'use client'
 
-import { Input } from '../../ui/input'
-import { Select } from '../../ui/select'
+import { Input } from '@/components/ui/input'
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { FormSectionProps } from './types'
 
 export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <h2 className="text-lg font-medium">Adhesion Data</h2>
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -22,9 +30,7 @@ export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Cells Adhered
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Total Cells Adhered</label>
           <Input
             type="number"
             value={formData.cells_adhered_adhesion || ''}
@@ -39,12 +45,17 @@ export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
           <label className="block text-sm font-medium text-gray-700">QC Pass</label>
           <Select
             value={formData.qc_pass_adhesion || ''}
-            onChange={(e) => onInputChange('qc_pass_adhesion', e.target.value)}
+            onValueChange={(value) => onInputChange('qc_pass_adhesion', value)}
           >
-            <option value="">Select...</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-            <option value="Review">Review</option>
+            <SelectTrigger>
+              <SelectValue placeholder="Select..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Select...</SelectItem>
+              <SelectItem value="Yes">Yes</SelectItem>
+              <SelectItem value="No">No</SelectItem>
+              <SelectItem value="Review">Review</SelectItem>
+            </SelectContent>
           </Select>
         </div>
         <div>

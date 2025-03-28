@@ -10,6 +10,8 @@ type DataType =
   | 'ip_medications' | 'ipmeds'
   | 'op_medications' | 'opavsmeds';
 
+type SchemaName = 'phi' | 'clinical';
+
 /**
  * Data Import API Route
  * 
@@ -160,7 +162,7 @@ async function processDemographics(fileContent: string) {
 
       // Check if patient exists
       const { data: existingPatient, error: queryError } = await adminClient
-        .schema('phi' as any)
+        .schema('phi' as SchemaName)
         .from('patients')
         .select('*')
         .eq('patient_mrn', mrn)
@@ -174,7 +176,7 @@ async function processDemographics(fileContent: string) {
       if (existingPatient) {
         // Update existing patient
         const { error } = await adminClient
-          .schema('phi' as any)
+          .schema('phi' as SchemaName)
           .from('patients')
           .update({
             first_name: cleanString(firstName),
@@ -192,7 +194,7 @@ async function processDemographics(fileContent: string) {
       } else {
         // Create new patient
         const { error } = await adminClient
-          .schema('phi' as any)
+          .schema('phi' as SchemaName)
           .from('patients')
           .insert({
             patient_mrn: mrn,
@@ -325,7 +327,7 @@ async function processBoneMarrow(fileContent: string) {
     try {
       // Check for existing record with the same order_id
       const { data: existing, error: queryError } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('bone_marrow')
         .select('*')
         .eq('patient_mrn', row.patient_mrn)
@@ -344,7 +346,7 @@ async function processBoneMarrow(fileContent: string) {
       }
 
       const { error } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('bone_marrow')
         .insert({
           patient_mrn: row.patient_mrn,
@@ -385,7 +387,7 @@ async function processIPAdmissions(fileContent: string) {
     try {
       // Check for existing admission with the same account ID and admission time
       const { data: existing, error: queryError } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('ip_admissions')
         .select('*')
         .eq('patient_mrn', row.patient_mrn)
@@ -404,7 +406,7 @@ async function processIPAdmissions(fileContent: string) {
       }
 
       const { error } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('ip_admissions')
         .insert({
           patient_mrn: row.patient_mrn,
@@ -447,7 +449,7 @@ async function processOPAVSMeds(fileContent: string) {
     try {
       // Check for existing medication with the same visit date and medication
       const { data: existing, error: queryError } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('op_medications')
         .select('*')
         .eq('patient_mrn', row.patient_mrn)
@@ -467,7 +469,7 @@ async function processOPAVSMeds(fileContent: string) {
       }
 
       const { error } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('op_medications')
         .insert({
           patient_mrn: row.patient_mrn,
@@ -506,7 +508,7 @@ async function processOPVisits(fileContent: string) {
     try {
       // Check for existing visit with the same account ID and visit date
       const { data: existing, error: queryError } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('op_visits')
         .select('*')
         .eq('patient_mrn', row.patient_mrn)
@@ -525,7 +527,7 @@ async function processOPVisits(fileContent: string) {
       }
 
       const { error } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('op_visits')
         .insert({
           patient_mrn: row.patient_mrn,
@@ -570,7 +572,7 @@ async function processIPMeds(fileContent: string) {
     try {
       // Check for existing medication with the same account ID, medication, and start date
       const { data: existing, error: queryError } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('ip_medications')
         .select('*')
         .eq('patient_mrn', row.patient_mrn)
@@ -590,7 +592,7 @@ async function processIPMeds(fileContent: string) {
       }
 
       const { error } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('ip_medications')
         .insert({
           patient_mrn: row.patient_mrn,
@@ -639,7 +641,7 @@ async function processLabs(fileContent: string): Promise<{ message: string; crea
     try {
       // Check if the patient exists in the database
       const { data: patientExists } = await supabase
-        .schema('phi' as any)
+        .schema('phi' as SchemaName)
         .from('patients')
         .select('*')
         .eq('patient_mrn', row.PATIENT_MRN)
@@ -653,7 +655,7 @@ async function processLabs(fileContent: string): Promise<{ message: string; crea
 
       // Check for existing record with the same pat_enc_csn_id and component_id
       const { data: existing, error: queryError } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('Labs')
         .select('*')
         .eq('patient_mrn', row.PATIENT_MRN)
@@ -675,7 +677,7 @@ async function processLabs(fileContent: string): Promise<{ message: string; crea
       const resultTime = row.RESULT_TIME ? parseDate(row.RESULT_TIME) : new Date();
 
       const { error } = await adminClient
-        .schema('clinical' as any)
+        .schema('clinical' as SchemaName)
         .from('Labs')
         .insert({
           patient_mrn: row.PATIENT_MRN,

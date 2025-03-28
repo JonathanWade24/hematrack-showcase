@@ -48,7 +48,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         <div className="px-4 space-y-1">
           <Link href="/" className={linkClasses(pathname === '/')} onClick={handleLinkClick}>
             <FontAwesomeIcon icon={faChartLine} className="mr-3 h-4 w-4" />
-            Dashboard
+            Home
           </Link>
 
           {/* Laboratory Section */}
@@ -58,6 +58,10 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           <Link href="/samples" className={linkClasses(pathname === '/samples')} onClick={handleLinkClick}>
             <FontAwesomeIcon icon={faFlask} className="mr-3 h-4 w-4" />
             Samples
+          </Link>
+          <Link href="/subjects" className={linkClasses(pathname.startsWith('/subjects'))} onClick={handleLinkClick}>
+            <FontAwesomeIcon icon={faUser} className="mr-3 h-4 w-4" />
+            Subjects
           </Link>
           <Link href="/data-entry" className={linkClasses(pathname === '/data-entry')} onClick={handleLinkClick}>
             <FontAwesomeIcon icon={faEdit} className="mr-3 h-4 w-4" />

@@ -56,11 +56,10 @@ export function RegistrationForm() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.message || 'Registration failed')
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Registration failed')
       }
 
-      const data = await response.json()
       router.push(`/subjects/${formData.subject_id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during registration')

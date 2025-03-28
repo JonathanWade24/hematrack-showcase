@@ -7,12 +7,31 @@ import { createClinicalClient, createPhiClient } from '@/lib/supabase/server'
 
 const DEFAULT_PAGE_SIZE = 20
 
-interface PageProps {
-  searchParams: {
-    page?: string
-    pageSize?: string
-    type?: string
-  }
+// Update PageProps for Next.js 15
+type SearchParamsType = {
+  page?: string
+  pageSize?: string
+  type?: string
+};
+
+type PageProps = {
+  searchParams: Promise<SearchParamsType> | undefined;
+};
+
+interface Patient {
+  first_name: string;
+  last_name: string;
+  patient_mrn: string;
+}
+
+interface Visit {
+  id: number;
+  patient_mrn: string;
+  visit_type: string;
+  department?: string;
+  start_date: string;
+  end_date?: string;
+  patient: Patient;
 }
 
 async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) {
@@ -62,20 +81,23 @@ async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) 
   }
   
   // Create a map of patient data by MRN
-  const patientMap: Record<string, any> = (patientsData || []).reduce((acc: Record<string, any>, patient: any) => {
+  const patientMap: Record<string, Patient> = (patientsData || []).reduce((acc: Record<string, Patient>, patient: Patient) => {
     acc[patient.patient_mrn] = patient
     return acc
   }, {})
   
   // Combine visit data with patient data
-  const visits = (visitsData || []).map((visit: any) => ({
-    ...visit,
-    patient: patientMap[visit.patient_mrn] || { 
-      first_name: 'Unknown', 
-      last_name: 'Patient',
-      patient_mrn: visit.patient_mrn
-    }
-  }))
+  const visits = (visitsData || []).map((visit: unknown) => {
+    const typedVisit = visit as Record<string, unknown>;
+    return {
+      ...typedVisit,
+      patient: patientMap[typedVisit.patient_mrn as string] || { 
+        first_name: 'Unknown', 
+        last_name: 'Patient',
+        patient_mrn: typedVisit.patient_mrn
+      }
+    } as Visit
+  })
   
   return {
     visits: convertToNumber(visits),
@@ -85,7 +107,12 @@ async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) 
 }
 
 export default async function VisitsPage({ searchParams }: PageProps) {
-  // With Next.js 14+, searchParams needs to be awaited
+  // Handle searchParams correctly, checking for undefined
+  if (!searchParams) {
+    throw new Error('Missing search parameters');
+  }
+  
+  // Resolve searchParams if it's a Promise
   const params = await searchParams;
   const currentPage = Number(params.page) || 1
   const pageSize = Number(params.pageSize) || DEFAULT_PAGE_SIZE

@@ -8,6 +8,38 @@ import Timeline from '@/components/ui/Timeline'
 import { useRouter } from 'next/navigation'
 import { ClinicalLabCharts } from './ClinicalLabCharts'
 
+// Import needed types from Timeline.tsx indirectly
+// Use the interface from Timeline directly in our code
+interface TimelineEvent {
+  id: string
+  title: string
+  date: Date
+  endDate?: Date | null
+  department?: string | null
+  type: string
+  isICU?: boolean | null
+  isOmicsSample?: boolean
+  sampleType?: string
+  sampleData?: {
+    sample_id: string
+    genotype: string | null
+    steady_state: string | null
+    transfusion_status: string | null
+    lab_values: {
+      hb: number | null
+      hct: number | null
+      wbc: number | null
+      plt: number | null
+      f_cells: number | null
+    }
+  }
+  diagnoses?: {
+    code: string
+    description: string
+  }[]
+  onClick?: () => void
+}
+
 export interface Visit {
   id: string
   visit_id: string
@@ -71,35 +103,21 @@ interface VisitsViewerProps {
   }
 }
 
-interface TimelineEvent {
-  id: string
-  title: string
-  date: Date
-  endDate?: Date | null
-  department?: string | null
-  type: string
-  isICU?: boolean | null
-  diagnoses?: { code: string, description: string }[]
-  isOmicsSample?: boolean
-  sampleType?: string
-  sampleData?: any
-  onClick: () => void
-}
-
 export function VisitsViewer({ patientMrn, data }: VisitsViewerProps) {
   const router = useRouter()
   const [activeVisit, setActiveVisit] = useState<Visit | null>(null)
   
-  // Default to the first visit if none selected
-  const visits = data.visits || []
-  const patientInfo = data.patient || {
+  // Use useMemo for visits to ensure stable reference
+  const visits = useMemo(() => data.visits || [], [data.visits])
+  
+  const patientInfo = useMemo(() => data.patient || {
     first_name: 'Unknown',
     last_name: 'Patient',
     birth_date: null,
     sex: null,
     race: null,
     ethnicity: null
-  }
+  }, [data.patient])
 
   const currentVisit = activeVisit || (visits.length > 0 ? visits[0] : null)
 
@@ -189,13 +207,16 @@ export function VisitsViewer({ patientMrn, data }: VisitsViewerProps) {
         sampleType: sample.subject_id,
         sampleData: {
           sample_id: sample.sample_id,
-          rbc: sample.rbc,
-          hb: sample.hb,
-          hct: sample.hct,
-          mcv: sample.mcv,
-          rdw: sample.rdw,
-          plt: sample.plt,
-          wbc: sample.wbc
+          genotype: null,
+          steady_state: null,
+          transfusion_status: null,
+          lab_values: {
+            hb: sample.hb ?? null,
+            hct: sample.hct ?? null,
+            wbc: sample.wbc ?? null,
+            plt: sample.plt ?? null,
+            f_cells: null
+          }
         },
         onClick: () => router.push(`/samples/${sample.sample_id}`)
       }))

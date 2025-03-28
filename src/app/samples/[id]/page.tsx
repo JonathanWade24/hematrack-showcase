@@ -4,11 +4,14 @@ import { SampleViewer } from '@/components/samples/SampleViewer'
 import { convertToNumber } from '@/lib/utils'
 import { createClient, createPhiClient } from '@/lib/supabase/server'
 
-interface SamplePageProps {
-  params: {
-    id: string
-  }
-}
+// Updated page props for Next.js 15
+type PageParams = {
+  id: string;
+};
+
+type SamplePageProps = {
+  params: Promise<PageParams> | undefined;
+};
 
 async function getSampleData(sampleId: string) {
   const laboratoryClient = await createClient() // Default is laboratory schema
@@ -77,7 +80,12 @@ async function getSampleData(sampleId: string) {
 }
 
 export default async function SamplePage({ params }: SamplePageProps) {
-  // For Next.js, we need to await params before using its properties
+  // Handle params correctly, checking for undefined
+  if (!params) {
+    throw new Error('Missing page parameters');
+  }
+  
+  // Resolve params if it's a Promise
   const parameters = await params;
   const id = parameters.id;
   

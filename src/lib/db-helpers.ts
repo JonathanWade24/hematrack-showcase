@@ -1,12 +1,10 @@
 import { getSupabaseClient } from '@/db';
-import { cookies } from 'next/headers';
 
 // Helper to mimic Prisma's findMany
-export async function findMany(table: string, options: any = {}) {
-  const cookieStore = cookies();
-  const supabase = getSupabaseClient();
+export async function findMany(table: string, options: Record<string, unknown> = {}) {
+  const supabase = await getSupabaseClient();
   
-  let query = supabase.from(table).select(options.select || '*');
+  let query = supabase.from(table).select(options.select as string || '*');
   
   if (options.where) {
     // Convert Prisma where to Supabase filter
@@ -22,11 +20,11 @@ export async function findMany(table: string, options: any = {}) {
   }
   
   if (options.take) {
-    query = query.limit(options.take);
+    query = query.limit(Number(options.take));
   }
   
   if (options.skip) {
-    query = query.range(options.skip, options.skip + (options.take || 10) - 1);
+    query = query.range(Number(options.skip), Number(options.skip) + (options.take ? Number(options.take) : 10) - 1);
   }
   
   const { data, error } = await query;

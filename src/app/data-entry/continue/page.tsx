@@ -1,8 +1,7 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { convertToNumber } from '@/lib/utils'
-import { SampleSearch } from '@/components/data-entry/SampleSearch'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
+import { SampleSearch } from '@/components/data-entry/SampleSearch'
+import { convertToNumber } from '@/lib/utils'
 
 type Sample = {
   sample_id: string
@@ -38,8 +37,8 @@ type OmicsResult = {
 }
 
 async function getRecentSamples(): Promise<Sample[]> {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  // Get Supabase client
+  const supabase = await createClient()
   
   try {
     const { data: samples, error } = await supabase
