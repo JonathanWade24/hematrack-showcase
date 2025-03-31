@@ -86,7 +86,7 @@ export function UserProfile() {
             </div>
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-56 p-2">
+        <PopoverContent className="w-56 p-2 bg-white shadow-lg border border-gray-200 rounded-md">
           <div className="space-y-1">
             <Link
               href="/profile"
