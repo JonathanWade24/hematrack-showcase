@@ -16,7 +16,11 @@ interface Subject {
 }
 
 export default async function SubjectsPage() {
+  console.log('Fetching all omics subjects...');
   const subjectsData = await getAllOmicsSubjects();
+  console.log(`Fetched ${subjectsData?.length || 0} subjects`);
+  console.log('First few subjects:', subjectsData?.slice(0, 3));
+  
   const subjects = convertToNumber(subjectsData) as Subject[];
   
   return (

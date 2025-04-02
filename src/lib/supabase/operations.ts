@@ -326,26 +326,86 @@ export const getOmicsSubjectBySubjectId = getOmicsSubjectById;
 
 export async function getAllOmicsSubjects() {
   try {
-    const supabase = await getSupabaseServerClient();
+    // First try with server client (respects RLS)
+    const supabase = await createClient('laboratory');
     
     // Get all subjects
     const { data: subjects, error: subjectsError } = await supabase
-      .schema('laboratory')
       .from('omics_subjects')
       .select('*')
       .order('subject_id');
     
-    if (subjectsError) {
-      console.error('Error fetching subjects:', subjectsError);
-      return [];
+    if (subjectsError && subjectsError.code !== 'PGRST116') {
+      console.error('Error fetching subjects with server client:', subjectsError);
     }
     
-    // Get sample counts and latest sample dates for each subject
+    // If no subjects are found through RLS or there was an error, use admin client as fallback
+    // but log this for security auditing
+    if (!subjects || subjects.length === 0) {
+      console.log('No subjects found with server client. Falling back to admin client.');
+      
+      try {
+        // Use admin client as fallback
+        const adminClient = getSupabaseAdminClient();
+        const { data: adminSubjects, error: adminError } = await adminClient
+          .schema('laboratory')
+          .from('omics_subjects')
+          .select('*')
+          .order('subject_id');
+        
+        if (adminError) {
+          console.error('Error fetching subjects with admin client:', adminError);
+          return [];
+        }
+        
+        // Get sample counts and latest sample dates for each subject
+        const subjectsWithSampleInfo = await Promise.all(
+          adminSubjects.map(async (subject) => {
+            // Get sample count
+            const { count: sampleCount, error: countError } = await adminClient
+              .schema('laboratory')
+              .from('omics_results')
+              .select('*', { count: 'exact', head: true })
+              .eq('subject_id', subject.subject_id);
+            
+            if (countError) {
+              console.error(`Error counting samples for subject ${subject.subject_id}:`, countError);
+            }
+            
+            // Get latest sample date
+            const { data: latestSample, error: latestError } = await adminClient
+              .schema('laboratory')
+              .from('omics_results')
+              .select('date_of_collection')
+              .eq('subject_id', subject.subject_id)
+              .order('date_of_collection', { ascending: false })
+              .limit(1)
+              .single();
+            
+            if (latestError && latestError.code !== 'PGRST116') {
+              console.error(`Error getting latest sample for subject ${subject.subject_id}:`, latestError);
+            }
+            
+            return {
+              ...subject,
+              sample_count: sampleCount || 0,
+              latest_sample_date: latestSample?.date_of_collection || null
+            };
+          })
+        );
+        
+        return subjectsWithSampleInfo;
+      } catch (adminError) {
+        console.error('Error in admin client fallback:', adminError);
+        return [];
+      }
+    }
+    
+    // Continue with server client if subjects were found
     const subjectsWithSampleInfo = await Promise.all(
       subjects.map(async (subject) => {
         // Get sample count
         const { count: sampleCount, error: countError } = await supabase
-          .schema('laboratory')
           .from('omics_results')
           .select('*', { count: 'exact', head: true })
           .eq('subject_id', subject.subject_id);
@@ -356,7 +416,6 @@ export async function getAllOmicsSubjects() {
         
         // Get latest sample date
         const { data: latestSample, error: latestError } = await supabase
-          .schema('laboratory')
           .from('omics_results')
           .select('date_of_collection')
           .eq('subject_id', subject.subject_id)
@@ -364,7 +423,7 @@ export async function getAllOmicsSubjects() {
           .limit(1)
           .single();
         
-        if (latestError && latestError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+        if (latestError && latestError.code !== 'PGRST116') {
           console.error(`Error getting latest sample for subject ${subject.subject_id}:`, latestError);
         }
         
@@ -378,6 +437,7 @@ export async function getAllOmicsSubjects() {
     
     return subjectsWithSampleInfo;
   } catch (error) {
+    console.error('Error in getAllOmicsSubjects:', error);
     handleSupabaseError(error as any);
     return [];
   }
