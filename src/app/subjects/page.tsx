@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { convertToNumber } from '@/lib/utils'
 import { getAllOmicsSubjects } from '@/lib/supabase/operations'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 interface Subject {
   subject_id: string
   patient_mrn: string | null

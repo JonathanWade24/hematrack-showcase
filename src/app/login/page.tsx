@@ -165,7 +165,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
           <div className="bg-indigo-600 p-6">
             <h2 className="text-center text-3xl font-bold text-white">
-              SCD Dashboard
+              Hematrack Dashboard
             </h2>
             <p className="mt-2 text-center text-indigo-200">
               Sign in to access your dashboard
@@ -180,7 +180,10 @@ export default function LoginPage() {
         </div>
         
         <p className="mt-4 text-center text-sm text-gray-600">
-          By signing in, you agree to our terms of service and privacy policy.
+          If you would like to request access to our data, please contact Vivien Sheehan at <a href="mailto:vivien.sheehan@emory.edu" className="text-indigo-600 hover:text-indigo-700">vivien.sheehan@emory.edu</a> to request access.
+          <br />
+          <br />
+          If you believe you should have access, please contact Jonathan Wade at <a href="mailto:jwwade@emory.edu" className="text-indigo-600 hover:text-indigo-700">jwwade@emory.edu</a> to update your credentials.
         </p>
       </div>
     </div>
