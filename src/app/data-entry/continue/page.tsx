@@ -41,12 +41,10 @@ async function getRecentSamples(): Promise<Sample[]> {
   const supabase = await createClient()
   
   try {
+    // Get samples without joining to omics_subjects
     const { data: samples, error } = await supabase
       .from('omics_results')
-      .select(`
-        *,
-        omics_subject:omics_subjects (genotype)
-      `)
+      .select('*')
       .order('date_of_collection', { ascending: false })
       .limit(10)
     
@@ -99,7 +97,7 @@ async function getRecentSamples(): Promise<Sample[]> {
         sample_id: sample.sample_id,
         subject_id: sample.subject_id,
         date_of_collection: sample.date_of_collection,
-        genotype: sample.omics_subject?.genotype || null,
+        genotype: null, // Since we're not retrieving genotype from omics_subjects
         processing_status,
         qc_status
       } as Sample

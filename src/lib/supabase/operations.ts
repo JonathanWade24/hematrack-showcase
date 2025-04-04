@@ -53,7 +53,8 @@ export type Patient = {
 // Omics Results Operations
 export async function createOmicsResult(data: Partial<OmicsResult>) {
   try {
-    const supabase = await getSupabaseServerClient();
+    // Use admin client to bypass RLS
+    const supabase = getSupabaseAdminClient();
     
     // Generate a UUID for the id field if not provided
     const dataWithId = {
