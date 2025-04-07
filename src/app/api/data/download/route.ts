@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+// Add GET handler to support API route with method override
+export async function GET(request: NextRequest) {
+  return NextResponse.json(
+    { message: 'Please use POST method for this endpoint' },
+    { status: 405 }
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

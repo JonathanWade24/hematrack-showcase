@@ -1,64 +1,49 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { NextResponse, NextRequest } from 'next/server'
 
-interface QueryOptions {
-  schema: string
-  table: string
-  columns: string[]
-  where?: string
-  orderBy?: string
-  limit?: number
+// Redirect all requests to the main API endpoint at /api/data/download
+export async function GET(request: NextRequest) {
+  return NextResponse.json(
+    { message: 'This endpoint is deprecated. Please use /api/data/download instead.' },
+    { status: 308, headers: { 'Location': '/api/data/download' } }
+  )
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Forward the request to the main API endpoint
   try {
-    const data: QueryOptions = await request.json()
-    // Get Supabase client
-    const supabase = await createClient()
+    // Clone the request to forward it
+    const requestBody = await request.json()
     
-    // Validate required fields
-    if (!data.schema || !data.table || !data.columns || data.columns.length === 0) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
+    // Create a new request to the correct endpoint
+    const forwardResponse = await fetch(`${request.nextUrl.origin}/api/data/download`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Forward authorization headers
+        'Authorization': request.headers.get('Authorization') || '',
+        'Cookie': request.headers.get('Cookie') || ''
+      },
+      body: JSON.stringify(requestBody)
+    })
     
-    // Build the query
-    let query = supabase
-      .schema(data.schema)
-      .from(data.table)
-      .select(data.columns.join(','))
+    // Get the response content
+    const responseData = await forwardResponse.arrayBuffer()
+    const contentType = forwardResponse.headers.get('Content-Type') || 'application/json'
     
-    // Add where clause if provided
-    if (data.where) {
-      query = query.or(data.where)
-    }
-    
-    // Add order by if provided
-    if (data.orderBy) {
-      const [column, direction] = data.orderBy.split(' ')
-      query = query.order(column, { ascending: direction === 'asc' })
-    }
-    
-    // Add limit if provided
-    if (data.limit) {
-      query = query.limit(data.limit)
-    }
-    
-    // Execute the query
-    const { data: results, error } = await query
-    
-    if (error) {
-      throw error
-    }
-    
-    return NextResponse.json(results)
+    // Return the forwarded response
+    return new NextResponse(responseData, {
+      status: forwardResponse.status,
+      headers: {
+        'Content-Type': contentType,
+        'Content-Disposition': forwardResponse.headers.get('Content-Disposition') || ''
+      }
+    })
   } catch (error) {
-    console.error('Error downloading data:', error)
+    console.error('Error forwarding to data download endpoint:', error)
     return NextResponse.json(
-      { error: 'Failed to download data' },
-      { status: 500 }
+      { error: 'This endpoint is deprecated. Please use /api/data/download instead.',
+        details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 308, headers: { 'Location': '/api/data/download' } }
     )
   }
 } 

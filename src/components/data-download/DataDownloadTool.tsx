@@ -175,20 +175,63 @@ export function DataDownloadTool() {
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to download data')
+        const errorText = await response.text()
+        let errorMessage = `Error: ${response.status} ${response.statusText}`
+        
+        try {
+          // Try to parse as JSON, but don't fail if it's not valid JSON
+          const errorData = JSON.parse(errorText)
+          if (errorData.error) {
+            errorMessage = errorData.error
+          }
+        } catch (e) {
+          // Not valid JSON, use the text if available
+          if (errorText) {
+            errorMessage += ` - ${errorText}`
+          }
+        }
+        
+        throw new Error(errorMessage)
       }
       
-      const data = await response.blob()
+      // Check content type to determine how to handle the response
+      const contentType = response.headers.get('Content-Type') || ''
       
-      // Create download link for the blob
-      const url = URL.createObjectURL(data)
-      const link = document.createElement('a')
-      link.setAttribute('href', url)
-      link.setAttribute('download', `${selectedSchema}_${selectedTable}_export_${new Date().toISOString().slice(0, 10)}.csv`)
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      if (contentType.includes('text/csv')) {
+        // Handle CSV blob response
+        const data = await response.blob()
+        
+        // Create download link for the blob
+        const url = URL.createObjectURL(data)
+        const link = document.createElement('a')
+        link.setAttribute('href', url)
+        link.setAttribute('download', `${selectedSchema}_${selectedTable}_export_${new Date().toISOString().slice(0, 10)}.csv`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } else if (contentType.includes('application/json')) {
+        // Handle JSON response (error case or different endpoint response)
+        const data = await response.json()
+        if (data.error) {
+          throw new Error(data.error)
+        }
+        
+        // If we have JSON data but no error, convert to CSV
+        if (Array.isArray(data)) {
+          const csvContent = convertJsonToCSV(data, selectedColumns)
+          const blob = new Blob([csvContent], { type: 'text/csv' })
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.setAttribute('href', url)
+          link.setAttribute('download', `${selectedSchema}_${selectedTable}_export_${new Date().toISOString().slice(0, 10)}.csv`)
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }
+      } else {
+        // Handle other response types
+        throw new Error('Unexpected response format from server')
+      }
       
       setDownloadProgress(100)
     } catch (err) {
@@ -197,6 +240,24 @@ export function DataDownloadTool() {
     } finally {
       setIsLoading(false)
     }
+  }
+  
+  // Helper function to convert JSON to CSV
+  const convertJsonToCSV = (jsonData: any[], columns: string[]) => {
+    if (!jsonData || jsonData.length === 0) return ''
+    
+    const header = columns.join(',')
+    const rows = jsonData.map(row => {
+      return columns.map(col => {
+        const value = row[col]
+        if (value === null || value === undefined) return ''
+        if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`
+        if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`
+        return String(value)
+      }).join(',')
+    })
+    
+    return [header, ...rows].join('\n')
   }
 
   return (
