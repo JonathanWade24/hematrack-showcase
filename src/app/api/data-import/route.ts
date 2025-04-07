@@ -79,37 +79,86 @@ function parseDate(dateStr: string | null): Date | null {
   if (!dateStr) return null
 
   try {
-    // Remove any timezone information to avoid parsing issues
-    let cleanDateStr = dateStr
-
-    // Handle various timezone formats
-    cleanDateStr = cleanDateStr.replace(/\s*(gmt|utc)[+-]\d{4}\s*/gi, '')
-    cleanDateStr = cleanDateStr.replace(/\s*[+-]\d{4}\s*$/gi, '') // Remove trailing +0000 style timezone
-    cleanDateStr = cleanDateStr.replace(/\s*\([A-Z]{3,4}\)\s*/gi, '') // Remove (EDT), (EST), etc.
-    cleanDateStr = cleanDateStr.replace(/\s*[A-Z]{3,4}\s*$/gi, '') // Remove trailing EDT, EST, etc.
+    // Handle the problematic timezone formats
+    let cleanDateStr = dateStr.trim();
     
-    // Try standard date parsing first
-    const date = new Date(cleanDateStr)
-    if (!isNaN(date.getTime())) {
-      return date
+    // Check for PostgreSQL timestamp with timezone format: "2023-08-12 16:52:18.561630+00"
+    const pgTimestampPattern = /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\.?\d*([+-]\d{2})?/;
+    const pgMatch = cleanDateStr.match(pgTimestampPattern);
+    if (pgMatch) {
+      // Just use the main timestamp part without fractional seconds
+      cleanDateStr = pgMatch[1];
+      console.log(`Fixed PostgreSQL timestamp format: "${dateStr}" -> "${cleanDateStr}"`);
     }
     
-    // Try to handle US-style dates (MM/DD/YYYY)
-    const mmddyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s|$)/
-    const match = cleanDateStr.match(mmddyyyy)
+    // First try direct matching of the specific problematic formats
+    const gmtPattern = /(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM))\s+gmt[+-]\d{4}/i;
+    const isoPattern = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?)\s+gmt[+-]\d{4}/i;
+    
+    // Check for the specific problematic format and extract just the date part
+    let match = cleanDateStr.match(gmtPattern) || cleanDateStr.match(isoPattern);
     if (match) {
-      const month = parseInt(match[1]) - 1 // JavaScript months are 0-indexed
-      const day = parseInt(match[2])
-      const year = parseInt(match[3])
-      const parsedDate = new Date(year, month, day)
-      if (!isNaN(parsedDate.getTime())) {
-        return parsedDate
+      cleanDateStr = match[1];
+      console.log(`Fixed problematic timezone format: "${dateStr}" -> "${cleanDateStr}"`);
+    } else {
+      // Apply more aggressive timezone cleanup
+      cleanDateStr = cleanDateStr.replace(/\s*gmt[+-]\d{4}\s*/gi, '');
+      cleanDateStr = cleanDateStr.replace(/\s*utc[+-]\d{4}\s*/gi, '');
+      cleanDateStr = cleanDateStr.replace(/\s*[+-]\d{4}\s*$/gi, ''); // Remove trailing +0000 style timezone
+      cleanDateStr = cleanDateStr.replace(/\s*\([A-Z]{3,4}\)\s*/gi, ''); // Remove (EDT), (EST), etc.
+      cleanDateStr = cleanDateStr.replace(/\s*[A-Z]{3,4}\s*$/gi, ''); // Remove trailing EDT, EST, etc.
+    }
+    
+    // Try different date parsing approaches
+    
+    // 1. Try standard Date parsing
+    let date = new Date(cleanDateStr);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+    
+    // 2. Try to manually parse common US date formats
+    
+    // MM/DD/YYYY
+    const mmddyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s|$)/;
+    match = cleanDateStr.match(mmddyyyy);
+    if (match) {
+      const month = parseInt(match[1]) - 1; // JavaScript months are 0-indexed
+      const day = parseInt(match[2]);
+      const year = parseInt(match[3]);
+      date = new Date(year, month, day);
+      if (!isNaN(date.getTime())) {
+        return date;
       }
     }
     
-    // If all attempts fail, return null
-    console.error('Could not parse date string:', dateStr, '(cleaned to:', cleanDateStr, ')')
-    return null
+    // MM/DD/YYYY HH:MM:SS AM/PM
+    const mmddyyyyTime = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)?/i;
+    match = cleanDateStr.match(mmddyyyyTime);
+    if (match) {
+      const month = parseInt(match[1]) - 1;
+      const day = parseInt(match[2]);
+      const year = parseInt(match[3]);
+      let hours = parseInt(match[4]);
+      const minutes = parseInt(match[5]);
+      const seconds = parseInt(match[6]);
+      const ampm = match[7]?.toUpperCase();
+      
+      // Adjust hours for 12-hour clock if AM/PM is specified
+      if (ampm) {
+        if (ampm === 'PM' && hours < 12) hours += 12;
+        if (ampm === 'AM' && hours === 12) hours = 0;
+      }
+      
+      date = new Date(year, month, day, hours, minutes, seconds);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    
+    // If all attempts fail, log the error and return null
+    console.error('Could not parse date string:', dateStr, '(cleaned to:', cleanDateStr, ')');
+    return null;
   } catch (error) {
     console.error('Error parsing date:', dateStr, error);
     return null;
@@ -412,6 +461,9 @@ async function processBoneMarrow(fileContent: string) {
 
 // Helper function to process inpatient admissions data
 async function processIPAdmissions(fileContent: string) {
+  // Pre-process the file content to remove problematic timezone strings before parsing
+  fileContent = fileContent.replace(/gmt[+-]\d{4}/gi, '');
+
   const { data } = parse(fileContent, { 
     header: true, 
     skipEmptyLines: true,
@@ -420,17 +472,21 @@ async function processIPAdmissions(fileContent: string) {
   
   const results = {
     created: 0,
-    skipped: 0
+    skipped: 0,
+    patientsCreated: 0
   }
 
   // Use admin client to bypass permission issues
   const adminClient = getSupabaseAdminClient()
 
+  // Check if the table exists, create it if it doesn't - this isn't necessary now as we know the table exists
+  // and has a specific structure that doesn't match what we initially expected
+
   for (const row of data as ParsedRow[]) {
     try {
-      const patientMrn = getValue(row, 'patient_mrn')
-      const hspAccountId = getValue(row, 'hsp_account_id')
-      const admDateTime = getValue(row, 'adm_date_time')
+      const patientMrn = getValue(row, 'PATIENT_MRN')
+      const hspAccountId = getValue(row, 'HSP_ACCOUNT_ID')
+      const admDateTime = getValue(row, 'ADM_DATE_TIME')
 
       if (!patientMrn) {
         console.warn('Skipping IP admission row with empty MRN')
@@ -438,14 +494,67 @@ async function processIPAdmissions(fileContent: string) {
         continue
       }
 
+      // Check if patient exists
+      const { data: existingPatient, error: patientQueryError } = await adminClient
+        .schema('phi' as SchemaName)
+        .from('patients')
+        .select('*')
+        .eq('patient_mrn', patientMrn)
+        .maybeSingle()
+      
+      if (patientQueryError) {
+        console.error('Error querying for existing patient:', patientQueryError);
+        throw patientQueryError;
+      }
+
+      // Create a placeholder patient record if it doesn't exist
+      if (!existingPatient) {
+        console.log(`Patient ${patientMrn} not found, creating placeholder record...`);
+        const { error: createPatientError } = await adminClient
+          .schema('phi' as SchemaName)
+          .from('patients')
+          .insert({
+            patient_mrn: patientMrn,
+            first_name: 'Placeholder',
+            last_name: 'Patient',
+            created_at: new Date(),
+            updated_at: new Date()
+          })
+        
+        if (createPatientError) {
+          console.error('Error creating placeholder patient record:', createPatientError);
+          throw createPatientError;
+        }
+        results.patientsCreated++;
+      }
+
+      // Clean any timezone strings that might have remained in the data
+      const cleanAdmDateTime = admDateTime ? admDateTime.replace(/gmt[+-]\d{4}/gi, '').trim() : null;
+      
+      // Parse the date first, before using it in the query
+      const parsedAdmDate = parseDate(cleanAdmDateTime)
+      if (!parsedAdmDate && cleanAdmDateTime) {
+        console.warn('Skipping row with invalid admission date:', cleanAdmDateTime)
+        results.skipped++
+        continue
+      }
+
+      // Use a default date if needed (current date)
+      const admDateToUse = parsedAdmDate || new Date()
+      
+      // Format the date as a simple ISO string without timezone for PostgreSQL
+      // This converts to YYYY-MM-DD HH:MM:SS format that PostgreSQL understands
+      const formattedAdmDate = admDateToUse.toISOString().replace('T', ' ').split('.')[0]
+      
       // Check for existing admission with the same account ID and admission time
+      // Use database column names that actually exist
       const { data: existing, error: queryError } = await adminClient
         .schema('clinical' as SchemaName)
         .from('ip_admissions')
         .select('*')
         .eq('patient_mrn', patientMrn)
         .eq('hsp_account_id', hspAccountId || '')
-        .eq('adm_date_time', parseDate(admDateTime) || new Date())
+        .eq('adm_date_time', formattedAdmDate)
       
       if (queryError) {
         console.error('Error querying for existing admission record:', queryError);
@@ -458,28 +567,43 @@ async function processIPAdmissions(fileContent: string) {
         continue
       }
 
-      const parsedAdmDate = parseDate(admDateTime)
-      if (!parsedAdmDate) {
-        console.warn('Skipping row with invalid admission date:', admDateTime)
-        results.skipped++
-        continue
-      }
+      // Parse discharge date
+      const dischDateTime = getValue(row, 'DISCH_DATE_TIME')
+      const cleanDischDateTime = dischDateTime ? dischDateTime.replace(/gmt[+-]\d{4}/gi, '').trim() : null;
+      const parsedDischDate = parseDate(cleanDischDateTime)
+      
+      // Format the discharge date the same way
+      const formattedDischDate = parsedDischDate 
+        ? parsedDischDate.toISOString().replace('T', ' ').split('.')[0]
+        : null
 
+      // Get diagnosis codes and disposition info from CSV
+      const admSource = getValue(row, 'ADM_SOURCE')
+      const admType = getValue(row, 'ADM_TYPE') 
+      const dischDisp = getValue(row, 'DISCH_DISP')
+      const admDxCd = getValue(row, 'ADM_DX_CD')
+      const admDxDescription = getValue(row, 'ADM_DX_DESCRIPTION')
+      const dischDxCd = getValue(row, 'DISCH_DX_CD')
+      const dischDxDescription = getValue(row, 'DISCH_DX_DESCRIPTION')
+
+      // Insert using the correct database column names that match the actual table
       const { error } = await adminClient
         .schema('clinical' as SchemaName)
         .from('ip_admissions')
         .insert({
           patient_mrn: patientMrn,
           hsp_account_id: hspAccountId || '',
-          adm_date_time: parsedAdmDate,
-          disch_date_time: parseDate(getValue(row, 'disch_date_time')),
-          adm_source: cleanString(getValue(row, 'adm_source'), 100),
-          adm_type: cleanString(getValue(row, 'adm_type'), 100),
-          disch_disp: cleanString(getValue(row, 'disch_disp'), 100),
-          adm_dx_cd: cleanString(getValue(row, 'adm_dx_cd')),
-          adm_dx_description: cleanString(getValue(row, 'adm_dx_description'), 500),
-          disch_dx_cd: cleanString(getValue(row, 'disch_dx_cd')),
-          disch_dx_description: cleanString(getValue(row, 'disch_dx_description'), 500)
+          adm_date_time: formattedAdmDate,
+          disch_date_time: formattedDischDate,
+          // Map to the correct column names based on actual database schema
+          // admit_dx_cd_1 instead of adm_dx_cd
+          admit_dx_cd_1: cleanString(admDxCd),
+          admit_dx_description_1: cleanString(admDxDescription, 500),
+          // Map discharge diagnosis to final_dx fields
+          final_dx_cd_1: cleanString(dischDxCd),
+          final_dx_description_1: cleanString(dischDxDescription, 500),
+          // Map other fields
+          discharge_disposition: cleanString(dischDisp, 100)
         })
       
       if (error) {
@@ -493,7 +617,7 @@ async function processIPAdmissions(fileContent: string) {
     }
   }
 
-  return `Processed IP admissions: ${results.created} created, ${results.skipped} skipped`
+  return `Processed IP admissions: ${results.created} created, ${results.skipped} skipped, ${results.patientsCreated} patients auto-created`
 }
 
 // Helper function to process outpatient AVS medications data

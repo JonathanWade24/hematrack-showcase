@@ -46,10 +46,9 @@ def random_datetime():
     hours = random.randint(0, 23)
     minutes = random.randint(0, 59)
     seconds = random.randint(0, 59)
-    microseconds = random.randint(0, 999999)
     base_date = datetime.datetime.now() - datetime.timedelta(days=days_back)
-    result_date = base_date.replace(hour=hours, minute=minutes, second=seconds, microsecond=microseconds)
-    return result_date.strftime("%Y-%m-%d %H:%M:%S.%f+00")
+    result_date = base_date.replace(hour=hours, minute=minutes, second=seconds, microsecond=0)
+    return result_date.strftime("%Y-%m-%d %H:%M:%S")
 
 # Generate demographics data
 def generate_demographics():
@@ -176,10 +175,10 @@ def generate_ip_admissions():
                 
                 # Generate admission date and discharge date (1-14 days later)
                 adm_date_str = random_datetime()
-                adm_date = datetime.datetime.strptime(adm_date_str, "%Y-%m-%d %H:%M:%S.%f+00")
+                adm_date = datetime.datetime.strptime(adm_date_str, "%Y-%m-%d %H:%M:%S")
                 los_days = random.randint(1, 14)
                 disch_date = adm_date + datetime.timedelta(days=los_days)
-                disch_date_str = disch_date.strftime("%Y-%m-%d %H:%M:%S.%f+00")
+                disch_date_str = disch_date.strftime("%Y-%m-%d %H:%M:%S")
                 
                 # Select admission and discharge diagnoses
                 adm_dx = random.choice(diagnoses)
@@ -362,7 +361,7 @@ def generate_ip_meds():
                 
                 # Generate order date, start date and end date
                 order_date_str = random_datetime()
-                order_date = datetime.datetime.strptime(order_date_str, "%Y-%m-%d %H:%M:%S.%f+00")
+                order_date = datetime.datetime.strptime(order_date_str, "%Y-%m-%d %H:%M:%S")
                 start_date = order_date + datetime.timedelta(hours=random.randint(0, 4))
                 # End date is 1-7 days after start
                 end_date = start_date + datetime.timedelta(days=random.randint(1, 7), 
@@ -378,8 +377,8 @@ def generate_ip_meds():
                     "MEDICATION_DOSE": random.choice(med["doses"]),
                     "MEDICATION_ROUTE": med["route"],
                     "MEDICATION_FREQUENCY": random.choice(frequencies),
-                    "MEDICATION_START_DATE": start_date.strftime("%Y-%m-%d %H:%M:%S.%f+00"),
-                    "MEDICATION_END_DATE": end_date.strftime("%Y-%m-%d %H:%M:%S.%f+00"),
+                    "MEDICATION_START_DATE": start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    "MEDICATION_END_DATE": end_date.strftime("%Y-%m-%d %H:%M:%S"),
                     "MEDICATION_INDICATION": random.choice(med["indications"])
                 })
     
@@ -478,12 +477,12 @@ def generate_labs():
                 
                 # Random order time
                 order_time_str = random_datetime()
-                order_dt = datetime.datetime.strptime(order_time_str, "%Y-%m-%d %H:%M:%S.%f+00")
+                order_dt = datetime.datetime.strptime(order_time_str, "%Y-%m-%d %H:%M:%S")
                 
                 # Result time is 0-36 hours after order time
                 result_hours = random.randint(0, 36)
                 result_dt = order_dt + datetime.timedelta(hours=result_hours)
-                result_time_str = result_dt.strftime("%Y-%m-%d %H:%M:%S.%f+00")
+                result_time_str = result_dt.strftime("%Y-%m-%d %H:%M:%S")
                 
                 # Choose a random lab test panel
                 lab_test = random.choice(lab_tests)

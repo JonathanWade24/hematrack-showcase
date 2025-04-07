@@ -31,6 +31,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
     
+    // Add verbose logging
+    console.log(`User role check:`, {
+      path,
+      userRole: user.app_metadata?.role,
+      userId: user.id,
+      userEmail: user.email,
+      metadata: user.app_metadata
+    });
+    
     // Check if this path requires specific roles
     const requiredRoles = getRequiredRolesForPath(path);
     
@@ -38,23 +47,28 @@ export async function middleware(request: NextRequest) {
       // This path has role restrictions
       const hasAccess = await checkUserRole(request, requiredRoles);
       
+      // Log the role check results
+      console.log(`Route match:`, {
+        routePath: path,
+        allowedRoles: requiredRoles,
+        userHasAccess: hasAccess
+      });
+      
       if (!hasAccess) {
         // User doesn't have the required role
-        console.log(`User ${user.id} with role ${user.app_metadata?.role} denied access to ${path}. Required roles: ${requiredRoles.join(', ')}`);
+        console.log(`Access denied, redirecting to /access-denied`);
         return NextResponse.redirect(new URL('/access-denied', request.url));
       }
-      
-      console.log(`User ${user.id} with role ${user.app_metadata?.role} granted access to ${path}`);
+    } else {
+      console.log(`No role restrictions for path: ${path}`);
     }
     
     // User is authenticated and authorized
     return response;
   } catch (error) {
-    console.error('Error in middleware:', error);
-    
-    // In case of error, redirect to login as a fallback
-    const redirectUrl = new URL('/login', request.url);
-    return NextResponse.redirect(redirectUrl);
+    console.error(`Middleware error:`, error);
+    // In case of error, redirect to error page
+    return NextResponse.redirect(new URL('/auth/error', request.url));
   }
 }
 

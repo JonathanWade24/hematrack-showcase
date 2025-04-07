@@ -82,7 +82,7 @@ export default function RoleDebugPage() {
                           { path: '/admin', roles: ['admin'] },
                           { path: '/patients', roles: ['admin', 'clinical_researcher_full', 'clinical_researcher_masked'] },
                           { path: '/visits', roles: ['admin', 'clinical_researcher_full', 'clinical_researcher_masked'] },
-                          { path: '/data-entry', roles: ['admin', 'clinical_data_entry'] },
+                          { path: '/data-entry', roles: ['admin', 'clinical_researcher_full', 'clinical_researcher_masked', 'non_clinical_researcher', 'clinical_data_entry'] },
                           { path: '/subjects', roles: ['admin', 'clinical_researcher_full', 'clinical_researcher_masked', 'non_clinical_researcher'] },
                         ].map((route) => (
                           <tr key={route.path}>
