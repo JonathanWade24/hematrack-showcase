@@ -197,8 +197,30 @@ export function DataImportForm() {
     }
   }
 
+  const calculateOverallProgress = () => {
+    const filesWithProgress = Object.values(files).filter(f => f.file && f.progress !== undefined);
+    if (filesWithProgress.length === 0) return 0;
+    
+    const totalProgress = filesWithProgress.reduce((sum, file) => sum + (file.progress || 0), 0);
+    return totalProgress / filesWithProgress.length;
+  };
+
   return (
     <div className="space-y-6">
+      {isImporting && (
+        <div className="mb-6 bg-white p-4 rounded-lg border shadow-sm">
+          <h3 className="text-lg font-medium mb-2">Import Progress</h3>
+          <div className="w-full bg-gray-200 rounded-full h-4">
+            <div 
+              className="bg-blue-600 h-4 rounded-full transition-all duration-300 ease-in-out" 
+              style={{ width: `${calculateOverallProgress()}%` }}
+            ></div>
+          </div>
+          <p className="text-sm text-gray-600 mt-2">
+            {Math.round(calculateOverallProgress())}% complete
+          </p>
+        </div>
+      )}
       <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
         <p className="font-medium">CSV File Format Requirements</p>
         <p className="text-sm mt-1">
@@ -231,6 +253,20 @@ export function DataImportForm() {
                   </div>
                 )}
               </div>
+              {/* Add progress bar when file is uploading */}
+              {files[id as keyof ImportFiles].status === 'uploading' && files[id as keyof ImportFiles].progress !== undefined && (
+                <div className="w-full mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                      style={{ width: `${files[id as keyof ImportFiles].progress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {Math.round(files[id as keyof ImportFiles].progress || 0)}% uploaded
+                  </p>
+                </div>
+              )}
               {files[id as keyof ImportFiles].message && (
                 <p className={`text-sm ${
                   files[id as keyof ImportFiles].status === 'error' ? 'text-red-500' : 'text-green-500'
@@ -255,21 +291,12 @@ export function DataImportForm() {
 
         <Button
           onClick={handleImport}
-          disabled={isImporting || !Object.values(files).some(f => f.file)}
+          disabled={isImporting || !Object.values(files).some(f => f.file !== null)}
           isLoading={isImporting}
           className="gap-2"
         >
-          {isImporting ? (
-            <>
-              <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-              Importing...
-            </>
-          ) : (
-            <>
-              <FontAwesomeIcon icon={faUpload} />
-              Import Data
-            </>
-          )}
+          <FontAwesomeIcon icon={faUpload} />
+          Import Data
         </Button>
       </div>
 

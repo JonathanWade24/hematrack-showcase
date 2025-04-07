@@ -199,7 +199,7 @@ export function VisitsViewer({ patientMrn, data }: VisitsViewerProps) {
       
       // Create events for OMICs samples
       const sampleEvents = (visit.samples || []).map(sample => ({
-        id: sample.sample_id,
+        id: `${visit.id}-sample-${sample.sample_id}`,
         title: 'OMICs Sample Collection',
         date: new Date(sample.collection_date),
         type: 'SAMPLE',
