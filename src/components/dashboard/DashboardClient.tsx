@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
-import { SearchBar } from './SearchBar'
 import SamplesTable, { Sample } from './SamplesTable'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -125,13 +124,6 @@ export default function DashboardClient(props: DashboardClientProps) {
           </p>
         </div>
 
-        {/* Search Bar */}
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          loading={loading}
-        />
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-lg shadow p-6 transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
@@ -251,9 +243,6 @@ export default function DashboardClient(props: DashboardClientProps) {
             onClick={handleExportData}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md">
             <FontAwesomeIcon icon={faFileExport} className="mr-2" /> Export Data
-          </button>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md">
-            <FontAwesomeIcon icon={faChartPie} className="mr-2" /> Generate Report
           </button>
         </div>
 

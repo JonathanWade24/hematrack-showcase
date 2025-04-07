@@ -94,6 +94,10 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                 <FontAwesomeIcon icon={faFileImport} className="mr-3 h-4 w-4" />
                 EPIC Import
               </Link>
+              <Link href="/admin" className={linkClasses(pathname === '/admin')} onClick={handleLinkClick}>
+                <FontAwesomeIcon icon={faUser} className="mr-3 h-4 w-4" />
+                Admin
+              </Link>
             </>
           )}
         </div>
