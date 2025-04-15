@@ -1,0 +1,934 @@
+BIRTH_DATE|RACE|ETHNICITY|PATIENT_MRN|PATIENT_NAME|AGE|GENDER|IS_TOBACCO_USER_YN|ALCOHOL_USER_YN|ILL_DRUG_USER_YN
+1980-06-12 00:00:00|Black or African American|Not Hispanic or Latino|100000146|PUGH,TERESA D|45|Female|Never|No|No
+1985-08-19 00:00:00|Black or African American|Not Hispanic or Latino|100003578|OWENS,JEROZ DEVIN|40|Male|Never|Never|Never
+1991-01-11 00:00:00|Black or African American|Not Hispanic or Latino|100006240|BLAKE,ANSEL A JR.|34|Male|Never|No|No
+1969-05-07 00:00:00|Black or African American|Not Hispanic or Latino|100012261|AARON,MONIQUE AMY|56|Female|Never|No|No
+1986-08-29 00:00:00|Black or African American|Not Hispanic or Latino|100013999|REID-BUTCHER,JERMAINE L|39|Male|Yes|No|No
+1987-12-25 00:00:00|Black or African American|Not Hispanic or Latino|100026057|SMITH,RICKIA DELFANYE|38|Female|Never|No|No
+1966-05-23 00:00:00|Black or African American|Not Hispanic or Latino|100026500|HANNAH,DENISE ROXANNE|59|Female|Yes|Yes|Yes
+1992-06-15 00:00:00|Black or African American|Not Hispanic or Latino|100028923|RAIFORD,CURTIS LAVERT|33|Male|Never|No|No
+1982-07-01 00:00:00|Black or African American|Not Hispanic or Latino|100038713|REED,RAMAL|43|Male|Quit|Yes|Yes
+1989-04-30 00:00:00|Black or African American|Not Hispanic or Latino|100041778|KONE,CHEICK|36|Male|Never|No|No
+1993-01-18 00:00:00|Black or African American|Not Hispanic or Latino|100045430|RICHBURG,TAYLOR|32|Female|Not Asked||
+1988-09-21 00:00:00|Black or African American|Not Hispanic or Latino|100047580|GERMAIN,JANELLE ALICIA|37|Female|Never|Yes|Yes
+1991-09-13 00:00:00|Black or African American|Not Hispanic or Latino|100048462|MERRELLS,KENDRICK|34|Male|Never|No|No
+1981-02-11 00:00:00|Black or African American|Not Hispanic or Latino|100052967|RAYMOND,ERROL J JR.|44|Male|Yes|Not Currently|Not Currently
+1985-10-20 00:00:00|Black or African American|Not Hispanic or Latino|100066517|EVANS,MICHAEL C|40|Male|Yes|Yes|Yes
+1976-06-28 00:00:00|Black or African American|Not Hispanic or Latino|100077018|ASHMAN,NATALIE|49|Female|Never|No|No
+1975-12-21 00:00:00|Black or African American|Not Hispanic or Latino|100081330|HOWARD,SHANTOVI|50|Female|Never|No|No
+1984-12-22 00:00:00|Black or African American|Not Hispanic or Latino|100085860|GURLEY,OTIS|41|Male|Yes|Yes|Yes
+1993-07-23 00:00:00|Black or African American|Not Hispanic or Latino|100086902|DOLCE,PETER|32|Male|Never|Yes|Yes
+1966-10-29 00:00:00|Black or African American|Not Hispanic or Latino|100094016|TINKER,ZAYNE|59|Female|Never|No|No
+1987-02-14 00:00:00|Black or African American|Not Hispanic or Latino|100095456|CAIN,LATASHA DENEASE|38|Female|Not Asked|Not Currently|Not Currently
+1990-12-04 00:00:00|Black or African American|Not Hispanic or Latino|100100251|LUNDY,MICHAEL A|35|Male|Never|No|No
+1991-11-21 00:00:00|Black or African American|Not Hispanic or Latino|100101150|MOON,DARINAIJA ANANI|34|Male|Yes|Never|Never
+1993-07-12 00:00:00|Black or African American|Hispanic or Latino|100101516|MAYBETH,ASHLEY|32|Female|Never|No|No
+1960-04-17 00:00:00|Black or African American|Not Hispanic or Latino|100104355|BREWER,WANDA M|65|Female|Never|Yes|Yes
+1992-02-29 00:00:00|Black or African American|Not Hispanic or Latino|100104880|BROOKS,SEDRICK DONTAVIOUS|33|Male|Never|Not Currently|Not Currently
+1967-08-06 00:00:00|Black or African American|Not Hispanic or Latino|10010993|HUNT,LOISTEEN|58|Female|Never|Not Currently|Not Currently
+1991-06-11 00:00:00|Black or African American|Not Hispanic or Latino|100110943|FEARS,SYDNI CHAVONNE|34|Female|Quit|No|No
+1994-07-29 00:00:00|Black or African American|Not Hispanic or Latino|100112055|PATTON,KAMERON E|31|Male|Never|Yes|Yes
+1974-05-01 00:00:00|Black or African American|Not Hispanic or Latino|100113237|YOUNG,SHERMEKIA|51|Female|Never|Not Currently|Not Currently
+1980-10-25 00:00:00|Black or African American|Not Hispanic or Latino|100124383|DAMESCA,LINDA|45|Female|Never|No|No
+1994-10-03 00:00:00|Black or African American|Not Hispanic or Latino|100135297|BOWERS,SHAYLA|31|Female|Yes|Yes|Yes
+1994-11-12 00:00:00|Black or African American|Not Hispanic or Latino|100139742|BUTLER,ADINA|31|Female|Never|Yes|Yes
+1993-08-07 00:00:00|Black or African American|Not Hispanic or Latino|100139744|CLEMMONS,NICHOLAS|32|Male|Never|Yes|Yes
+1977-07-23 00:00:00|Unknown|Unknown|100140251|OMOLAYO,OLUMUYIWA O|48|Male|Never|No|No
+1993-08-22 00:00:00|Black or African American|Not Hispanic or Latino|100142699|AKINGBADE,OLUWAKAYODE|32|Male|Never|No|No
+1995-03-22 00:00:00|Black or African American|Not Hispanic or Latino|100143218|RANDALL,CHRISTOPHE|30|Male|Never|No|No
+1994-11-24 00:00:00|Black or African American|Not Hispanic or Latino|100144003|BASHIR,BANGALY|31|Male|Never|No|No
+1949-11-23 00:00:00|Black or African American|Not Hispanic or Latino|100146702|APPIAH,DORIS HELEN|76|Female|Never|No|No
+1986-11-08 00:00:00|Black or African American|Not Hispanic or Latino|100151948|PICKETT,TASHARROW|39|Female|Not Asked||
+2003-02-12 00:00:00|Black or African American|Hispanic or Latino|100152095|GONZALEZ,ANAYA CHRISTINA|22|Female|Never|Never|Never
+1996-01-02 00:00:00|Black or African American|Not Hispanic or Latino|100161192|HOLLAND,POSHAY|29|Male|Never|Not Currently|Not Currently
+1986-07-21 00:00:00|Black or African American|Not Hispanic or Latino|100162044|MATADI,JEAN-ANTOINE|39|Male|Quit|Yes|Yes
+1976-11-29 00:00:00|Black or African American|Not Hispanic or Latino|100164567|BROWN,MYRAN|49|Male|Quit|No|No
+1987-09-22 00:00:00|Black or African American|Not Hispanic or Latino|100164569|OHEMENG TINYASE,NAANA ABENA|38|Female|Never|No|No
+1979-12-13 00:00:00|Other Race|Hispanic or Latino|100166102|GARCIA MORALES,MIRELLA LUCIA|46|Female|Never|No|No
+1994-11-15 00:00:00|Black or African American|Not Hispanic or Latino|100172484|MANUEL,NATHANIEL|31|Male|Yes|No|No
+1995-12-15 00:00:00|Black or African American|Not Hispanic or Latino|100174267|MILLER,LIGE|30|Male|Never|No|No
+1992-12-14 00:00:00|Black or African American|Not Hispanic or Latino|100175823|SULLIVAN,RANDY|33|Male|Quit|No|
+1984-05-02 00:00:00|Black or African American|Not Hispanic or Latino|100176726|TATE,SHANTI ROSHELL|41|Female|Never|No|No
+2000-08-22 00:00:00|Black or African American|Not Hispanic or Latino|100181176|PORTER,ANTONIO DEMETRIUS JR.|25|Male|Not Asked||
+1990-07-05 00:00:00|Black or African American|Not Hispanic or Latino|100187609|MONTGOMERY,CALEB CHRISTOPHER|35|Male|Yes|Yes|Yes
+1995-05-24 00:00:00|Black or African American|Not Hispanic or Latino|100188365|WILLIAMS,NIKA|30|Female|Yes|No|No
+1975-10-16 00:00:00|Black or African American|Not Hispanic or Latino|100190866|YOUNG RUDOLPH,ADRIENNE|50|Female|Never|Not Asked|Not Asked
+1997-07-25 00:00:00|Black or African American|Not Hispanic or Latino|100191843|GARDNER,BRANDI A|28|Female|Never|Yes|Yes
+1999-10-11 00:00:00|Black or African American|Not Hispanic or Latino|100199966|DUPREE,SYDNEY BREYON|26|Female|Never|Not Currently|Not Currently
+1995-03-01 00:00:00|Black or African American|Not Hispanic or Latino|100204788|IPADEOLA,OLUSENI ROBERT|30|Male|Never|Yes|Yes
+1974-06-20 00:00:00|Black or African American|Not Hispanic or Latino|100208434|REYNOLDS,RENEE ANITA|51|Female|Never|Not Currently|Not Currently
+2002-09-23 00:00:00|Black or African American|Not Hispanic or Latino|100211010|KAPWADI,NTUMBA OLIVIA|23|Female|Never|Never|Never
+2003-11-30 00:00:00|Black or African American|Not Hispanic or Latino|100211748|KINGSBERRY,RAQUAN DAVIYON|22|Male|Never|Yes|Yes
+1996-02-16 00:00:00|Black or African American|Not Hispanic or Latino|100214805|LITTLE,ALESIA I|29|Female|Never|No|No
+1977-01-18 00:00:00|Unknown|Not Hispanic or Latino|100215398|THOMAS,VANICO|48|Male|Never|Yes|Yes
+1996-03-23 00:00:00|Black or African American|Not Hispanic or Latino|100216118|MOORE,KHOURI M|29|Female|Never|Not Currently|Not Currently
+1974-04-01 00:00:00|Black or African American|Not Hispanic or Latino|100216178|BURKE DAYLE,LOREINE C|51|Female|Never|No|No
+1995-08-23 00:00:00|Black or African American|Not Hispanic or Latino|100218234|WEEKES,MARQUES|30|Male|Never|No|No
+1983-11-12 00:00:00|Black or African American|Not Hispanic or Latino|100221270|MILLER,BRANDON|42|Male|Yes|Not Currently|Not Currently
+2004-11-13 00:00:00|Black or African American|Not Hispanic or Latino|100227105|ROBINSON,IZIAH RASHEEN|21|Male|Never|Not Currently|Not Currently
+1994-12-22 00:00:00|Black or African American|Not Hispanic or Latino|100227578|HARRIS,NIA PERRI JENDAYA|31|Female|Never|Not Currently|Not Currently
+1969-01-03 00:00:00|Black or African American|Not Hispanic or Latino|100229471|JACKSON,TISHA|56|Female|Never|Not Currently|Not Currently
+1993-05-01 00:00:00|Black or African American|Not Hispanic or Latino|100231558|AMADASUN,MICHAEL|32|Male|Never|No|No
+1976-08-21 00:00:00|Black or African American|Not Hispanic or Latino|100232061|HEBERT,VANESSA ANN|49|Female|Never|No|No
+2000-03-26 00:00:00|Black or African American|Not Hispanic or Latino|100233985|GARBA,SAKINA|25|Female|Never|No|No
+1978-12-04 00:00:00|Black or African American|Not Hispanic or Latino|100237545|COVINGTON,KRYSTAL MONEE|47|Female|Yes|Yes|Yes
+1997-01-30 00:00:00|Black or African American|Not Hispanic or Latino|100238269|FRANKLIN,JAVONTE|28|Male|Never|Yes|Yes
+1989-05-31 00:00:00|Black or African American|Not Hispanic or Latino|100251460|HALL,TYNISHA KATRICE|36|Female|Never|No|No
+1941-12-16 00:00:00|Black or African American|Not Hispanic or Latino|100252522|CRAWFORD,BENNIE|84|Female|Never|No|No
+1985-11-04 00:00:00|Black or African American|Hispanic or Latino|100255377|WATSON,AMBER CORNICE|40|Female|Quit|Never|
+1994-02-15 00:00:00|Black or African American|Not Hispanic or Latino|100262888|FELIX,ASANTE|31|Male|Never|No|No
+1990-04-12 00:00:00|Black or African American|Not Hispanic or Latino|100266906|ALINGU,FELICIA|35|Female|Never|No|No
+1991-09-05 00:00:00|Black or African American|Not Hispanic or Latino|100268989|HODRICK,TERRENCE JEROME|34|Male|Never|Not Currently|Not Currently
+2001-05-28 00:00:00|Black or African American|Not Hispanic or Latino|100273927|JEFFERSON,KHALIA CHANNING|24|Female|Never|Never|Never
+1996-11-19 00:00:00|Black or African American|Not Hispanic or Latino|100274881|GOODGAME,JASMINE D|29|Female|Quit|Yes|Yes
+1986-09-22 00:00:00|Black or African American|Not Hispanic or Latino|100276903|JOHNSON,TRUDYANN|39|Female|Never|Yes|Yes
+1995-06-08 00:00:00|Black or African American|Not Hispanic or Latino|100281316|DAVIS,JOSHUA|30|Male|Never|No|No
+1973-02-04 00:00:00|Black or African American|Not Hispanic or Latino|100281337|MCMILLAN,KEITH|52|Male|Never|Not Currently|Not Currently
+1996-11-12 00:00:00|Black or African American|Not Hispanic or Latino|100285610|ABRAHAM,DAREYION|29|Male|Never|Not Currently|Not Currently
+1992-11-04 00:00:00|Black or African American|Not Hispanic or Latino|100292704|HARRELL,KAMEISHA|33|Female|Never|No|No
+2003-11-10 00:00:00|Black or African American|Not Hispanic or Latino|100295491|ROBINSON,ASHTON TREVON|22|Male|Never|Yes|Yes
+1986-11-18 00:00:00|Black or African American|Hispanic or Latino|100295572|ROQUE,TEMPEST|39|Female|Yes|No|No
+1979-01-11 00:00:00|Black or African American|Not Hispanic or Latino|100295777|MOORE,EBONY TANAY|46|Female|Never|No|No
+1961-01-10 00:00:00|Black or African American|Not Hispanic or Latino|100303089|CORINTH,LUCILLE|64|Female|Quit|Yes|Yes
+1993-07-16 00:00:00|Black or African American|Not Hispanic or Latino|100306963|CAESAR,JULIAN CLIFFORD|32|Male|Quit|No|No
+1995-07-06 00:00:00|Black or African American|Not Hispanic or Latino|100311374|ABRAHAM,DERRICK|30|Male|Never|Not Currently|Not Currently
+1985-07-18 00:00:00|Black or African American|Not Hispanic or Latino|100315154|CAMPBELL,JOSEPH JOHNATHAN|40|Male|Quit|Not Currently|Not Currently
+1997-02-14 00:00:00|Black or African American|Not Hispanic or Latino|100319813|HUGGINS,JASTINE C|28|Female|Never|No|No
+1997-07-19 00:00:00|Black or African American|Not Hispanic or Latino|100319861|ENGLISH,SHATAYA N|28|Female|Never|No|No
+1997-10-03 00:00:00|Black or African American|Not Hispanic or Latino|100320959|LEVELL-WILKINS,LONDON|28|Female|Never|No|No
+1998-06-02 00:00:00|Black or African American|Not Hispanic or Latino|100326369|JACKSON-SWINNEY,CHRISTIAN|27|Female|Never|Not Currently|Not Currently
+1998-08-27 00:00:00|Black or African American|Not Hispanic or Latino|100328278|NEISH,IANNAH L|27|Female|Quit|Yes|Yes
+1964-06-26 00:00:00|Black or African American|Not Hispanic or Latino|100334022|MCDANIEL,VICKY|61|Female|Yes|No|No
+1988-09-05 00:00:00|Black or African American|Not Hispanic or Latino|100335014|SULLIVAN,TREMANE|37|Male|Never|Never|Never
+1981-05-29 00:00:00|Black or African American|Not Hispanic or Latino|100339563|DIXON,ALVIN LEYMORNE|44|Male|Never|Never|Never
+1956-06-28 00:00:00|Black or African American|Not Hispanic or Latino|10034448|JOHNSON,BRENDA C|69|Female|Never|No|No
+1993-02-16 00:00:00|Black or African American|Not Hispanic or Latino|100344535|WARREN,JALAINE S|32|Female|Never|No|No
+1991-03-25 00:00:00|Black or African American|Not Hispanic or Latino|100346064|ST JEAN,LUTHER|34|Male|Never|No|No
+1997-09-26 00:00:00|Black or African American|Not Hispanic or Latino|100346221|HOLMES,RAYSHARD|28|Male|Yes|No|No
+1996-08-13 00:00:00|Black or African American|Not Hispanic or Latino|100347136|DUNN,AMIRA|29|Female|Never|Not Currently|Not Currently
+1984-05-25 00:00:00|Black or African American|Not Hispanic or Latino|100349073|LOVE,TERRIAN DEWAYNE II|41|Male|Never|Never|Never
+1981-04-09 00:00:00|Black or African American|Not Hispanic or Latino|100349429|BOWDEN,AARON JR.|44|Male|Yes|No|No
+1992-07-02 00:00:00|Black or African American|Not Hispanic or Latino|100353985|JEAN,CLAUDE|33|Male|Never|Yes|Yes
+2005-02-18 00:00:00|Black or African American|Not Hispanic or Latino|100355267|JACKSON,NICKHOLAS GERARD JR.|20|Male|Not Asked|Never|Never
+1992-07-20 00:00:00|Black or African American|Not Hispanic or Latino|100357464|BOYNES,SAEED MUSTAFA|33|Male|Never|Yes|Yes
+1998-07-18 00:00:00|Black or African American|Not Hispanic or Latino|100363539|OGBURN,TONIJHA|27|Female|Never|Never|Never
+1998-03-05 00:00:00|Black or African American|Not Hispanic or Latino|100364181|MATTHEWS,MARIAH|27|Female|Never|No|No
+1984-03-14 00:00:00|Black or African American|Not Hispanic or Latino|100367619|DODARD,HEIDY|41|Female|Never|Yes|Yes
+2003-02-01 00:00:00|Black or African American|Not Hispanic or Latino|100367639|DELGADO,MICHAELA V|22|Female|Never|Not Currently|Not Currently
+1978-05-05 00:00:00|Black or African American|Not Hispanic or Latino|100378719|OJU,UFOMA|47|Female|Quit|No|No
+1999-05-25 00:00:00|Black or African American|Not Hispanic or Latino|100386585|PALMORE,ANANDA KAI|26|Female|Never|Yes|Yes
+1976-08-23 00:00:00|Black or African American|Not Hispanic or Latino|100389928|ALLISON,CHANDA|49|Female|Never|Yes|Yes
+1997-09-29 00:00:00|Black or African American|Not Hispanic or Latino|100391258|EYONG,ASHU|28|Male|Never|Never|Never
+1999-05-30 00:00:00|Black or African American|Not Hispanic or Latino|100393912|WILLIAMS-MILLER,SYDA|26|Female|Never|No|No
+1988-08-29 00:00:00|Black or African American|Not Hispanic or Latino|100396227|ATTAOCHU,GLORY OJODUWA|37|Female|Never|No|No
+1954-01-17 00:00:00|Black or African American|Not Hispanic or Latino|10040277|HILLMON,LARRY|71|Male|Never|Yes|Yes
+1999-02-18 00:00:00|Black or African American|Not Hispanic or Latino|100403997|JACKSON,IMANI|26|Female|Quit|Not Currently|Not Currently
+2002-03-01 00:00:00|Black or African American|Not Hispanic or Latino|100406142|BONNETT,KENAJEE JAWAN|23|Male|Never|Never|Never
+1981-10-04 00:00:00|Black or African American|Not Hispanic or Latino|100407226|MOSELEY,ANTONIETTE KENIESHA|44|Female|Never|Yes|Yes
+1990-10-28 00:00:00|Black or African American|Not Hispanic or Latino|100414309|BOATSWAIN,MATTHEW R|35|Male|Yes|Yes|Yes
+1997-08-05 00:00:00|Black or African American|Not Hispanic or Latino|100416810|BRADLEY,TATIANA|28|Female|Never|Not Currently|Not Currently
+1997-12-12 00:00:00|Black or African American|Not Hispanic or Latino|100419117|SMITH,KELSEY M|28|Female|Never|No|No
+1985-06-05 00:00:00|Black or African American|Not Hispanic or Latino|100419438|BROWN,NEKITA S|40|Female|Never|No|No
+2004-12-24 00:00:00|Black or African American|Not Hispanic or Latino|100442935|NZASI,MADELEINE K|21|Female|Never||
+1994-12-27 00:00:00|Black or African American|Not Hispanic or Latino|100447761|MCKINE,SIERRA TA LISA|31|Female|Never|Never|Never
+1998-12-07 00:00:00|Black or African American|Not Hispanic or Latino|100450613|TAIWO,OPEYEMI EDWARD|27|Male|Not Asked|Yes|Yes
+1992-06-11 00:00:00|Black or African American|Not Hispanic or Latino|100453031|BELL,DESHAWN LAMAR|33|Male|Never|Never|Never
+2002-02-23 00:00:00|Black or African American|Not Hispanic or Latino|100457537|TUCKER,ZAYYIR AMARI|23|Male|Never|Never|Never
+1984-02-27 00:00:00|Black or African American|Not Hispanic or Latino|100458500|ROBINSON,FREDERICK|41|Male|Yes|No|No
+2005-08-21 00:00:00|Black or African American|Not Hispanic or Latino|100460274|GUERRIER,RAYMOND A II|20|Male|Never|Never|Never
+2000-02-11 00:00:00|Black or African American|Not Hispanic or Latino|100460313|STERKINS,SYDNEY DANIELLE|25|Female|Never|No|No
+1996-12-13 00:00:00|Black or African American|Not Hispanic or Latino|100463709|MARCUS,TIAJA|29|Female|Never|Not Currently|Not Currently
+1998-05-05 00:00:00|Black or African American|Not Hispanic or Latino|100464736|JACKSON,KEYARRI KELDRINA|27|Female|Never|No|No
+1999-04-05 00:00:00|Black or African American|Not Hispanic or Latino|100469220|GREENE,DESTINY|26|Female|Never|Yes|Yes
+1989-09-02 00:00:00|Black or African American|Not Hispanic or Latino|100471794|ADLAM,KERWAYNE|36|Male|Yes|Yes|Yes
+1980-10-23 00:00:00|Black or African American|Not Hispanic or Latino|100471898|PLEASANT,MALEA LATISSIA|45|Female|Quit|Not Currently|Not Currently
+2001-09-18 00:00:00|Black or African American|Not Hispanic or Latino|100472437|WHITE,CHRISTOPHER EUGENE|24|Male|Never|Yes|Yes
+1956-10-03 00:00:00|Black or African American|Not Hispanic or Latino|100472645|OYEBOWALE,SANDRA|69|Female|Never|No|No
+1975-07-15 00:00:00|Black or African American|Not Hispanic or Latino|100474853|APPIAH,RICHARD|50|Male|Never|No|No
+1989-01-01 00:00:00|Black or African American|Not Hispanic or Latino|100476372|HALE,GLENDA|36|Female|Never|No|No
+1994-08-16 00:00:00|Black or African American|Not Hispanic or Latino|100480859|BROWN,DAVID TYRONE|31|Male|Never|No|No
+2000-02-29 00:00:00|Black or African American|Not Hispanic or Latino|100482926|ARNOLD,DASIA|25|Female|Never|No|No
+1995-10-31 00:00:00|Black or African American|Not Hispanic or Latino|100490131|LESTER,MARIAN ARNETTE|30|Female|Never|Never|
+2004-05-15 00:00:00|Black or African American|Not Hispanic or Latino|100490653|TAYLOR,JAMYA AMONTI|21|Female|Never|Never|Never
+1988-06-27 00:00:00|Black or African American|Not Hispanic or Latino|100491517|MILLER,TONESHIA DESHONDA|37|Female|Quit|No|No
+2004-03-25 00:00:00|Black or African American|Not Hispanic or Latino|100498316|BILLINGS,MARCEL JAYSHAWN|21|Male|Never|Never|Never
+1984-10-29 00:00:00|Black or African American|Not Hispanic or Latino|100498353|MCCLAIN,TIEKGUS|41|Female|Quit|No|No
+1999-11-15 00:00:00|Black or African American|Not Hispanic or Latino|100500199|LIVINGSTONE NELSON,KIANNA NICOLE|26|Female|Never|No|No
+1998-05-07 00:00:00|Other Race|Hispanic or Latino|100503399|NUNEZ CHACON,VICTOR M|27|Male|Never|Not Currently|Not Currently
+1986-10-16 00:00:00|Black or African American|Not Hispanic or Latino|100503797|WILLIAMS,JEROME KENNETH|39|Male|Yes|Yes|Yes
+2000-03-12 00:00:00|Black or African American|Not Hispanic or Latino|100504249|DIXON,ZIDANE|25|Male|Never|Yes|Yes
+1992-03-17 00:00:00|Black or African American|Not Hispanic or Latino|100504848|KURANGA,MOHAMMED KURANGA|33|Male|Never|No|No
+2000-01-09 00:00:00|Black or African American|Not Hispanic or Latino|100505379|WILLIAMS,SANQUEZE|25|Male|Never|Yes|Yes
+2005-09-22 00:00:00|Black or African American|Not Hispanic or Latino|100505408|SPARKS,LEAH KAYLA|20|Female|Never|Never|Never
+1979-06-30 00:00:00|Black or African American|Not Hispanic or Latino|100506730|HOWARD,DAWN A|46|Female|Quit|Not Currently|Not Currently
+1984-04-12 00:00:00|Black or African American|Not Hispanic or Latino|100509013|FATCH,LOUISA|41|Female|Never|Yes|Yes
+1975-04-26 00:00:00|Black or African American|Hispanic or Latino|100511831|YOUNG,OMOPE|50|Male|Never|No|No
+1999-08-24 00:00:00|Black or African American|Not Hispanic or Latino|100512568|OWOLABI,FAVOUR FISAYOMI PRECIOUS|26|Female|Never|No|No
+2001-05-21 00:00:00|Black or African American|Not Hispanic or Latino|100512926|NWAKWESI,KANDILICHUKWU SHARON|24|Female|Never|Never|Never
+2000-03-02 00:00:00|Black or African American|Not Hispanic or Latino|100514111|BELCHER,SYDNEY N|25|Female|Never|No|No
+2000-08-30 00:00:00|Black or African American|Not Hispanic or Latino|100515572|ROBINSON,ROSSI|25|Female|Never|No|No
+1998-04-29 00:00:00|Black or African American|Not Hispanic or Latino|100515794|BAIRD,VICTORIA|27|Female|Never|Not Currently|Not Currently
+1998-04-13 00:00:00|Black or African American|Not Hispanic or Latino|100518997|ULUOCHA,MICHAEL CHUKWUEMEKA|27|Male|Never|No|No
+1998-09-28 00:00:00|Black or African American|Not Hispanic or Latino|100519976|JONES,ASHA MARQUI|27|Female|Never|No|No
+1982-03-20 00:00:00|Black or African American|Not Hispanic or Latino|100528320|CROW ANDERSON,AMY M|43|Female|Never||
+1988-11-07 00:00:00|Black or African American|Not Hispanic or Latino|100530064|MCGOWAN,BRANDON MARQUICE|37|Male|Never|Not Currently|Not Currently
+1992-08-13 00:00:00|Black or African American|Not Hispanic or Latino|100530732|JOSEPH,MAYOTT C|33|Male|Never|Never|Never
+1999-09-26 00:00:00|Black or African American|Not Hispanic or Latino|100531844|BAKER,EBONY D|26|Female|Never|No|No
+1999-09-18 00:00:00|Black or African American|Not Hispanic or Latino|100535660|DIALLO,AISSATOU|26|Female|Never|Never|Never
+2000-03-28 00:00:00|Black or African American|Not Hispanic or Latino|100539646|LAMAR,SHUNTAVIOUS NICOLE|25|Female|Never|Yes|Yes
+2001-05-11 00:00:00|Black or African American|Not Hispanic or Latino|100544768|BAILEY,TIFFANY SHANNA-KAY|24|Female|Never|Never|Never
+1989-05-31 00:00:00|Black or African American|Not Hispanic or Latino|100547423|ELLIOTT,AUDREY LYNN|36|Female|Never|No|No
+1994-12-18 00:00:00|Black or African American|Not Hispanic or Latino|100551391|EDWARDS,EMARI A|31|Female|Never|No|No
+2001-03-10 00:00:00|Black or African American|Not Hispanic or Latino|100553110|NELSON,KENNEDY|24|Female|Never|Not Currently|Not Currently
+2003-08-01 00:00:00|Black or African American|Not Hispanic or Latino|100553163|WILLIAMS,KYSYIA|22|Female|Not Asked||
+1994-05-30 00:00:00|Black or African American|Unknown|100554200|APPLEWHITE,AFIYA|31|Female|Never|No|No
+2000-11-08 00:00:00|Black or African American|Not Hispanic or Latino|100557871|NZALE,STELA|25|Female|Never|Never|Never
+2000-08-19 00:00:00|Black or African American|Not Hispanic or Latino|100557879|SHAFFORD,JAKIRA RENEE|25|Female|Never|Never|Never
+2001-01-29 00:00:00|Black or African American|Not Hispanic or Latino|100558156|DODSON,KENNEDY LEANDRA|24|Female|Never|Not Currently|Not Currently
+2000-01-07 00:00:00|Black or African American|Not Hispanic or Latino|100562933|HURSTON,JATAVIOUS|25|Male|Never|Never|Never
+2001-10-06 00:00:00|Black or African American|Not Hispanic or Latino|100565633|HARRIS,JANASIA TANAY|24|Female|Never|Yes|Yes
+1971-10-16 00:00:00|Black or African American|Not Hispanic or Latino|100566225|NYAKO,ELIZABETH|54|Female|Never|Never|Never
+1970-09-17 00:00:00|Black or African American|Not Hispanic or Latino|100566733|SUMAREH,MAHAMADOU|55|Male|Never|Never|Never
+1984-03-15 00:00:00|Black or African American|Not Hispanic or Latino|100571665|HAYFORD-WILLIAMS,EKWANNAH JUMOKA|41|Female|Quit|Not Currently|Not Currently
+1996-01-15 00:00:00|Black or African American|Not Hispanic or Latino|100571701|KILLINGSWORTH,JAMEECE|29|Female|Never|Not Currently|Not Currently
+1989-05-17 00:00:00|Black or African American|Not Hispanic or Latino|100571850|FIELDS,TIAIRA SHATAY|36|Female|Never|Never|Never
+1995-08-14 00:00:00|Black or African American|Not Hispanic or Latino|100571877|SAMUEL,ROTIMI|30|Male|Never|Never|Never
+1998-04-22 00:00:00|Black or African American|Not Hispanic or Latino|100575285|WOOD,CHARLES LUKE AUSTIN|27|Male|Never|Never|Never
+1984-03-06 00:00:00|Black or African American|Not Hispanic or Latino|100577132|DOWD,NATASHA KASHANA|41|Female|Never|Never|Never
+1999-09-01 00:00:00|Black or African American|Not Hispanic or Latino|100581386|ANUMA,FAVOUR|26|Female|Never|Yes|Yes
+1982-10-20 00:00:00|Black or African American|Not Hispanic or Latino|100581851|YAWSON,DEBORAH|43|Female|Never|Yes|Yes
+1975-12-30 00:00:00|Black or African American|Not Hispanic or Latino|100592373|BRUCE,RAYMOND MAURICE|50|Male|Never|Not Currently|Not Currently
+1980-10-13 00:00:00|Black or African American|Not Hispanic or Latino|100593960|EBRON,CORNELIA|45|Female|Never|Not Currently|Not Currently
+2000-06-07 00:00:00|Black or African American|Not Hispanic or Latino|100596022|HAUGHTON,NATHANIEL|25|Male|Never|Never|Never
+1986-12-02 00:00:00|Black or African American|Not Hispanic or Latino|100600758|JACKSON,MARK ANTONIO|39|Male|Quit|Yes|Yes
+1992-11-26 00:00:00|Black or African American|Not Hispanic or Latino|100601498|LOGAN,THOMAS|33|Male|Never|Yes|Yes
+1995-01-24 00:00:00|Black or African American|Not Hispanic or Latino|100607850|MCINTOSH,HORACE ANTHONY II|30|Male|Quit|Not Currently|Not Currently
+1998-08-03 00:00:00|Black or African American|Not Hispanic or Latino|100611821|FORD,LAODICEA|27|Female|Never|Never|Never
+1997-06-25 00:00:00|Other Race|Hispanic or Latino|100616274|ANDINO-SANCHEZ,OSCAR MARIO|28|Male|Never|Yes|Yes
+1991-02-27 00:00:00|Black or African American|Not Hispanic or Latino|100616389|EASTMOND,FELICIA|34|Female|Never|Not Currently|Not Currently
+1982-09-18 00:00:00|Black or African American|Unknown|100617224|JABBIE,MOMODU|43|Male|Never|Never|Never
+1996-05-14 00:00:00|Other Race|Hispanic or Latino|100622786|FUCHU,GENESIS|29|Female|Never|Not Currently|Not Currently
+1994-02-21 00:00:00|Black or African American|Not Hispanic or Latino|100624731|CUMMINGS,JAMES JR.|31|Male|Never|Not Currently|Not Currently
+2001-06-20 00:00:00|Black or African American|Not Hispanic or Latino|100625823|IDOWU,JOSHUA TIMILEHIN|24|Male|Never|Never|Never
+1990-05-02 00:00:00|Black or African American|Not Hispanic or Latino|100632552|WHITE-REID,MARKEL JERMAINE|35|Male|Never|Not Currently|Not Currently
+1997-10-09 00:00:00|Black or African American|Not Hispanic or Latino|100637974|GERMAINE,FAVAUGHN|28|Male|Never|Not Currently|Not Currently
+1993-06-21 00:00:00|Black or African American|Not Hispanic or Latino|100641415|WASHINGTON,CORTAIA MONIQUE|32|Female|Yes|Not Currently|Not Currently
+1984-12-14 00:00:00|Black or African American|Not Hispanic or Latino|10064316|ALI,TAHIR S|41|Female|Never|Not Currently|Not Currently
+1993-04-19 00:00:00|Black or African American|Not Hispanic or Latino|100648755|CRAWFORD,SHANEICE LANETTE|32|Female|Never|Not Currently|Not Currently
+1980-09-05 00:00:00|Black or African American|Not Hispanic or Latino|100650672|JEAN PAUL,KERRISHA|45|Female|Never|Never|Never
+2000-01-09 00:00:00|Black or African American|Not Hispanic or Latino|100650857|PITTMAN,ARIEL|25|Female|Never|Yes|Yes
+2000-11-21 00:00:00|Black or African American|Not Hispanic or Latino|100652842|DULANEY,JACOBI TRE'VON|25|Male|Never|Yes|Yes
+1994-06-15 00:00:00|Black or African American|Not Hispanic or Latino|100654005|MILLER,CHINA|31|Male|Never|Never|Never
+1990-11-12 00:00:00|Black or African American|Not Hispanic or Latino|100656948|ANDERSON,SEAN MICHAEL|35|Male|Never|Yes|Yes
+1991-06-04 00:00:00|Black or African American|Not Hispanic or Latino|100659567|DRAYTON,JOSHUA TRENTON|34|Male|Never|Never|Never
+2001-08-12 00:00:00|Black or African American|Not Hispanic or Latino|100661060|BROWN,ASABI F|24|Female|Quit|Not Currently|Not Currently
+1992-03-12 00:00:00|Black or African American|Not Hispanic or Latino|100661253|BROWN,DERRICK|33|Male|Never|Never|Never
+1987-04-01 00:00:00|Black or African American|Not Hispanic or Latino|100664828|JOHNSON,LATASHA|38|Female|Never|Never|Never
+1982-12-18 00:00:00|Black or African American|Not Hispanic or Latino|100669175|BAKARE,TOLULOPE|43|Female|Never|Not Currently|Not Currently
+1997-08-15 00:00:00|Black or African American|Hispanic or Latino|100669931|COOPER,SKYY S|28|Female|Never|Yes|Yes
+1999-01-11 00:00:00|Black or African American|Not Hispanic or Latino|100677758|JOHNSON,LEAH|26|Female|Never|Never|Never
+1996-08-06 00:00:00|Black or African American|Not Hispanic or Latino|100684657|LONG,MICAH|29|Male|Never|Not Currently|Not Currently
+2001-09-15 00:00:00|Black or African American|Not Hispanic or Latino|100689796|FYFE,RAEGIN PATIENCE AMIR|24|Female|Never|Not Currently|Not Currently
+1990-10-09 00:00:00|Black or African American|Not Hispanic or Latino|100692899|OSAHON-AGBATOR,PAUL OMOALUSE|35|Male|Never|Yes|Yes
+1977-03-27 00:00:00|Black or African American|Not Hispanic or Latino|100696600|DARBOUZE,PAUL J|48|Male|Never|Never|Never
+1997-11-12 00:00:00|Black or African American|Not Hispanic or Latino|100696781|ANDERSON,KAMESHA|28|Female|Never|Not Currently|Not Currently
+1981-11-01 00:00:00|Unknown|Unknown|100696880|OKAM,PEARL NNEKA|44|Female|Never|Yes|Yes
+1982-09-28 00:00:00|Black or African American|Not Hispanic or Latino|100697841|ANDREWS,CLAYTON|43|Male|Never|Not Currently|Not Currently
+1960-09-17 00:00:00|Black or African American|Not Hispanic or Latino|100700647|BLACKSHEAR,WILLIAM E.|65|Male|Never|Never|Never
+1988-07-13 00:00:00|Black or African American|Not Hispanic or Latino|100702332|WINE,DANIEL MICHAEL|37|Male|Never|Not Currently|Not Currently
+1998-04-10 00:00:00|Black or African American|Not Hispanic or Latino|100703427|DOUGLAS,MASON N|27|Male|Never|Not Currently|Not Currently
+2000-09-22 00:00:00|Black or African American|Not Hispanic or Latino|100703922|SHEPPARD,SHELEAH|25|Female|Never|Never|Never
+1996-04-27 00:00:00|Black or African American|Not Hispanic or Latino|100707890|ROMEUS,SERGINE|29|Female|Never|Yes|Yes
+1988-08-20 00:00:00|Black or African American|Not Hispanic or Latino|100708582|HAGAN,LESLEY|37|Female|Never|Never|Never
+2002-07-31 00:00:00|Black or African American|Not Hispanic or Latino|100712675|ELLIS,YUMANI|23|Female|Never|Never|Never
+2000-11-03 00:00:00|Black or African American|Not Hispanic or Latino|100713784|STEWART,AARON JOHN M|25|Male|Never|Not Currently|Not Currently
+1987-09-27 00:00:00|Black or African American|Not Hispanic or Latino|100715943|MATHIS,MARK|38|Male|Never|Not Currently|Not Currently
+2002-01-23 00:00:00|Black or African American|Not Hispanic or Latino|100717362|JOHNSON,DESHAUN JODEL|23|Male|Never|Not Currently|Not Currently
+1989-04-18 00:00:00|Black or African American|Not Hispanic or Latino|100718273|LOTT,ALEXIS MEKEHALIAH|36|Female|Never|Never|Never
+2003-05-26 00:00:00|Black or African American|Not Hispanic or Latino|100718946|TAYLOR,ANNISSA|22|Female|Never|Not Currently|Not Currently
+1991-06-20 00:00:00|Black or African American|Not Hispanic or Latino|100720312|BARNETT,ALEXANDRIA R|34|Female|Never|Never|Never
+1976-07-07 00:00:00|Black or African American|Not Hispanic or Latino|100721957|BAILEY,ULRICA ANN|49|Female|Never|Not Currently|Not Currently
+1993-05-15 00:00:00|Black or African American|Not Hispanic or Latino|100725429|OHEMENG-TINYASE,NANA YAW|32|Male|Never|Not Currently|Not Currently
+1991-10-14 00:00:00|Black or African American|Not Hispanic or Latino|100726157|PERRY,DANIELLE|34|Female|Never|Never|Never
+2002-04-17 00:00:00|Black or African American|Hispanic or Latino|100726626|CARTER,ANJARI JAMES|23|Male|Never|Not Currently|Not Currently
+1993-10-16 00:00:00|Black or African American|Not Hispanic or Latino|100726783|CLARK,ARIEL SHANICE|32|Female|Never|Never|Never
+1961-11-01 00:00:00|Black or African American|Not Hispanic or Latino|100735808|BROCK,BARBARA ANN|64|Female|Never||
+1975-04-30 00:00:00|Multi Racial|Unknown|100738074|MAITLAND,ENRIQUE|50|Male|Never|Not Currently|Not Currently
+2003-07-26 00:00:00|Black or African American|Not Hispanic or Latino|100738804|MCCOY,KEYSHAWN DONTE|22|Male|Never|Yes|Yes
+1992-05-31 00:00:00|Black or African American|Not Hispanic or Latino|100741704|BABATUNDE,AISHAT|33|Female|Never|Not Currently|Not Currently
+2001-12-25 00:00:00|Black or African American|Not Hispanic or Latino|100744060|DAMBREVIL,JEFF|24|Male|Never|Yes|Yes
+1996-05-22 00:00:00|Black or African American|Not Hispanic or Latino|100744508|HOLMAN,DIONA|29|Female|Never|Never|Never
+1995-06-17 00:00:00|Black or African American|Not Hispanic or Latino|100746034|PERKINS,KRISTIN ELIZABETH|30|Female|Never|Never|Never
+2002-01-10 00:00:00|Black or African American|Not Hispanic or Latino|100747042|HAWKINS,KALIYAH IASIA DERIKIA|23|Female|Never|Not Currently|Not Currently
+1998-11-19 00:00:00|Black or African American|Not Hispanic or Latino|100747582|OSHE,OMOREWO I|27|Female|Never|Yes|Yes
+2001-04-26 00:00:00|Black or African American|Not Hispanic or Latino|100758281|WILLIAMS,QUINTEN|24|Male|Never|Not Currently|Not Currently
+1974-08-02 00:00:00|Black or African American|Not Hispanic or Latino|100759469|ADEYENI,OLAKUNLE|51|Male|Never|Not Currently|Not Currently
+1992-10-20 00:00:00|Black or African American|Not Hispanic or Latino|100766065|AJAYI,FLORA O|33|Female|Never|Not Currently|Not Currently
+2003-05-20 00:00:00|Black or African American|Not Hispanic or Latino|100771304|NWANKWO,CHIDERA|22|Male|Never|Never|Never
+1993-03-11 00:00:00|Black or African American|Not Hispanic or Latino|100772781|SHERIF,MOMOLU|32|Male|Never|Yes|Yes
+1981-05-13 00:00:00|Black or African American|Not Hispanic or Latino|100774336|WILLIAMS,LAKENYA CHANELLE|44|Female|Quit|Never|Never
+1997-01-23 00:00:00|Black or African American|Unknown|100776007|O'QUINN,JELANI|28|Male|Never|Never|Never
+1996-10-26 00:00:00|Black or African American|Not Hispanic or Latino|100777397|PRESCOD,TIFFANY SHAKIRA S|29|Female|Never|Never|Never
+2001-10-15 00:00:00|Black or African American|Not Hispanic or Latino|100783410|HARDEN,MEASHA ICIANNA|24|Female|Never|Yes|Yes
+1995-07-11 00:00:00|Black or African American|Not Hispanic or Latino|100786614|OLADIMEJI,ALEXANDER O|30|Male|Never|Yes|Yes
+2000-08-12 00:00:00|Black or African American|Not Hispanic or Latino|100788215|SELMER,KENDAL|25|Female|Never|Yes|Yes
+2001-12-26 00:00:00|Black or African American|Not Hispanic or Latino|100789031|BRONX,ELIZABETH|24|Female|Never|Not Currently|Not Currently
+2001-11-08 00:00:00|Black or African American|Not Hispanic or Latino|100793531|FOFANAH,AMINATA H|24|Female|Never|Not Currently|Not Currently
+1999-10-10 00:00:00|Black or African American|Not Hispanic or Latino|100794019|HAYES,JEFFREY JR.|26|Male|Never|Not Currently|Not Currently
+2002-04-13 00:00:00|Black or African American|Not Hispanic or Latino|100800070|DIALLO,FATOUMATA|23|Female|Never|Never|Never
+1997-10-09 00:00:00|Black or African American|Not Hispanic or Latino|100800939|HASSELL,KRISTIAN|28|Female|Never|Never|Never
+1998-10-11 00:00:00|Black or African American|Not Hispanic or Latino|100803026|CARTER,TRINITI KIRSTEN|27|Female|Never|Not Currently|Not Currently
+2002-11-19 00:00:00|Black or African American|Not Hispanic or Latino|100805726|EDWARDS,ZAREA|23|Female|Never|Not Currently|Not Currently
+1981-02-27 00:00:00|Black or African American|Not Hispanic or Latino|100806277|CHRISTOPHE,DARRELL ANTHONY|44|Male|Never|Not Currently|Not Currently
+2003-08-18 00:00:00|Black or African American|Not Hispanic or Latino|100807013|THOMAS,SHANICA NICOLE|22|Female|Never|Not Currently|Not Currently
+1983-05-17 00:00:00|Black or African American|Not Hispanic or Latino|100807794|AMINMENTSE,ATEMNKENG|42|Male|Never|Never|Never
+2001-10-18 00:00:00|Black or African American|Not Hispanic or Latino|100809281|SANFORD,CHANTEZ O JR.|24|Male|Never|Never|Never
+2002-12-31 00:00:00|Black or African American|Not Hispanic or Latino|100812950|KAMARA,LAMINE|23|Male|Not Asked|Never|Never
+1998-02-28 00:00:00|Black or African American|Not Hispanic or Latino|100815866|FLASH,ASHUA EMANI|27|Female|Never|Not Currently|Not Currently
+2003-01-23 00:00:00|Black or African American|Unknown|100816585|CHARLES,DEQUAN|22|Male|Quit|Not Currently|Not Currently
+2003-04-09 00:00:00|Black or African American|Not Hispanic or Latino|100817388|PAPPOE,LAUREN MICHELLE|22|Female|Never|Not Asked|Not Asked
+1989-01-18 00:00:00|Black or African American|Not Hispanic or Latino|100817645|JORDAN,LADONNA|36|Female|Never|Never|Never
+2002-12-10 00:00:00|Unknown|Unknown|100818920|BRITTEN-TROY,POWAR E|23|Male|Not Asked|Not Asked|Not Asked
+1990-11-02 00:00:00|Black or African American|Not Hispanic or Latino|100819225|EDWARDS,RAQUEL|35|Female|Never|Not Currently|Not Currently
+1961-11-10 00:00:00|Black or African American|Not Hispanic or Latino|100819364|IRBY,VIVIAN|64|Female|Yes|Yes|Yes
+2000-12-10 00:00:00|Black or African American|Not Hispanic or Latino|100820764|ROBINSON,ANAYA TAVORIA|25|Female|Never|Not Currently|Not Currently
+2002-01-18 00:00:00|Unknown|Unknown|100821867|SMITH,KAMANI DALEE|23|Female|Never|Not Currently|Not Currently
+1982-10-13 00:00:00|Black or African American|Not Hispanic or Latino|100822765|BAKENNE,RIHANAT YETUNDE|43|Female|Quit|Yes|Yes
+2002-01-18 00:00:00|Black or African American|Not Hispanic or Latino|100823387|BUXTON,TYNISE|23|Female|Never|Never|Never
+2006-08-14 00:00:00|Black or African American|Not Hispanic or Latino|100825990|LY,IBRAHIMA SORY|19|Male|Never|Never|Never
+2003-08-12 00:00:00|Black or African American|Not Hispanic or Latino|100826824|WASHINGTON,GABRIELE S|22|Female|Never|Never|Never
+2005-04-28 00:00:00|Black or African American|Not Hispanic or Latino|100827562|WILLIAMS,KELSI|20|Female|Never|Never|Never
+2001-09-01 00:00:00|American Indian and Alaskan Native|Not Hispanic or Latino|100829069|COLEMAN,ZION|24|Male|Never|Never|Never
+2003-07-07 00:00:00|Black or African American|Not Hispanic or Latino|100830340|PERRY,ZAVIER|22|Male|Never||
+2002-12-08 00:00:00|Black or African American|Not Hispanic or Latino|100830928|MARSH,ERIK|23|Male|Never|Never|Never
+2004-03-14 00:00:00|Black or African American|Not Hispanic or Latino|100833427|MCMORRIS,IMANI SOMIYA|21|Female|Never|Yes|Yes
+2004-05-26 00:00:00|Black or African American|Not Hispanic or Latino|100833927|GOODEN,DONNELL JR.|21|Male|Never|Never|Never
+2001-10-03 00:00:00|Black or African American|Not Hispanic or Latino|100835833|GOODRUM,JAYLEN|24|Male|Never|Not Currently|Not Currently
+1995-10-05 00:00:00|Black or African American|Not Hispanic or Latino|100837577|AKPOBIYERI,ABIGAIL|30|Female|Never|Yes|Yes
+2003-02-23 00:00:00|Black or African American|Not Hispanic or Latino|100839002|THOMAS,MICHAELA|22|Female|Never|Never|Never
+2001-09-19 00:00:00|Black or African American|Not Hispanic or Latino|100844125|JOHNSON,KIARA|24|Female|Never|Never|Never
+1982-11-09 00:00:00|Black or African American|Not Hispanic or Latino|100845539|STOREY,JULIA|43|Female|Never|Yes|Yes
+2002-12-26 00:00:00|Black or African American|Not Hispanic or Latino|100847229|DAVENPORT,JADEN|23|Male|Never|Never|Never
+2002-02-19 00:00:00|Black or African American|Not Hispanic or Latino|100848685|CARTER,ARIAH ZHANE|23|Female|Never|Not Currently|Not Currently
+2004-06-16 00:00:00|Black or African American|Not Hispanic or Latino|100848938|PASS,NASTACIA CHANNELL|21|Female|Never|Never|Never
+1979-04-12 00:00:00|Black or African American|Not Hispanic or Latino|100849702|TERRY,WAYNE|46|Male|Quit|Not Currently|Not Currently
+1974-10-18 00:00:00|Black or African American|Not Hispanic or Latino|100855065|MARTIN,MARCELLIUS LEANDIEUR|51|Male|Yes|Not Currently|Not Currently
+1979-07-19 00:00:00|Black or African American|Not Hispanic or Latino|100856753|STEWART,OKERA|46|Male|Yes|Yes|Yes
+1989-07-01 00:00:00|Black or African American|Not Hispanic or Latino|100858188|EVERETT,KIRA MICHELLE GANT|36|Female|Never|Never|Never
+1979-11-16 00:00:00|Black or African American|Not Hispanic or Latino|100859297|APRAKU,WINIFRED AKUA|46|Female|Never||
+2003-08-07 00:00:00|Black or African American|Not Hispanic or Latino|100860346|MIZE,MAEGAN|22|Female|Never|Not Currently|Not Currently
+2004-07-24 00:00:00|Black or African American|Not Hispanic or Latino|100861640|WASHINGTON,KHAI LORENZ|21|Male|Never|Not Currently|Not Currently
+1991-07-23 00:00:00|Black or African American|Not Hispanic or Latino|100864922|ASHBY,KIANA|34|Female|Never|Yes|Yes
+2002-08-29 00:00:00|Black or African American|Not Hispanic or Latino|100866156|RUIZ,VANESSA|23|Female|Never|Never|Never
+2004-04-10 00:00:00|Black or African American|Unknown|100866526|BUFKIN,KIRSTEN|21|Female|Never|Never|Never
+1992-09-02 00:00:00|Black or African American|Not Hispanic or Latino|100866571|TODD,DOMONIQUE|33|Female|Never|Yes|Yes
+2004-08-12 00:00:00|Black or African American|Not Hispanic or Latino|100868025|PONDER,ANIYA ELAUN|21|Female|Never|Never|Never
+1982-09-26 00:00:00|Black or African American|Not Hispanic or Latino|100869204|ROBINSON,JOHN|43|Male|Never|Not Currently|Not Currently
+2002-09-25 00:00:00|Black or African American|Not Hispanic or Latino|100869919|LOCKETT,JADA SIMONE|23|Female|Never|Never|Never
+1995-07-10 00:00:00|Black or African American|Not Hispanic or Latino|100872672|ASEMOTA,ABIEMWENSE|30|Female|Never|Never|Never
+2004-01-25 00:00:00|Black or African American|Not Hispanic or Latino|100872712|TRAORE,SALIMATOU|21|Female|Never||
+1959-02-13 00:00:00|Black or African American|Not Hispanic or Latino|100873156|JOHNSON,FAYE E|66|Female|Never|Never|Never
+2002-10-05 00:00:00|Black or African American|Not Hispanic or Latino|100873158|LITTLE,DESTINYMONET|23|Female|Never|Never|Never
+2003-11-24 00:00:00|Black or African American|Not Hispanic or Latino|100876067|WALKER,TARYN JERIAH|22|Female|Never|Not Currently|Not Currently
+1994-01-27 00:00:00|Black or African American|Not Hispanic or Latino|100879068|HARGROVE,KALLIE ALICIA|31|Female|Never|Not Currently|Not Currently
+2003-06-14 00:00:00|Black or African American|Not Hispanic or Latino|100880965|WATSON,KIARA A|22|Female|Never|Never|Never
+1995-01-01 00:00:00|Black or African American|Not Hispanic or Latino|100881925|SOLOMON-POWELL,NIA IMANI|30|Female|Never|Yes|Yes
+2003-10-13 00:00:00|Black or African American|Not Hispanic or Latino|100882868|MARCELLUS,NICHOLAS ANTHONY|22|Male|Never|Never|Never
+1989-06-16 00:00:00|Black or African American|Not Hispanic or Latino|100889707|ST JOHN,CURTIS OWEN|36|Male|||
+1995-09-09 00:00:00|Black or African American|Not Hispanic or Latino|100890882|RICHBURG,ERIK|30|Male|Never|Never|Never
+1997-09-11 00:00:00|Black or African American|Not Hispanic or Latino|100892531|GAMBLE,ABIGAIL ALICIA|28|Female|Never|Yes|Yes
+1990-05-19 00:00:00|Black or African American|Not Hispanic or Latino|100894866|LEE,MARQUES LAWAYNE|35|Male|Yes|Yes|Yes
+2003-09-21 00:00:00|Black or African American|Not Hispanic or Latino|100896204|KIRKLAND,ARIANA|22|Female|Never|Yes|Yes
+2002-05-07 00:00:00|Black or African American|Not Hispanic or Latino|100897305|YARO,KHADIJAH|23|Female|Never|Never|Never
+2002-05-10 00:00:00|Black or African American|Not Hispanic or Latino|100897359|HAYNES,IYANA BRIELLE|23|Female|Never||
+1984-02-24 00:00:00|Black or African American|Not Hispanic or Latino|100897498|RUCKER,SHENEKA|41|Female|Yes|Not Currently|Not Currently
+1995-09-21 00:00:00|Black or African American|Not Hispanic or Latino|100900043|BRUMSEY,JASMINE|30|Female|Never|Not Currently|Not Currently
+2003-06-26 00:00:00|Black or African American|Not Hispanic or Latino|100904527|OCCILIEN-SIMILIEN,OLIVIA|22|Female|Never|Never|Never
+2002-10-31 00:00:00|Black or African American|Not Hispanic or Latino|100904660|FULKS,AMAURI|23|Male|Not Asked||
+1995-08-19 00:00:00|Black or African American|Not Hispanic or Latino|100905171|LAWSON,MAGNUS|30|Male|Yes|Not Currently|Not Currently
+2001-01-10 00:00:00|Black or African American|Not Hispanic or Latino|100907915|HYDARA,AHMED|24|Male|Never|Never|Never
+1992-01-22 00:00:00|Other Race|Hispanic or Latino|100909566|BOFFMAN,ANGELA|33|Female|Yes|Not Currently|Not Currently
+1991-10-08 00:00:00|Black or African American|Not Hispanic or Latino|100910300|STJOHN,TOAHINA|34|Female|Yes|Not Currently|Not Currently
+2000-09-22 00:00:00|Black or African American|Not Hispanic or Latino|100914308|PAUYO,JAYIKA|25|Female|Never|Never|Never
+2002-02-22 00:00:00|Black or African American|Not Hispanic or Latino|100914437|HALL,JORDAN LAWRENCE|23|Male|Never|Yes|Yes
+2005-04-12 00:00:00|Black or African American|Not Hispanic or Latino|100915633|WORBURTON,RICQUELLE JADE|20|Female|Never|Never|Never
+2004-08-18 00:00:00|Black or African American|Not Hispanic or Latino|100915646|DAMBREVIL,MARTINE SHEMICA|21|Female|Never|Never|Never
+2002-12-27 00:00:00|Black or African American|Not Hispanic or Latino|100915703|EDEM,ALEXIS CHINAZAM|23|Female|Never|Never|Never
+2003-05-10 00:00:00|Black or African American|Not Hispanic or Latino|100918503|JACKSON,SANIYA E|22|Female|Yes|Yes|Yes
+1972-11-17 00:00:00|Black or African American|Not Hispanic or Latino|100918657|JONES,JERRY LAMONT|53|Male|Quit|Yes|Yes
+1998-12-30 00:00:00|Black or African American|Not Hispanic or Latino|100919851|KAWONISE,ISAAC OLUWAKEMI|27|Male|Never|Not Currently|Not Currently
+1999-08-05 00:00:00|Black or African American|Not Hispanic or Latino|100920142|JENKINS THOMAS,SEBASTIAN ISAIAH|26|Male|Never|Not Currently|Not Currently
+1998-11-27 00:00:00|Black or African American|Not Hispanic or Latino|100922409|LECKY,ROMARIO KIMARLY SHAVON|27|Male|Never|Not Currently|Not Currently
+2004-11-04 00:00:00|Black or African American|Not Hispanic or Latino|100925503|CHALMERS,LANDON|21|Male|Never|Never|Never
+1995-01-22 00:00:00|Native Hawaiian and Other Pacific Islander|Unknown|100928968|ALADE,MICHELLE FUNMILOLA|30|Female|Not Asked||
+2006-01-10 00:00:00|Black or African American|Not Hispanic or Latino|100932083|SAKHO,KALIFA|19|Male|Never|Never|Never
+1986-06-18 00:00:00|Black or African American|Not Hispanic or Latino|100933906|HILL,DANA|39|Female|Never|Never|Never
+2003-08-16 00:00:00|Black or African American|Not Hispanic or Latino|100934241|FRANKLIN,MCKENZIE JEWEL|22|Female|Never|Not Currently|Not Currently
+1994-12-26 00:00:00|Black or African American|Not Hispanic or Latino|100934437|THOMPSON BARTLETT,DKRIZIA BIJAN|31|Female|Never|Not Currently|Not Currently
+1987-08-10 00:00:00|Black or African American|Not Hispanic or Latino|100935601|AMEYAW,ANITA|38|Female|Never|Never|Never
+1998-03-10 00:00:00|Black or African American|Not Hispanic or Latino|100937445|ALI,TAAJEER HASAN|27|Male|Not Asked||
+1996-01-01 00:00:00|Black or African American|Not Hispanic or Latino|100939603|NATT,JAYROD AKIL|29|Male|Never|Yes|Yes
+2005-04-09 00:00:00|Black or African American|Not Hispanic or Latino|100941020|DOUGAN,CARA|20|Female|Never|Never|Never
+1996-04-08 00:00:00|Black or African American|Not Hispanic or Latino|100943015|FRANCOIS,ISABELLE|29|Female|Never|Yes|Yes
+2003-02-24 00:00:00|Black or African American|Not Hispanic or Latino|100943228|HUDGINS,TYRIAHNA AUNEE|22|Female|Never|Never|Never
+1999-01-20 00:00:00|Black or African American|Not Hispanic or Latino|100946806|FADEYI,ESTHER|26|Female|Never|Never|Never
+1970-10-06 00:00:00|Black or African American|Not Hispanic or Latino|100949373|KING,LEIGHTON OLIVIER CHARLES|55|Male|Never|Never|Never
+2003-03-23 00:00:00|Native Hawaiian and Other Pacific Islander|Not Hispanic or Latino|100949539|WHIGHAM,RANDY DAVAHN III|22|Male|Never|Never|Never
+1993-09-08 00:00:00|Black or African American|Not Hispanic or Latino|100950714|FARVE,DANTE|32|Male|Never|Never|Never
+2004-09-04 00:00:00|Black or African American|Not Hispanic or Latino|100952379|GRAHAM,DEVAN ARTURO|21|Male|Never|Never|Never
+2003-01-29 00:00:00|Black or African American|Not Hispanic or Latino|100954996|WHITE,HOLLIS L|22|Male|Never|Never|Never
+1969-08-14 00:00:00|Black or African American|Not Hispanic or Latino|100955111|CASSON,TUJUNA A|56|Female|Quit|Not Currently|Not Currently
+1972-05-26 00:00:00|Black or African American|Not Hispanic or Latino|100955998|RAVENELL,KAREN D|53|Female|Never|Yes|Yes
+2004-10-27 00:00:00|Black or African American|Not Hispanic or Latino|100960355|OLATUNJI,YETUNDE|21|Female|Never|Not Currently|Not Currently
+1987-01-08 00:00:00|Black or African American|Hispanic or Latino|100962097|DAVIS,GABRIELA|38|Female|Never|Not Currently|
+2005-12-13 00:00:00|Black or African American|Not Hispanic or Latino|100962516|DUNN,JAHTIANA|20|Female|Never|Never|Never
+2006-09-06 00:00:00|Black or African American|Not Hispanic or Latino|100963358|GLASS,MALIK CAMERON|19|Male|Never|Never|Never
+1973-02-03 00:00:00|Black or African American|Not Hispanic or Latino|100965219|SMITH MORTIMER,KAYLA NICOLE|52|Female|||
+2003-05-13 00:00:00|Black or African American|Not Hispanic or Latino|100966290|ENNIN,JANEL|22|Female|Never|Never|
+1985-12-23 00:00:00|Black or African American|Not Hispanic or Latino|100967007|COMPTON,KAREN A|40|Female|Never|Never|Never
+1998-09-28 00:00:00|Black or African American|Not Hispanic or Latino|100967620|SINGLETON,ADRIANA NYKIA|27|Female|Never||
+2005-06-29 00:00:00|Black or African American|Not Hispanic or Latino|100968754|MCNAIR,JESSECA|20|Female|Not Asked||
+2005-03-04 00:00:00|Black or African American|Not Hispanic or Latino|100976407|THOMPSON,CAMERON|20|Male|Never|Never|Never
+1997-11-23 00:00:00|Black or African American|Not Hispanic or Latino|100977396|PERRY,GEONTE HOPE|28|Female|Never|Yes|Yes
+1992-04-30 00:00:00|Black or African American|Not Hispanic or Latino|100977820|LANDFAIR,ANGEL LAVERN|33|Female|Never|Not Currently|Not Currently
+2004-09-30 00:00:00|Black or African American|Not Hispanic or Latino|100978800|DANIEL,FECHI DORA|21|Female|Never|Never|Never
+2003-08-07 00:00:00|Black or African American|Not Hispanic or Latino|100980035|GORDON,KIRA NERYSE|22|Female|Never|Never|Never
+1975-12-09 00:00:00|Black or African American|Not Hispanic or Latino|100983063|GIBBON,RICHARD MARCUS|50|Male|Never|Never|Never
+1992-10-28 00:00:00|Black or African American|Not Hispanic or Latino|100983799|WILLIAMS,IESHIA|33|Female|Never|Never|Never
+1978-09-19 00:00:00|Black or African American|Not Hispanic or Latino|100984466|JOHN-WILLIAMS,NATASHA T|47|Female|Yes|Yes|Yes
+2006-04-05 00:00:00|Black or African American|Not Hispanic or Latino|100987285|THOMAS,KEITH LATWYAN JR.|19|Male|Never|Never|Never
+2004-10-09 00:00:00|Black or African American|Not Hispanic or Latino|100988981|HARGROVE,OLIVER|21|Male|Never|Yes|Yes
+2000-04-07 00:00:00|Black or African American|Not Hispanic or Latino|100998017|WILLIAMS,ALONZO|25|Male|Never|Never|Never
+2005-09-08 00:00:00|Black or African American|Not Hispanic or Latino|100999033|GRAHAM,YUKUBA|20|Male|Never|Never|Never
+2005-09-12 00:00:00|Black or African American|Not Hispanic or Latino|100999871|KELLY,AMAYAH|20|Female|Never|Never|Never
+1991-01-28 00:00:00|Black or African American|Not Hispanic or Latino|101001065|RICHBURG,MELVIN RASHAD|34|Male|Yes|Not Currently|Not Currently
+2001-09-09 00:00:00|Black or African American|Not Hispanic or Latino|101002933|MCMORRIS,JAKEVIN TERRELL|24|Male|Quit|Never|Never
+2010-01-07 00:00:00|Black or African American|Not Hispanic or Latino|101004313|WHITFIELD,ZAVIA|15|Male|||
+1989-03-21 00:00:00|Black or African American|Not Hispanic or Latino|101010198|GRIFFIN,JOHN ODIA JR.|36|Male|Yes|Yes|Yes
+2005-08-23 00:00:00|Black or African American|Unknown|101011437|WALLACE,MYKAEL|20|Male|Never|Never|Never
+1996-09-24 00:00:00|Black or African American|Not Hispanic or Latino|101011846|ARNOLD-DORELUS,URIAH WIDNEL|29|Male|Never|Never|Never
+1998-07-10 00:00:00|Black or African American|Not Hispanic or Latino|101012989|NOLEN,LILLIE RANAE|27|Female|Never|Not Currently|Not Currently
+2004-04-14 00:00:00|Unknown|Hispanic or Latino|101014440|SEGURA,MARCOS|21|Male|Never|Never|Never
+2005-05-04 00:00:00|Black or African American|Not Hispanic or Latino|101015944|TYNES,TYQUAN|20|Male|Never|Never|Never
+2000-08-02 00:00:00|Black or African American|Not Hispanic or Latino|101016016|FRANCIS,DOMINIQUE D|25|Female|Never|Not Currently|Not Currently
+2000-07-07 00:00:00|Black or African American|Not Hispanic or Latino|101016300|JAFOJO,OLUWATIMILEYIN NATHAN|25|Male|Not Asked||
+2001-05-29 00:00:00|Black or African American|Not Hispanic or Latino|101017066|DONALDSON,ROBERT C|24|Male|Never|Never|Never
+2006-05-26 00:00:00|Black or African American|Unknown|101017735|TAIWO,DAMILOLA|19|Male|Never|Never|
+1961-01-13 00:00:00|Black or African American|Unknown|101017864|HARRIGAN,SHERYL|64|Female|Never|Never|Never
+2006-06-28 00:00:00|Black or African American|Not Hispanic or Latino|101018902|AFEDI,CHARLENE|19|Female|Never|Never|Never
+2004-06-17 00:00:00|Black or African American|Not Hispanic or Latino|101019267|FOSTER,TOURE C.|21|Male|Never|Not Currently|Not Currently
+2004-01-03 00:00:00|Black or African American|Not Hispanic or Latino|101020329|FAYEMI,WURAOLUWA|21|Female|Never|Not Currently|Not Currently
+2004-06-01 00:00:00|Black or African American|Not Hispanic or Latino|101022217|WILLIAMS,TYLIA KE ZORIA|21|Female|Never|Never|Never
+2006-06-27 00:00:00|Black or African American|Not Hispanic or Latino|101026650|GRIDIRON,JAYDEN|19|Male|Not Asked||
+1994-06-01 00:00:00|Black or African American|Not Hispanic or Latino|101028179|MCINTOSH,SHAYLA RENE|31|Female|Never|Never|Never
+1996-09-14 00:00:00|Unknown|Unknown|101029043|ADEWUNMI,ADEDOTUN|29|Male|Never|Never|Never
+2002-08-15 00:00:00|Black or African American|Not Hispanic or Latino|101030542|JACKSON,RASHAD O|23|Male|Not Asked|Never|Never
+1994-05-26 00:00:00|Black or African American|Not Hispanic or Latino|101030722|JOLLY,PACHINO|31|Male|Not Asked||
+2005-09-21 00:00:00|Black or African American|Not Hispanic or Latino|101030934|DUNCAN,KAYLAH|20|Female|Never|Never|Never
+1995-08-14 00:00:00|Black or African American|Not Hispanic or Latino|101031656|WILLIAMSON,NATHANIEL|30|Male|Never|Not Currently|Not Currently
+2004-01-15 00:00:00|Black or African American|Not Hispanic or Latino|101031827|WILLS TAY,NAJAH|21|Female|Never||
+1978-06-10 00:00:00|Black or African American|Not Hispanic or Latino|101032439|ALIBEY,VERNA|47|Female|Never|Never|Never
+1996-05-03 00:00:00|Black or African American|Not Hispanic or Latino|101033453|ALLEN,CHYENNE|29|Female|||
+2000-09-22 00:00:00|Black or African American|Not Hispanic or Latino|101034251|HARDY,KAYLA|25|Female|Never|Never|Never
+1992-09-30 00:00:00|Black or African American|Not Hispanic or Latino|101034507|CHARLES,KIMBERLY|33|Female|Never|Never|Never
+2004-01-22 00:00:00|Black or African American|Not Hispanic or Latino|101034629|THORNTON,NOAH ADAIR|21|Male|Never|Not Currently|Not Currently
+1972-05-07 00:00:00|Black or African American|Not Hispanic or Latino|101034756|SCOTT,CANDACE|53|Female|Quit|Not Currently|Not Currently
+1991-06-26 00:00:00|Black or African American|Not Hispanic or Latino|101035297|JACKSON,SHARRON|34|Male|Never||
+1997-12-21 00:00:00|Black or African American|Not Hispanic or Latino|101035991|GRAHAM,JEREMIAH ZEPHENIAH|28|Male|Yes|Never|Never
+2002-04-29 00:00:00|Black or African American|Not Hispanic or Latino|101036246|SIDIBE,MINATA|23|Female|Never|Never|Never
+2000-03-11 00:00:00|Black or African American|Unknown|101036445|SHARPE,LOGAN NEMEMAN|25|Male|Never|Never|Never
+1988-08-12 00:00:00|Black or African American|Not Hispanic or Latino|101036495|PULLEN,DESMOND|37|Male|||
+1991-01-19 00:00:00|Black or African American|Not Hispanic or Latino|101037507|AJAYI,STELLAMARIS|34|Female|Never|Not Currently|Not Currently
+2000-06-02 00:00:00|White or Caucasian|Hispanic or Latino|101037799|REYES SERRATY,DARIMAR|25|Female|Never|Never|
+1991-11-07 00:00:00|Black or African American|Not Hispanic or Latino|101038194|CAMPBELL,AKELIA|34|Female|Never|Not Currently|Not Currently
+1998-08-16 00:00:00|Black or African American|Not Hispanic or Latino|101038452|OFILI,LAWRENCE NNAMDI|27|Male|Never|Never|
+1997-03-03 00:00:00|Black or African American|Not Hispanic or Latino|101038544|FISHER,GYAHNYA KACHELLE|28|Female|Never|Yes|Yes
+1987-07-13 00:00:00|Black or African American|Not Hispanic or Latino|101040241|MITCHELL,CALENTA R|38|Female|Never||
+1993-01-13 00:00:00|Black or African American|Not Hispanic or Latino|101040932|TAYLOR,KELLEE|32|Female|Never|Yes|Yes
+1991-03-09 00:00:00|Black or African American|Not Hispanic or Latino|101043774|JONES,CHRISTIAN|34|Female|Yes|Not Currently|Not Currently
+2005-06-14 00:00:00|Black or African American|Not Hispanic or Latino|101043853|SANFORD,LANCE MAURICE|20|Male|||
+2000-07-07 00:00:00|Black or African American|Not Hispanic or Latino|101044182|PHILLIPS,ZION|25|Male|Never||
+1989-04-20 00:00:00|Black or African American|Not Hispanic or Latino|101044331|BAILEY,LASHONDA|36|Female|||
+1988-08-11 00:00:00|Black or African American|Not Hispanic or Latino|101045017|SHURRON,CWADRAIS|37|Male|||
+2005-06-20 00:00:00|Black or African American|Not Hispanic or Latino|101045581|JALLOW,BINTA|20|Female|Never|Never|Never
+1989-04-20 00:00:00|Black or African American|Not Hispanic or Latino|101045725|BAILEY,BELLAROSE|36|Female|Never||
+1968-07-14 00:00:00|Black or African American|Not Hispanic or Latino|101046403|FERGUSON-ROGERS,CLAUDIA|57|Female|Never|Never|Never
+1984-01-23 00:00:00|Black or African American|Not Hispanic or Latino|101046793|BRYANT,VINCENT LAVAR|41|Male|Yes|Never|Never
+1969-02-06 00:00:00|Unknown|Unknown|101047213|KAPOOR,PRATIBHA|56|Female|||
+2005-02-14 00:00:00|Black or African American|Not Hispanic or Latino|101047230|BETHEL-NAVARRO,VIOLETA YASMIN|20|Female|||
+2006-02-22 00:00:00|Black or African American|Not Hispanic or Latino|101047348|COLLINS,LEE ANTHONY|19|Male|Never||
+2000-07-12 00:00:00|Black or African American|Not Hispanic or Latino|101047592|JENNINGS,KEYERA|25|Female|Never|Not Currently|Not Currently
+1982-03-20 00:00:00|Black or African American|Not Hispanic or Latino|101047804|VALEUS SINCERE,MARIE S|43|Female|Never|Never|Never
+1999-08-24 00:00:00|Black or African American|Not Hispanic or Latino|101048721|MCCURDY,FAJR|26|Female|Never||
+2001-07-18 00:00:00|Black or African American|Unknown|101049251|SOW,IDIATOU|24|Female|Never|Never|Never
+2006-06-10 00:00:00|Black or African American|Not Hispanic or Latino|101049903|OGUNMOYERO,OLUWATUMININU|19|Female|||
+1989-06-18 00:00:00|Black or African American|Not Hispanic or Latino|101049925|CHAPMAN,CHAMPAIGNE ROCHELLE|36|Female|Never|Not Currently|Not Currently
+2001-06-05 00:00:00|Black or African American|Not Hispanic or Latino|101054290|HUGHES,VICTOR MANDEL|24|Male|Never|Not Currently|Not Currently
+2004-03-24 00:00:00|Black or African American|Not Hispanic or Latino|101054443|WILLIAMS,TEASIA|21|Female|Never|Not Currently|Not Currently
+1989-10-18 00:00:00|Unknown|Unknown|101054636|CATARIN DE ANDRADE,JONATA|36|Male|Never|Not Currently|Not Currently
+1980-09-09 00:00:00|Unknown|Unknown|101054942|BENNINGS,MANVEL|45|Male|||
+2004-04-21 00:00:00|Black or African American|Not Hispanic or Latino|101055082|JAMES,JAMARIAH|21|Female|Yes|Never|Never
+1998-09-29 00:00:00|Black or African American|Not Hispanic or Latino|101057302|THINN,JAASON|27|Male|Yes|Never|Never
+1997-11-19 00:00:00|Black or African American|Not Hispanic or Latino|101057986|EDMONDS,XENA DACHE' SAHAIAI|28|Female|Never|Never|Never
+2007-03-09 00:00:00|Black or African American|Not Hispanic or Latino|101057994|SOUMAH,IBRAHIMA|18|Male|||
+2003-01-01 00:00:00|Black or African American|Not Hispanic or Latino|101058032|NABINTU,SARAH|22|Female|Never|Not Currently|Not Currently
+2004-04-13 00:00:00|Black or African American|Not Hispanic or Latino|101060263|METZGER,NEVILLIA SIERRA OLADUNI|21|Female|Never|Not Currently|Not Currently
+2000-02-26 00:00:00|Unknown|Unknown|101061802|CHAMPAGNE,MICHEL|25|Female|||
+1955-01-10 00:00:00|Black or African American|Not Hispanic or Latino|10144312|OLAJIDE,OLATOUN|70|Female|Never|No|No
+1985-09-25 00:00:00|Black or African American|Not Hispanic or Latino|10158123|SEABORN,TERRA C|40|Female|Never|Yes|Yes
+1960-10-01 00:00:00|Black or African American|Not Hispanic or Latino|10166174|OLAORE,BOLATITO|65|Female|Never|No|No
+1976-03-30 00:00:00|Black or African American|Not Hispanic or Latino|10267944|LAWAL,BASIRAT OLUBUMI|49|Female|Never|No|No
+1986-02-15 00:00:00|Black or African American|Not Hispanic or Latino|10307875|LATIMORE,JONQUITA LAROSE|39|Female|Yes|Yes|Yes
+1983-03-30 00:00:00|Black or African American|Not Hispanic or Latino|10317200|FREEMAN,EDRICKA|42|Female|Quit|Never|Never
+1986-03-28 00:00:00|Black or African American|Not Hispanic or Latino|10354319|BAKER,ERICA CHIQUITA|39|Female|Never|No|No
+1986-04-20 00:00:00|Black or African American|Not Hispanic or Latino|10378050|BELL,TIERENY C|39|Female|Never|Not Currently|Not Currently
+1986-05-22 00:00:00|Black or African American|Not Hispanic or Latino|10412820|SCOTT,KELVIN D|39|Male|Never|Yes|Yes
+1986-05-29 00:00:00|Black or African American|Not Hispanic or Latino|10421330|MARTIN,CODY B|39|Male|Never|Yes|Yes
+1976-09-14 00:00:00|Unknown|Unknown|10538337|THOMPSON,SHALON AIRE|49|Female|Not Asked||
+1981-02-14 00:00:00|Black or African American|Not Hispanic or Latino|10559020|WOOD JONES,NATALIE MICHELLE|44|Female|Never|Not Currently|Not Currently
+1966-08-06 00:00:00|Black or African American|Not Hispanic or Latino|10642695|PHALO,TIMOTHY|59|Male|Never|Never|Never
+1986-10-17 00:00:00|Other Race|Not Hispanic or Latino|10651765|GRAY,RICARDO MAURICE|39|Male|Never|No|No
+1966-11-10 00:00:00|Black or African American|Not Hispanic or Latino|10664596|JONES,ROBERT T|59|Male|Never|Yes|Yes
+1987-01-02 00:00:00|Black or African American|Not Hispanic or Latino|10675058|WALKER,TERRILL L|38|Male|Yes|Yes|Yes
+1970-09-21 00:00:00|Black or African American|Not Hispanic or Latino|10704833|TANNER,CARNITA YVETTE|55|Female|Never|Never|Never
+1987-03-12 00:00:00|Black or African American|Not Hispanic or Latino|10753044|HARRIS,LATASHA T|38|Female|Never|No|No
+1987-01-09 00:00:00|Black or African American|Not Hispanic or Latino|10779737|MAIDEN,TERRICA KRYSTA|38|Female|Never|No|No
+1964-08-25 00:00:00|Black or African American|Not Hispanic or Latino|10849900|NWAJEI,DOMINIC ONYEMAECHI|61|Male|Never|Never|Never
+1956-02-06 00:00:00|Black or African American|Not Hispanic or Latino|108589|CHEELY,CHARLES R|69|Male|Never|No|No
+1987-06-14 00:00:00|Black or African American|Not Hispanic or Latino|10859474|SPENCER,RICO TERRELL|38|Male|Never|No|No
+1987-06-21 00:00:00|Black or African American|Not Hispanic or Latino|10868900|WRIGHT,ANIKI TRANICE|38|Female|Yes|No|No
+1987-07-04 00:00:00|Black or African American|Not Hispanic or Latino|10882269|ROBINSON,SCHANEQUA NICOLE|38|Female|Quit|Yes|Yes
+1987-04-13 00:00:00|Black or African American|Not Hispanic or Latino|10893844|ROCQUEMORE,JASON MICHAEL|38|Male|Quit|Not Currently|Not Currently
+1976-10-29 00:00:00|Black or African American|Not Hispanic or Latino|10910983|WALKER,PERNELL RAMONE|49|Male|Quit|No|No
+1977-11-19 00:00:00|Black or African American|Not Hispanic or Latino|10910991|WALKER,NATHANIEL|48|Male|Yes|No|No
+1987-07-31 00:00:00|Black or African American|Not Hispanic or Latino|10916311|LATIF,TABARI A|38|Male|Never|No|No
+1971-12-21 00:00:00|Black or African American|Not Hispanic or Latino|10949708|KONOMA,HELEN IFEOMA|54|Female|Yes|No|No
+1987-02-04 00:00:00|Black or African American|Not Hispanic or Latino|11023563|OBIAGA,CHIMAOBIM O|38|Male|Quit||
+1967-02-21 00:00:00|Black or African American|Not Hispanic or Latino|11067111|HARDY,ANDRE L|58|Male|Never||
+1988-01-15 00:00:00|Black or African American|Not Hispanic or Latino|11111942|DAVIS,JAMIE L|37|Male|Never|Yes|Yes
+1964-12-26 00:00:00|Black or African American|Not Hispanic or Latino|11137855|SAMUEL,EDDIE JEROME|61|Male|Never|Not Currently|Not Currently
+1979-03-18 00:00:00|Black or African American|Not Hispanic or Latino|11172742|MCRAE,KHALIL M|46|Male|Quit|Not Currently|Not Currently
+1988-04-13 00:00:00|Black or African American|Not Hispanic or Latino|11215427|HAWK,SEAN D|37|Male|Never|No|No
+1988-05-04 00:00:00|Black or African American|Not Hispanic or Latino|11241448|MORRIS,SHANDRIKA A|37|Female|Never|Yes|Yes
+1988-06-13 00:00:00|White or Caucasian|Not Hispanic or Latino|11285494|HUMES-CORNELIUS,JAMETTA S|37|Female|Never|Not Currently|Not Currently
+1988-06-18 00:00:00|Black or African American|Not Hispanic or Latino|11292897|BRYANT,TERNADO QUATEZ JAMARIO|37|Male|Never|No|No
+1988-07-19 00:00:00|Black or African American|Not Hispanic or Latino|11333091|MARTIN,QUENTISHA L|37|Female|Never|Yes|Yes
+1975-01-29 00:00:00|Black or African American|Not Hispanic or Latino|11339592|THOMPSON,ELDRIDGE|50|Male|Quit|No|No
+1988-08-08 00:00:00|Black or African American|Not Hispanic or Latino|11357708|ANDERSON,EDWARD R|37|Male|Yes|Not Currently|Not Currently
+1961-07-14 00:00:00|Black or African American|Not Hispanic or Latino|1142099|LOVETT JACKSON,KIMMEY|64|Female|Quit|No|No
+1988-09-26 00:00:00|Black or African American|Not Hispanic or Latino|11422010|ELLIS,OXZAVIES K|37|Male|Never|No|No
+1988-11-14 00:00:00|Black or African American|Not Hispanic or Latino|11478841|TILLMON,TIFFANY L|37|Female|Yes|Not Currently|Not Currently
+1989-01-04 00:00:00|Black or African American|Not Hispanic or Latino|11535788|CURRIN,CLIFFORD JR.|36|Male|Never|Not Currently|Not Currently
+1989-01-04 00:00:00|Black or African American|Not Hispanic or Latino|11535796|CURRIN,TESHANA A|36|Female|Never|No|No
+1986-01-17 00:00:00|Black or African American|Not Hispanic or Latino|11540252|WILLIAMS,CHANTE|39|Female|Never|Not Currently|Not Currently
+1961-08-02 00:00:00|Black or African American|Not Hispanic or Latino|1155854|DAVIS,BRENDA LEE|64|Female|Quit|Not Currently|Not Currently
+1989-03-31 00:00:00|Black or African American|Not Hispanic or Latino|11643210|TYSON,CEDELLA ADE|36|Female|Never|Never|Never
+1989-10-18 00:00:00|Black or African American|Not Hispanic or Latino|11889555|SHEPPARD,WILLIAM LEE|36|Male|Never|Not Currently|Not Currently
+1989-11-02 00:00:00|Black or African American|Not Hispanic or Latino|11909016|TYLER,DAVID MARQUAY JR.|36|Male|Never|Yes|Yes
+1989-10-10 00:00:00|Black or African American|Not Hispanic or Latino|11943135|HENDERSON,NICOLE MIKA|36|Female|Never|Yes|Yes
+1989-08-21 00:00:00|Black or African American|Not Hispanic or Latino|11961309|HAMILTON,NORRIS CHRISTOPHER|36|Male|Never|No|No
+1989-12-19 00:00:00|Black or African American|Not Hispanic or Latino|11968165|SEALS,ALEXIS|36|Female|Quit|Yes|Yes
+1976-03-07 00:00:00|Black or African American|Not Hispanic or Latino|12001582|SCRIVEN,JAMILLA J|49|Female|Never|Yes|Yes
+1964-08-03 00:00:00|Black or African American|Not Hispanic or Latino|12015238|AUSTIN,TERRY OTIS|61|Male|Quit|No|No
+1966-12-24 00:00:00|Black or African American|Not Hispanic or Latino|12064994|CAMARA,DENISE R|59|Female|Yes|Yes|Yes
+1990-03-16 00:00:00|Black or African American|Not Hispanic or Latino|12078331|DUKES,FRANCHELLE T|35|Female|Quit|No|No
+1961-10-23 00:00:00|Black or African American|Not Hispanic or Latino|1212597|EVANS,JANET WHITE|64|Female|Never|Never|Never
+1990-04-19 00:00:00|Black or African American|Not Hispanic or Latino|12229954|HANSON,RINESE CASSANDRA|35|Female|Quit|Yes|Yes
+1987-06-13 00:00:00|Black or African American|Not Hispanic or Latino|12262352|MOORE,KEITH D|38|Male|Never|Not Currently|Not Currently
+1986-09-29 00:00:00|Black or African American|Not Hispanic or Latino|12285225|PEARSON,KEVIN JR.|39|Male|Never|Yes|Yes
+1952-11-29 00:00:00|Black or African American|Not Hispanic or Latino|1229259|FELTON,LARRY E|73|Male|Yes|No|No
+1990-09-04 00:00:00|Black or African American|Not Hispanic or Latino|12293852|MORRIS,RANDY DERON|35|Male|Quit|Not Currently|Not Currently
+1990-06-11 00:00:00|Black or African American|Not Hispanic or Latino|12317016|HARDWICK,LAUREN JENAY|35|Female|Never|Never|Never
+1990-08-13 00:00:00|Black or African American|Not Hispanic or Latino|12324249|MITCHELL,ASHLEY NICOLE|35|Female|Yes|Not Currently|Not Currently
+1987-03-12 00:00:00|Black or African American|Not Hispanic or Latino|12354515|STANLEY,DANIEL JERVAL|38|Male|Quit|No|No
+1990-09-19 00:00:00|Black or African American|Not Hispanic or Latino|12395076|HAYNES,ROBIN LANETT|35|Female|Not Asked||
+1987-04-15 00:00:00|Black or African American|Not Hispanic or Latino|12414010|SHEPARD,APRIL R|38|Female|Never|Not Currently|Not Currently
+1990-11-04 00:00:00|Black or African American|Not Hispanic or Latino|12426421|HOLMES,DARRIUS X|35|Male|Quit|Yes|Yes
+1990-12-19 00:00:00|Black or African American|Not Hispanic or Latino|12428122|DAVIS,DEDRICK|35|Male|Never|No|No
+1991-01-19 00:00:00|Black or African American|Unknown|12492711|MOSS,ROBERT LEE JR.|34|Male|Never|Not Currently|Not Currently
+1991-01-24 00:00:00|Black or African American|Not Hispanic or Latino|12548447|RUCKER,JONATHAN K|34|Male|Never|No|No
+1990-04-26 00:00:00|Black or African American|Not Hispanic or Latino|12624009|SMITH,ANTOINE M|35|Male|Yes|No|No
+1991-06-16 00:00:00|Black or African American|Not Hispanic or Latino|12650729|DANIEL,ANDREAS DEON|34|Male|Quit|Not Currently|Not Currently
+1989-09-09 00:00:00|Black or African American|Not Hispanic or Latino|12690747|MCMILLIAN,BRANDON A|36|Male|Never|No|No
+1959-10-29 00:00:00|Black or African American|Not Hispanic or Latino|12731129|NEELY,DARREN TYREE|66|Male|Never|No|No
+1991-09-11 00:00:00|Black or African American|Not Hispanic or Latino|12763722|BLUNT ALCANTARA,TAMIKA R|34|Female|Yes|No|No
+1991-02-09 00:00:00|Black or African American|Not Hispanic or Latino|12769655|CARTER,RAVEEN|34|Female|Never|Yes|Yes
+1991-03-14 00:00:00|Black or African American|Not Hispanic or Latino|12780526|STEPHENS,OMAR QUINTEL|34|Male|Yes|Not Currently|Not Currently
+1991-04-02 00:00:00|Black or African American|Not Hispanic or Latino|12840437|FRANCIS,AARON S|34|Male|Quit|No|No
+1982-09-29 00:00:00|Black or African American|Not Hispanic or Latino|12968182|NORRIS,RAHMID L|43|Male|Never|Not Currently|Not Currently
+1953-02-24 00:00:00|Black or African American|Not Hispanic or Latino|13115354|COLTER,MATTHEW JEROME|72|Male|Never|No|No
+1991-08-13 00:00:00|Black or African American|Not Hispanic or Latino|13200117|DILLARD,TIANA MONET|34|Female|Yes|Yes|Yes
+1987-08-10 00:00:00|Black or African American|Not Hispanic or Latino|13275061|WATTS,JELANI|38|Male|Not Asked||
+1992-10-02 00:00:00|Black or African American|Not Hispanic or Latino|13282074|BLUNT ALCANTARA,MICHAEL K|33|Male|Yes|Never|Never
+1993-01-01 00:00:00|Black or African American|Not Hispanic or Latino|13393960|GLASS,ISAIAH L|32|Male|Yes|Not Currently|Not Currently
+1992-08-07 00:00:00|Black or African American|Not Hispanic or Latino|13400111|SHULER,SABRINA ANN|33|Female|Never|Never|Never
+1992-11-18 00:00:00|Black or African American|Not Hispanic or Latino|13403070|JOHNSON,BRITNEY PATRICE|33|Female|Yes|Not Currently|Not Currently
+1959-03-13 00:00:00|Black or African American|Not Hispanic or Latino|13410871|DUNCAN,DELORIS D|66|Female|Never|No|No
+1993-01-19 00:00:00|Black or African American|Not Hispanic or Latino|13415782|RISPER,JAVANTE B.|32|Male|Quit|No|No
+1993-02-08 00:00:00|Black or African American|Not Hispanic or Latino|13442513|TENNER,JOSHUA|32|Male|Never|No|No
+1993-02-19 00:00:00|Black or African American|Not Hispanic or Latino|13456853|WALKER,CORNEL|32|Male|Never|Yes|Yes
+1993-02-23 00:00:00|Black or African American|Not Hispanic or Latino|13462161|GOOSBY,DEMETRIUS L|32|Male|Yes|No|No
+1993-03-21 00:00:00|Black or African American|Not Hispanic or Latino|13497754|MONROE,SHANTRICE M|32|Female|Never|No|No
+1986-10-20 00:00:00|Black or African American|Not Hispanic or Latino|13541991|TOGBA,TAYO S|39|Female|Never|Yes|Yes
+1993-05-15 00:00:00|Black or African American|Not Hispanic or Latino|13585256|LOWE,COLEISHA M|32|Female|Never|No|No
+1986-09-25 00:00:00|Black or African American|Not Hispanic or Latino|13608448|HARRIS,PHILLIP L|39|Male|Never|Yes|Yes
+1993-06-19 00:00:00|Black or African American|Not Hispanic or Latino|13614675|ROBINSON,SHENEQUA M|32|Female|Quit|Not Currently|Not Currently
+1985-01-01 00:00:00|Black or African American|Not Hispanic or Latino|13672061|BETHEL,ANTOINE BREON|40|Male|Yes|Yes|Yes
+1993-08-21 00:00:00|Black or African American|Not Hispanic or Latino|13709454|ZACHARY,QUINDARRIUS|32|Male|Never|No|No
+1962-07-20 00:00:00|Black or African American|Not Hispanic or Latino|1373585|PARKER,MICHAEL C|63|Male|Yes|Yes|Yes
+1993-07-10 00:00:00|Black or African American|Not Hispanic or Latino|13839219|MARTIN,CAMILLIA|32|Female|Never|Yes|Yes
+1993-11-11 00:00:00|Black or African American|Not Hispanic or Latino|13841379|LONG,DREXSHELL L|32|Female|Never|Not Currently|Not Currently
+1993-12-18 00:00:00|Black or African American|Not Hispanic or Latino|13893669|ASHBY,KELCI|32|Female|Never|No|No
+1987-03-14 00:00:00|Black or African American|Not Hispanic or Latino|13974182|CAMPBELL,SHAMIR TANEESE|38|Female|Never|Not Currently|Not Currently
+1985-04-07 00:00:00|Black or African American|Not Hispanic or Latino|13979085|MITCHELL,DORIAN M|40|Female|Never|Yes|Yes
+1994-02-21 00:00:00|Black or African American|Not Hispanic or Latino|13980026|JOHNSON,QUINTAVIOUS D|31|Male|Never|Not Currently|Not Currently
+1994-02-23 00:00:00|Black or African American|Not Hispanic or Latino|13982311|SMITH,MELVENA B|31|Female|Quit|Not Currently|Not Currently
+1994-01-09 00:00:00|Black or African American|Not Hispanic or Latino|13982696|RIGGINS,JERARD ROMELL|31|Male|Never|Never|Never
+1994-03-25 00:00:00|Black or African American|Not Hispanic or Latino|14026085|BLUNT ALCANTARA,ALBIN A|31|Male|Never|No|No
+1993-05-02 00:00:00|Black or African American|Not Hispanic or Latino|14067994|FORTSON,ANGELIA M|32|Female|Not Asked||
+1994-04-26 00:00:00|Black or African American|Not Hispanic or Latino|14095666|GOOLSBY,ANTIONETTE MIATA R|31|Female|Never|No|No
+1994-06-01 00:00:00|Black or African American|Not Hispanic or Latino|14119935|SUMLIN,BRITTINI MYALE|31|Female|Never|No|No
+1994-06-05 00:00:00|Black or African American|Not Hispanic or Latino|14125625|MORGAN,BREON ANTONIO|31|Male|Quit|Yes|Yes
+1994-06-08 00:00:00|Black or African American|Not Hispanic or Latino|14198933|TRUSS,JALYNN BRIANNA|31|Female|Quit|No|No
+1994-08-12 00:00:00|Black or African American|Not Hispanic or Latino|14227077|CANTRELL,CHRISTIAN J|31|Male|Yes|Yes|Yes
+1994-08-23 00:00:00|Black or African American|Not Hispanic or Latino|14236260|HEAD,DANIELLE|31|Female|Never|Never|Never
+1977-09-06 00:00:00|Black or African American|Not Hispanic or Latino|14245924|NASH,LANETTE M|48|Female|Never|No|No
+1994-06-22 00:00:00|Black or African American|Not Hispanic or Latino|14354915|WHITE,SACOYA MEYONA|31|Female|Never|No|No
+1993-01-30 00:00:00|Black or African American|Not Hispanic or Latino|14355937|ARMSTRONG,DASHA RENEE|32|Female|Never|Not Currently|Not Currently
+1991-07-30 00:00:00|Black or African American|Not Hispanic or Latino|14391773|HODGE,KAMAL I|34|Male|Yes|Not Currently|Not Currently
+1991-06-24 00:00:00|Black or African American|Not Hispanic or Latino|14401647|COLEMAN,TALAIYA L|34|Female|Never|No|No
+1995-03-13 00:00:00|Black or African American|Not Hispanic or Latino|14518628|HALL,BRYANT T|30|Male|Never|No|No
+1988-11-26 00:00:00|Black or African American|Not Hispanic or Latino|14518880|WALLACE,JILETTA A|37|Female|Never|Yes|Yes
+1990-02-08 00:00:00|Black or African American|Not Hispanic or Latino|14527683|MASON,QUINTIN M|35|Male|Never|No|No
+1961-09-01 00:00:00|Black or African American|Not Hispanic or Latino|14612218|SIMMONS,CAROL|64|Female|Never|No|No
+1978-04-12 00:00:00|Black or African American|Not Hispanic or Latino|14619367|CHATMON,ANTHONY BRIAN|47|Male|Yes|Not Currently|Not Currently
+1995-01-14 00:00:00|Black or African American|Not Hispanic or Latino|14619422|ZELLNER,TIRAS|30|Male|Never|Not Currently|Not Currently
+1994-06-19 00:00:00|Black or African American|Not Hispanic or Latino|14641279|CUNNINGHAM,DARRYL DEVINNCI|31|Male|Never|No|No
+1994-06-08 00:00:00|Black or African American|Not Hispanic or Latino|14648742|WARD,COURTNEY|31|Female|Never|Never|Never
+1995-03-22 00:00:00|Black or African American|Not Hispanic or Latino|14692571|HAYNES,JALEEL|30|Male|Never|Not Currently|Not Currently
+1989-01-21 00:00:00|Black or African American|Not Hispanic or Latino|14706350|REID,THEOPHILUS A|36|Male|Never|No|No
+1963-01-02 00:00:00|Black or African American|Not Hispanic or Latino|1472395|MCDERMOTT,ANGELA|62|Female|Never|No|No
+1995-08-08 00:00:00|Black or African American|Not Hispanic or Latino|14729647|HOLT,KEYARA L|30|Female|Never|No|No
+1989-06-25 00:00:00|Black or African American|Not Hispanic or Latino|14759450|MORTON,ERICA S|36|Female|Never|No|No
+1995-03-27 00:00:00|Black or African American|Not Hispanic or Latino|14798757|FUDGE,JUDIAH|30|Female|Never|No|No
+1973-03-02 00:00:00|Black or African American|Not Hispanic or Latino|14817953|PARKS,ALYSHA ANDREA|52|Female|Quit|Not Currently|Not Currently
+1994-09-19 00:00:00|Black or African American|Not Hispanic or Latino|14860956|ANTHONY,NAJA ALLIYAH|31|Female|Never|No|No
+1989-11-09 00:00:00|Black or African American|Not Hispanic or Latino|14889794|MARCELLO,LOUIS M|36|Male|Never|Yes|Yes
+1995-05-09 00:00:00|Black or African American|Not Hispanic or Latino|14891969|NWANKWO,CHIBUZO AMARACHI|30|Female|Never|No|No
+1951-10-15 00:00:00|Black or African American|Not Hispanic or Latino|15078740|SIMPSON,JACQUELINE P|74|Female|Never|No|No
+1987-11-03 00:00:00|Black or African American|Not Hispanic or Latino|15082666|FRANK-DEBARROS,ERROL A T|38|Male|Never|Not Currently|Not Currently
+1971-08-28 00:00:00|Black or African American|Not Hispanic or Latino|15132469|GLOVER,CEDRIC RAMON|54|Male|Never|Never|Never
+1995-08-18 00:00:00|Black or African American|Not Hispanic or Latino|15133790|CISSE,TIGUIDANKE P|30|Female|Never|No|No
+1960-04-23 00:00:00|Black or African American|Not Hispanic or Latino|15141783|CREIGHTON,ELSWORTH M|65|Male|Quit|Not Currently|Not Currently
+1973-01-08 00:00:00|Black or African American|Not Hispanic or Latino|15265785|OTALUKA,KINGSLEY DELI|52|Male|Never|Yes|Yes
+1979-11-26 00:00:00|Black or African American|Not Hispanic or Latino|15272023|WALKER,DELVA RENEE|46|Female|Yes|Yes|Yes
+1996-08-30 00:00:00|Black or African American|Not Hispanic or Latino|15343323|MOODY,GARYAYANA M|29|Female|Never|No|No
+1975-08-08 00:00:00|Black or African American|Not Hispanic or Latino|15345008|WALLACE,LAVEDA L|50|Female|Never|No|No
+1982-12-27 00:00:00|Black or African American|Not Hispanic or Latino|15350360|SMITH,DEMETRIUS|43|Male|Yes|Yes|Yes
+1996-10-17 00:00:00|Black or African American|Not Hispanic or Latino|15355182|GREGO,HAROLD|29|Male|Never|No|No
+1967-02-27 00:00:00|Black or African American|Not Hispanic or Latino|15363638|LEE,STACEY COVINGTO|58|Female|Not Asked||
+1976-01-04 00:00:00|Black or African American|Not Hispanic or Latino|15378445|BARNES,MELINDA ATISHA|49|Female|Yes|No|No
+1996-11-11 00:00:00|Black or African American|Not Hispanic or Latino|15389444|SEYMORE,SHEKENNAN|29|Female|Quit|No|No
+1996-07-26 00:00:00|Black or African American|Not Hispanic or Latino|15398687|BANKS,QWADDELL TERRIL|29|Male|Never|No|No
+1996-07-29 00:00:00|Black or African American|Not Hispanic or Latino|15401410|CARTER,RYAN MAURICE|29|Male|Never|No|No
+1996-04-13 00:00:00|Black or African American|Not Hispanic or Latino|15446624|DAVIS,LADARRIUS M|29|Male|Never|No|No
+1996-03-31 00:00:00|Black or African American|Not Hispanic or Latino|15449737|BISHOP,BENECIA S|29|Female|Yes|Yes|Yes
+1996-11-01 00:00:00|Black or African American|Not Hispanic or Latino|15504020|WILKIE,CHRISTOPHER|29|Male|Never|Yes|Yes
+1996-09-06 00:00:00|Black or African American|Not Hispanic or Latino|15527731|NGUMEZI,CHISOM|29|Female|Never|No|No
+1976-10-25 00:00:00|Black or African American|Not Hispanic or Latino|15537140|HENRY,NIKKI ROGERS|49|Female|Never|Never|Never
+1997-06-27 00:00:00|Black or African American|Not Hispanic or Latino|15746751|FINLEY,QUINESHA|28|Female|Never|No|No
+1949-08-19 00:00:00|Black or African American|Not Hispanic or Latino|1577533|WHITE,ARTIES|76|Male|Never|Yes|Yes
+1968-02-14 00:00:00|Black or African American|Not Hispanic or Latino|15832015|ABRAHAM,PARNEL V|57|Male|Never|Yes|Yes
+1997-09-23 00:00:00|Black or African American|Not Hispanic or Latino|15853588|WELLONS,SHERNECIA DEMONICA|28|Female|Never|Not Currently|Not Currently
+1973-07-16 00:00:00|Black or African American|Not Hispanic or Latino|15862446|BAKER,DELANOE R|52|Male|Yes|Yes|Yes
+1992-11-06 00:00:00|Black or African American|Not Hispanic or Latino|15875405|PENNAMON,DEVONTE C A|33|Male|Never|Yes|Yes
+1963-08-04 00:00:00|Black or African American|Not Hispanic or Latino|1591973|MAYFIELD,ANGELA A|62|Female|Never|No|No
+1970-07-29 00:00:00|Black or African American|Not Hispanic or Latino|15941014|MASON,AVIA C|55|Female|Never|No|No
+1974-09-15 00:00:00|Black or African American|Not Hispanic or Latino|16024336|OLATUNDE,OLADAPO A|51|Male|Never|Yes|Yes
+1997-02-18 00:00:00|Black or African American|Not Hispanic or Latino|16072389|PREJEAN,AJA KILON|28|Female|Never|Yes|Yes
+1998-02-26 00:00:00|Black or African American|Not Hispanic or Latino|16077648|FOSTER,DEANTAE WALTER|27|Male|Never|No|No
+1945-05-16 00:00:00|Black or African American|Not Hispanic or Latino|16126021|GRAYBILL,DORETHA|80|Female|Never|No|No
+1986-05-08 00:00:00|Black or African American|Not Hispanic or Latino|16189093|LOVING,DOMINIQUE S|39|Female|Never|No|No
+1976-11-20 00:00:00|Black or African American|Not Hispanic or Latino|16199541|ANDERSON,TYIESHA R|49|Female|Quit|Not Currently|Not Currently
+1991-08-30 00:00:00|Black or African American|Not Hispanic or Latino|16241809|VAZ,ALEX|34|Male|Never|Yes|Yes
+1998-06-25 00:00:00|Black or African American|Not Hispanic or Latino|16252167|MASON,ALISA I|27|Female|Never|No|No
+1997-04-12 00:00:00|Black or African American|Not Hispanic or Latino|16329617|BISHOP,TAQUOYAH B|28|Female|Never|Never|Never
+1996-10-03 00:00:00|Black or African American|Not Hispanic or Latino|16413270|SHAMLIN,TREY|29|Male|Never|No|No
+1980-09-30 00:00:00|Black or African American|Not Hispanic or Latino|16418571|CRECY,JERRY RONALD JR.|45|Male|Quit|Yes|Yes
+1998-02-28 00:00:00|Black or African American|Not Hispanic or Latino|16434743|OVERTON LOCKHART,TYLER DESTINY|27|Female|Never|Not Currently|Not Currently
+1983-06-12 00:00:00|Black or African American|Not Hispanic or Latino|16449461|OYEKU,FATIMA|42|Female|Never|Not Currently|Not Currently
+1998-12-12 00:00:00|Black or African American|Not Hispanic or Latino|16512991|WEEMS,SHUNTAURIO TIREK|27|Male|Never|Yes|Yes
+1999-01-04 00:00:00|Black or African American|Not Hispanic or Latino|16542974|DIX,JOSHUA ELIJAH|26|Male|Never|No|No
+1990-02-03 00:00:00|Black or African American|Not Hispanic or Latino|16557430|CURRY,ZANETTA R|35|Female|Never|Yes|Yes
+1983-01-23 00:00:00|Black or African American|Not Hispanic or Latino|16569401|HALL,CIERRA NICHOLE|42|Female|Yes|Yes|Yes
+1998-02-05 00:00:00|Black or African American|Not Hispanic or Latino|16586116|VITTO,JESSICA NICOLE|27|Female|Never|No|No
+1990-01-18 00:00:00|Black or African American|Not Hispanic or Latino|16596339|HENDRICKS,BRITTANY ADEL|35|Female|Yes|No|No
+1998-07-31 00:00:00|Black or African American|Not Hispanic or Latino|16791503|BRYANT,JAILA RICHELLE|27|Female|Never|No|No
+1999-02-24 00:00:00|Black or African American|Not Hispanic or Latino|16804344|BROWN,JARED DAVID II|26|Male|Never|Not Currently|Not Currently
+1985-04-09 00:00:00|Black or African American|Not Hispanic or Latino|16847637|BURNETT,SHERINA A|40|Female|Never|Yes|Yes
+1999-07-12 00:00:00|Black or African American|Not Hispanic or Latino|16880158|ALEXANDER,CODNEY JERMAINE JR.|26|Male|Never|No|No
+1998-12-31 00:00:00|Black or African American|Not Hispanic or Latino|16900724|WATSON,NDEIA JINAE|27|Female|Never|Yes|Yes
+1990-03-03 00:00:00|Black or African American|Not Hispanic or Latino|16955428|BRANCH,GREGORY|35|Male|Quit|No|No
+1935-07-20 00:00:00|Black or African American|Unknown|1821619|RIVERS,MARY OPAL|90|Female|Not Asked|No|No
+1994-08-24 00:00:00|Black or African American|Unknown|20001844|BELMO,JASMYN|31|Female|Quit|No|No
+1999-11-12 00:00:00|Black or African American|Not Hispanic or Latino|20002300|KING,KENNETH LAMAR JR.|26|Male|Never|Yes|Yes
+1998-07-15 00:00:00|Black or African American|Not Hispanic or Latino|20002881|CLEALAND,KALIEAI UNIQUE|27|Female|Never|Never|Never
+1992-10-14 00:00:00|Black or African American|Not Hispanic or Latino|20007037|MAXWELL,TODD ANTHONY JR.|33|Male|Not Asked||
+1999-10-23 00:00:00|Other Race|Hispanic or Latino|20009940|MARTINEZ,JASON FERNANDO|26|Male|Never|Not Currently|Not Currently
+1966-01-28 00:00:00|Black or African American|Not Hispanic or Latino|20023729|CONNOLLY,CASSANDRA ANN|59|Female|Yes|No|No
+1997-05-07 00:00:00|Black or African American|Not Hispanic or Latino|20028986|HAYES,KRISTOPHER DONTE'|28|Male|Not Asked||
+2000-04-05 00:00:00|Black or African American|Not Hispanic or Latino|20030941|MOON,DARIUS JORDAN|25|Male|Not Asked||
+1975-06-07 00:00:00|Black or African American|Not Hispanic or Latino|20045618|LEVINSON,GEORGIA FRANCINE|50|Female|Never|Never|Never
+2000-08-16 00:00:00|Black or African American|Not Hispanic or Latino|20049551|BISHOP,BENNIE VERNARD|25|Male|Not Asked||
+2000-11-19 00:00:00|Black or African American|Not Hispanic or Latino|20057817|WATKINS,JUSTIN|25|Male|Quit|Never|Never
+1993-12-30 00:00:00|Black or African American|Not Hispanic or Latino|20058833|DANIEL,OLAMIDE|32|Male|Never|No|No
+1981-09-09 00:00:00|Black or African American|Not Hispanic or Latino|20059075|REYES GALLARDO,YOMI LESLIE|44|Female|Never|No|No
+2000-09-19 00:00:00|Black or African American|Not Hispanic or Latino|20065630|JORDAN,NADIA TALEEYHA|25|Female|Never|Yes|Yes
+1998-12-31 00:00:00|Black or African American|Not Hispanic or Latino|20068739|MENSAH,OWUSU DAMUSA III|27|Male|Never|No|No
+2000-09-28 00:00:00|Black or African American|Not Hispanic or Latino|20079108|GRIMES,ZONNA|25|Female|Never|Never|Never
+2001-05-21 00:00:00|Black or African American|Not Hispanic or Latino|20081061|GODFREY,TYRONE DEMETRIUS|24|Male|Never|No|No
+2001-03-01 00:00:00|Black or African American|Not Hispanic or Latino|20081170|BAKER,JADAH B|24|Female|Never|Never|Never
+1973-01-08 00:00:00|Black or African American|Not Hispanic or Latino|20085670|SHAW,MURIEL|52|Female|Never|Yes|Yes
+1995-05-02 00:00:00|Black or African American|Not Hispanic or Latino|20094932|HENRY,DAVINNA MICHELLE|30|Female|Never|Never|Never
+1997-01-20 00:00:00|Black or African American|Not Hispanic or Latino|20103602|DANIEL,AKINYEMI ALEXANDER|28|Male|Never|Not Currently|Not Currently
+2001-10-17 00:00:00|Black or African American|Not Hispanic or Latino|20109151|SMITH,MICKEY D JR.|24|Male|Never|Never|Never
+2001-11-26 00:00:00|Black or African American|Not Hispanic or Latino|20109846|PERRY,CARMA CLARISSA|24|Female|Yes|Not Currently|Not Currently
+2001-09-18 00:00:00|Black or African American|Not Hispanic or Latino|20116159|JONES,DEANDRE LASHAY|24|Female|Never|Yes|Yes
+1965-11-30 00:00:00|Unknown|Unknown|20117158|NYMAN,ROSE A|60|Female|Quit|Never|Never
+1987-10-27 00:00:00|Black or African American|Not Hispanic or Latino|20121425|NKRUMAH,ISAAC AMPAH|38|Male|Yes|Yes|Yes
+1974-12-28 00:00:00|Black or African American|Not Hispanic or Latino|20123362|OYEBISI BADMUS,MODUPE OLUFUNKE|51|Female|Never|Yes|Yes
+2002-02-28 00:00:00|Black or African American|Not Hispanic or Latino|20124047|MILNER,DESMOND R|23|Male|Never|Never|Never
+1980-01-07 00:00:00|Black or African American|Not Hispanic or Latino|20127323|FONDER,ELIJAH|45|Male|Yes|Not Currently|Not Currently
+1972-11-20 00:00:00|Black or African American|Not Hispanic or Latino|20127931|STATON,LORA SHANIQUE|53|Female|Quit|Yes|Yes
+2001-12-15 00:00:00|Black or African American|Not Hispanic or Latino|20128013|RIGGINS,ARION K|24|Male|Never|Not Currently|Not Currently
+2001-07-27 00:00:00|Other Race|Hispanic or Latino|20130152|CASANOVA,ANDY|24|Male|Never|Yes|Yes
+2002-04-25 00:00:00|Black or African American|Hispanic or Latino|20132370|JONES,YASMINE CEAAIRA|23|Female|Never|Yes|Yes
+2002-04-09 00:00:00|Black or African American|Not Hispanic or Latino|20135227|FULLER WILLIAMS,MAKIYAH MONIQUE|23|Female|Quit|Not Currently|Not Currently
+2001-12-09 00:00:00|Black or African American|Not Hispanic or Latino|20137141|TIGOUE,EMMANUEL AHLONKO|24|Male|Never|Not Currently|Not Currently
+2002-04-11 00:00:00|Black or African American|Not Hispanic or Latino|20137146|ADEOGUN,AL AMIN A|23|Male|Never|Never|Never
+2002-04-11 00:00:00|Black or African American|Not Hispanic or Latino|20137663|STEPHENS,QUINTAVIOUS DEANDRE|23|Male|Never|Never|Never
+2002-06-14 00:00:00|Black or African American|Not Hispanic or Latino|20139682|KENNY,ZACHARIA MICHAEL|23|Male|Never|Never|Never
+1995-03-08 00:00:00|Black or African American|Not Hispanic or Latino|20140025|MOORE MARTIN,LAUREN|30|Female|Never|No|No
+1972-01-16 00:00:00|Black or African American|Not Hispanic or Latino|20142774|BOYD,MICHAEL A|53|Male|Never|Not Currently|Not Currently
+2002-06-06 00:00:00|Black or African American|Not Hispanic or Latino|20145406|DICKENS,KIARA G|23|Female|Never|Not Currently|Not Currently
+2002-06-08 00:00:00|Black or African American|Not Hispanic or Latino|20145447|MASON,OMARI M|23|Male|Never|Never|Never
+1991-02-11 00:00:00|Black or African American|Not Hispanic or Latino|20153269|TRICE,SHANTELL|34|Female|Never|Never|Never
+1978-04-12 00:00:00|Other Race|Hispanic or Latino|20153507|GALEANA GONZALEZ,MARIA GUADALUPE|47|Female|Yes|Not Currently|Not Currently
+2002-08-05 00:00:00|Black or African American|Not Hispanic or Latino|20156147|FORD,JERLYSHA NYSHUN|23|Female|Never|Never|Never
+1993-07-07 00:00:00|Black or African American|Not Hispanic or Latino|20157808|AGBOOLA,ADENIKE M|32|Female|Never|No|No
+1998-02-18 00:00:00|Black or African American|Not Hispanic or Latino|20161126|TAYLOR,JADE ANNA|27|Female|Never|Not Currently|Not Currently
+1982-10-24 00:00:00|Black or African American|Not Hispanic or Latino|20161612|WALLS,LEON NAHASON|43|Male|Not Asked|Not Currently|Not Currently
+2002-11-22 00:00:00|Black or African American|Not Hispanic or Latino|20163630|AKIN,KRISTEN FAITH|23|Female|Never|Yes|Yes
+2002-12-18 00:00:00|Black or African American|Not Hispanic or Latino|20167109|HOWARD,JOHN ERIC JR.|23|Male|Yes|Not Currently|Not Currently
+2001-06-17 00:00:00|Black or African American|Not Hispanic or Latino|20173184|BAKER,TYSHEUNIA LASHUN|24|Female|Never|Not Currently|Not Currently
+1997-07-17 00:00:00|Black or African American|Not Hispanic or Latino|20173281|MORRIS,TASHUN ALEXANDREA|28|Female|Never|Not Currently|Not Currently
+2003-02-15 00:00:00|Other Race|Hispanic or Latino|20174946|DELVALLEMARCIAL,IRVIN ARNULFO|22|Male|Never|Never|Never
+2001-08-29 00:00:00|Black or African American|Not Hispanic or Latino|20178562|PROSPERE,ALEXIS|24|Female|Never|Never|Never
+1983-03-27 00:00:00|Black or African American|Not Hispanic or Latino|20180969|BANKS,TIANA C|42|Female|Never|Not Currently|Not Currently
+2001-04-18 00:00:00|Black or African American|Not Hispanic or Latino|20184722|MARTIN,REGINALD LAMONT JR.|24|Male|Never|Yes|Yes
+2000-08-21 00:00:00|Black or African American|Not Hispanic or Latino|20187389|BELL,LATIA MARGRIANNA|25|Female|Never|No|No
+2003-03-27 00:00:00|Black or African American|Not Hispanic or Latino|20187739|STEPHENS,DEANDRE LATREZ|22|Male|Never|Never|Never
+2003-04-22 00:00:00|Black or African American|Not Hispanic or Latino|20189669|DUKULY,AISHA M|22|Female|Never|Not Currently|Not Currently
+2003-06-20 00:00:00|Black or African American|Not Hispanic or Latino|20193297|WINGFIELD,NIQUELLE MARTELL|22|Male|Never|Never|Never
+1953-12-05 00:00:00|Black or African American|Not Hispanic or Latino|20198749|NELSON,CLAUDETTE|72|Female|Never|No|No
+1994-01-26 00:00:00|Black or African American|Not Hispanic or Latino|20200571|POSEY,JASIAH|31|Male|Never|No|No
+1997-09-29 00:00:00|Black or African American|Not Hispanic or Latino|20202061|CHERRY,QUANTERRIOUS LEMOND|28|Male|Never|Yes|Yes
+2003-04-06 00:00:00|Black or African American|Not Hispanic or Latino|20205696|JACKSON,LAELA KATERRA|22|Female|Never|Not Currently|Not Currently
+1962-06-22 00:00:00|Black or African American|Not Hispanic or Latino|20207907|MCDONALD,JANICE E|63|Female|Never|Yes|Yes
+1985-11-08 00:00:00|Black or African American|Not Hispanic or Latino|20207914|PANTON WALKER,ALEXIA ELAINE|40|Female|Never|Yes|Yes
+1972-12-13 00:00:00|Black or African American|Not Hispanic or Latino|20208746|NEASMAN,BARRY ANTHONY|53|Male|Quit|Not Currently|Not Currently
+1985-08-27 00:00:00|Black or African American|Not Hispanic or Latino|20210294|FOREHAND,TANYSHIA LANETTE|40|Female|Never|Not Currently|Not Currently
+1987-02-20 00:00:00|Black or African American|Not Hispanic or Latino|20214783|OTOVO,OBARO|38|Male|Never|Yes|Yes
+1975-07-02 00:00:00|Black or African American|Not Hispanic or Latino|20217394|YAMINI,ERITREA SUDAN|50|Female|Never|No|No
+2003-11-10 00:00:00|Black or African American|Not Hispanic or Latino|20217443|JOHNSON,NYKERIA CHARLIYAH|22|Female|Never|Never|Never
+1998-02-18 00:00:00|Black or African American|Not Hispanic or Latino|20218468|TAYLOR,DIAMOND YVONNE|27|Female|Never|Yes|Yes
+1983-03-15 00:00:00|Black or African American|Not Hispanic or Latino|20219466|HALL,KEVIN SCOTT|42|Male|Never|No|No
+1966-03-17 00:00:00|Black or African American|Not Hispanic or Latino|20222558|JACKSON,RONALD P|59|Male|Never|No|No
+1996-11-19 00:00:00|Black or African American|Not Hispanic or Latino|20225031|VERNON,JESSICA A|29|Female|Yes|No|No
+1990-12-13 00:00:00|Black or African American|Unknown|20227719|ROBERTS,THOMAS|35|Male|Never|Not Currently|Not Currently
+2004-01-31 00:00:00|Black or African American|Not Hispanic or Latino|20228546|TYLER,AMATULLAAH I|21|Female|Never|Never|Never
+1998-01-27 00:00:00|Black or African American|Not Hispanic or Latino|20231017|REMBERT,FAITH TATIANA|27|Female|Never|No|No
+1995-01-26 00:00:00|Black or African American|Not Hispanic or Latino|20231284|MAKOKHA,LINDA MAUREEN|30|Female|Never|No|No
+2004-02-04 00:00:00|Black or African American|Not Hispanic or Latino|20232561|ROSE,SEAN JODY|21|Male|Yes|Never|Never
+2002-08-14 00:00:00|Black or African American|Not Hispanic or Latino|20233995|WORRELL,BRANDON|23|Male|Never|Never|Never
+2004-04-07 00:00:00|Black or African American|Not Hispanic or Latino|20237689|DILLARD,QUIARI TIAGA|21|Female|Quit|Not Currently|Not Currently
+2003-05-24 00:00:00|Black or African American|Not Hispanic or Latino|20239697|BROOKS,JUSTICE ROY MCCLUSKY|22|Male|Never|Not Currently|Not Currently
+2004-05-26 00:00:00|Black or African American|Not Hispanic or Latino|20241190|PINCKNEY,JALEN R.|21|Male|Never|Not Currently|Not Currently
+1979-11-15 00:00:00|Black or African American|Not Hispanic or Latino|20252579|EDWARDS,ALLIE UCONDA|46|Female|Quit|No|No
+1997-12-10 00:00:00|Black or African American|Not Hispanic or Latino|20255711|MCKINNEY,ALAYA D|28|Female|Never|No|No
+2001-06-19 00:00:00|Black or African American|Not Hispanic or Latino|20263908|PATTERSON,JAYLEN MARTAVIUS|24|Male|Yes|Never|Never
+1971-10-10 00:00:00|Black or African American|Not Hispanic or Latino|20267946|KIMPSON,FRANKLIN LEONARD JR.|54|Male|Never|Not Currently|Not Currently
+1983-05-14 00:00:00|Black or African American|Not Hispanic or Latino|20284613|MONTGOMERY,JOCIELLIA R|42|Female|Quit|No|No
+2002-05-07 00:00:00|Unknown|Unknown|20290880|KARABANI,ISACK|23|Male|Never|Never|Never
+2005-03-08 00:00:00|Black or African American|Not Hispanic or Latino|20293022|HUTCHINSON,LAILA ROSE|20|Female|Never|Never|Never
+2005-03-14 00:00:00|Black or African American|Not Hispanic or Latino|20293028|WINFUL,VICTORIA ABOLANLE|20|Female|Never|Yes|Yes
+1983-03-05 00:00:00|Black or African American|Not Hispanic or Latino|20293539|CLONTS,STEVEN C|42|Male|Never|No|No
+2005-01-30 00:00:00|Black or African American|Not Hispanic or Latino|20297156|CROSBY,DESTINY JALIYAH|20|Female|Never|Not Currently|Not Currently
+1963-10-18 00:00:00|Black or African American|Not Hispanic or Latino|20297565|BALOGUN-BLOUNT,YETUNDE A|62|Female|Never|No|No
+2004-08-07 00:00:00|Black or African American|Not Hispanic or Latino|20297628|MOODY,ARIYANA JAMESCIA|21|Female|Never|Never|Never
+1984-07-25 00:00:00|Black or African American|Not Hispanic or Latino|20298561|GOODWINE,VANESSA D|41|Female|Never|Not Currently|Not Currently
+2005-06-17 00:00:00|Black or African American|Not Hispanic or Latino|20301286|BOOKER,KENNEDY LAJOYCE|20|Female|Never|Never|Never
+1988-05-02 00:00:00|Black or African American|Not Hispanic or Latino|20303357|CURRY,GABRIELLE|37|Female|Not Asked||
+1982-05-21 00:00:00|Black or African American|Not Hispanic or Latino|20309957|PITTMAN SCOTT,IMANI|43|Female|Never|Never|Never
+1980-03-29 00:00:00|Black or African American|Not Hispanic or Latino|20310160|OLADIMEJI BABALOLA,OLUWASEUN|45|Female|Never|No|No
+1998-10-01 00:00:00|Black or African American|Not Hispanic or Latino|20310958|APPIAH,VALERIE C|27|Female|Never|Yes|Yes
+1974-10-03 00:00:00|Other Race|Hispanic or Latino|20311169|CARMONA LOPEZ,TERESA|51|Female|Never|No|No
+2005-08-24 00:00:00|Black or African American|Not Hispanic or Latino|20311406|DEYDE,FATIMATA V|20|Female|Never|Never|Never
+2002-08-19 00:00:00|Black or African American|Not Hispanic or Latino|20311486|WILLIAMS,LARISSA J.|23|Female|Never|Not Currently|Not Currently
+1966-09-25 00:00:00|Black or African American|Not Hispanic or Latino|20311565|FRYE,WILLIAM W|59|Male|Yes|Yes|Yes
+1989-08-21 00:00:00|Other Race|Not Hispanic or Latino|20313529|TRAYWICK,NICKOLUS|36|Male|Quit|Yes|Yes
+2004-09-16 00:00:00|Black or African American|Not Hispanic or Latino|20315007|PANTON,JAYVON R|21|Male|Never|Never|Never
+2003-06-26 00:00:00|Black or African American|Not Hispanic or Latino|20317364|RAGLAND,NYAH XARIS|22|Female|Never|Not Currently|Not Currently
+2005-11-15 00:00:00|Black or African American|Not Hispanic or Latino|20320814|LITTLE,JETORRIA HEVON|20|Female|Not Asked||
+1968-03-05 00:00:00|Black or African American|Not Hispanic or Latino|20321258|ROGERS,VANESSA M|57|Female|Yes|Yes|Yes
+1979-11-29 00:00:00|Black or African American|Not Hispanic or Latino|20325904|PASCHALL,BRIAN|46|Male|Yes|Not Currently|Not Currently
+2006-02-18 00:00:00|Black or African American|Not Hispanic or Latino|20334274|ABBAN,FREDERICK KWAME|19|Male|Never||
+2006-02-21 00:00:00|Black or African American|Not Hispanic or Latino|20339498|DAWSON,RICCARDO WILLIAM|19|Male|Never|Never|Never
+1967-11-22 00:00:00|Black or African American|Not Hispanic or Latino|20341850|THOMAS,MICHELLE M|58|Female|Never|No|No
+1963-09-09 00:00:00|Black or African American|Unknown|20348331|MCCOY,CHARLENE|62|Female|Never|Never|Never
+1980-11-24 00:00:00|Black or African American|Not Hispanic or Latino|20348579|ROLSTON,LORNE A|45|Male|Never|No|No
+1981-08-10 00:00:00|Black or African American|Not Hispanic or Latino|20353360|MIGHTY MOORE,DONNALEE|44|Female|Never|No|No
+1990-05-09 00:00:00|Black or African American|Not Hispanic or Latino|20355178|WALKER,SHAUNICE S|35|Female|Never|No|No
+1957-07-11 00:00:00|Black or African American|Not Hispanic or Latino|20359809|POWELL,MELINDA|68|Female|Never|Never|Never
+1984-09-05 00:00:00|Black or African American|Not Hispanic or Latino|20366767|HARRIS,FAYOLA MASIKA|41|Female|Never|Not Currently|Not Currently
+1990-06-25 00:00:00|Black or African American|Not Hispanic or Latino|20370813|LUCAS,KELLI E|35|Female|Quit|Yes|Yes
+2000-11-16 00:00:00|Black or African American|Not Hispanic or Latino|20373061|MOORE,KEVIAN KEVINE|25|Female|Never|Not Currently|Not Currently
+1974-02-20 00:00:00|Black or African American|Not Hispanic or Latino|20374957|ONWUEME,VICTOR U|51|Male|Never|No|No
+1996-02-26 00:00:00|Black or African American|Not Hispanic or Latino|20375099|HICKERSON,TYLER|29|Male|Never|No|No
+1990-10-06 00:00:00|Black or African American|Not Hispanic or Latino|20376141|EVANS,ALEXANDER VARRICK|35|Male|Never|Yes|Yes
+2006-10-15 00:00:00|Black or African American|Not Hispanic or Latino|20376438|CRECY,JAYLEN JABRIEL RONALD|19|Male|Never|Not Currently|Not Currently
+1991-08-16 00:00:00|Black or African American|Not Hispanic or Latino|20379416|SHAW,DAVID LAMONT|34|Male|Yes|Never|Never
+1983-05-15 00:00:00|Black or African American|Not Hispanic or Latino|20387417|JAMISON,JAMAAL|42|Male|Never|Not Currently|Not Currently
+2006-12-23 00:00:00|Black or African American|Hispanic or Latino|20390924|OJALVOCONNELL,SHALOM ARIANA|19|Female|Never||
+1997-06-10 00:00:00|Black or African American|Not Hispanic or Latino|20391494|COLEMAN,ELTON|28|Male|Never|Never|Never
+1984-12-04 00:00:00|Black or African American|Not Hispanic or Latino|20392012|KEY,IVORY S N|41|Female|Quit|Yes|Yes
+1966-09-21 00:00:00|Black or African American|Not Hispanic or Latino|20392236|LABOR,NYAHALEY|59|Female|Never|Yes|Yes
+1981-07-06 00:00:00|Black or African American|Not Hispanic or Latino|20393620|DUGGANS,JERILYN W|44|Female|Never|Never|Never
+1954-12-15 00:00:00|Black or African American|Not Hispanic or Latino|20394162|SMITH,MARILYN J|71|Female|Quit|Yes|Yes
+1998-02-28 00:00:00|Black or African American|Not Hispanic or Latino|20396818|WASHINGTON,ERIYAH N|27|Female|Never|No|No
+1975-05-21 00:00:00|Black or African American|Not Hispanic or Latino|20402527|KEITH,FELISSA D|50|Female|Never|No|No
+1991-03-02 00:00:00|Black or African American|Not Hispanic or Latino|20409810|JEAN,CLAHANS JR.|34|Male|Yes|No|No
+1988-01-13 00:00:00|Black or African American|Not Hispanic or Latino|20411431|COOK,JONATHAN C|37|Male|Never|Yes|Yes
+1988-12-03 00:00:00|Black or African American|Not Hispanic or Latino|20419165|MCCASKILL,JOSEPH|37|Male|Never|Yes|Yes
+2004-03-26 00:00:00|Black or African American|Not Hispanic or Latino|20422682|GONZALEZ,JENESIS MICHELLE|21|Female|Never|Yes|Yes
+1987-07-21 00:00:00|Black or African American|Not Hispanic or Latino|20423489|HENRY,JAMAL|38|Male|Never|Never|Never
+1994-08-21 00:00:00|Black or African American|Not Hispanic or Latino|20443560|JOHN,TAYLOR JHANE|31|Female|Never|No|No
+1997-08-18 00:00:00|Black or African American|Not Hispanic or Latino|20443629|CELESTINE,ESSENCE ALEXIS GABRIELL|28|Female|Never|Not Currently|Not Currently
+1971-10-25 00:00:00|Black or African American|Not Hispanic or Latino|20447383|WASHINGTON,ERICA KATRINA|54|Female|Never|Never|Never
+1965-04-12 00:00:00|Black or African American|Not Hispanic or Latino|2045478|BALLARD,ALLISON|60|Female|Quit|Not Currently|Not Currently
+1961-10-29 00:00:00|Black or African American|Not Hispanic or Latino|20455847|MORGAN,CHARMAINE R|64|Female|Never|No|No
+1980-10-13 00:00:00|Black or African American|Not Hispanic or Latino|20456140|JACKSON,ABNER III|45|Male|Never|No|No
+1989-06-12 00:00:00|Black or African American|Not Hispanic or Latino|20458647|SADLER,KYMCHERIEN|36|Female|Never|Not Currently|Not Currently
+2003-09-01 00:00:00|Black or African American|Not Hispanic or Latino|20463467|GRAHAM,KYLE|22|Male|Never|Never|Never
+1988-10-21 00:00:00|Black or African American|Not Hispanic or Latino|20465315|PARKER,MARKANTHONY G|37|Male|Yes|Yes|Yes
+1998-01-05 00:00:00|Black or African American|Not Hispanic or Latino|20479295|WHITFIELD,DAESHA A|27|Female|Never|Yes|Yes
+1961-02-24 00:00:00|Unknown|Not Hispanic or Latino|20491623|OLAYIOYE,ADEYINKA OLUMIDE|64|Male|Never|Yes|Yes
+2002-06-15 00:00:00|Black or African American|Not Hispanic or Latino|20495361|OLATOTO,OLUWAFIKAYOMI|23|Male|Never|Not Currently|Not Currently
+1987-03-17 00:00:00|Black or African American|Not Hispanic or Latino|20495602|SWINNEY,ASHLEY|38|Female|Never|Yes|Yes
+2004-01-28 00:00:00|Black or African American|Not Hispanic or Latino|20496369|SUTTON,TYSON BREMONE|21|Male|Never|Never|Never
+1987-01-12 00:00:00|Black or African American|Not Hispanic or Latino|20504095|DURR,ROBERT L|38|Male|Never|Yes|Yes
+2002-11-06 00:00:00|Black or African American|Not Hispanic or Latino|20511861|PERRIMON,KEISHAWN|23|Male|Never|Never|Never
+2002-08-31 00:00:00|Black or African American|Not Hispanic or Latino|20513720|JONES,DAJEAN LAURENT|23|Male|Never|Never|Never
+1989-08-14 00:00:00|Black or African American|Not Hispanic or Latino|20519087|WATSON,THOMAS ANDREW|36|Male|Quit|No|No
+1970-10-10 00:00:00|Black or African American|Not Hispanic or Latino|20520086|PEREZ,CYNTHIA A|55|Female|Never|Yes|Yes
+1996-04-03 00:00:00|Black or African American|Not Hispanic or Latino|20523483|PREKOH,AYANNA TRENE|29|Female|Never|Not Currently|Not Currently
+1986-06-26 00:00:00|Black or African American|Not Hispanic or Latino|20528777|STEWART,NICOLE A|39|Female|Never|Never|Never
+1988-12-07 00:00:00|Black or African American|Not Hispanic or Latino|20529744|JOHNSON,SOLELIA C|37|Female|Never|No|No
+1991-07-27 00:00:00|Black or African American|Not Hispanic or Latino|20533102|WILLIAMS,BRITTANY JACOLLE|34|Female|Never|Never|Never
+2001-05-22 00:00:00|Black or African American|Not Hispanic or Latino|20536693|JACKSON,MADISON|24|Female|Never|Yes|Yes
+1995-02-21 00:00:00|Black or African American|Not Hispanic or Latino|20537570|ALLEN BEALE,AMANI MONET|30|Female|Never|No|No
+1966-02-24 00:00:00|Black or African American|Not Hispanic or Latino|20545234|BANKS,GARY LOUIS|59|Male|Quit|Yes|Yes
+1998-05-29 00:00:00|Black or African American|Not Hispanic or Latino|20545792|DOLBERRY,ERIA JABRIA|27|Female|Never|No|No
+1982-07-17 00:00:00|Black or African American|Not Hispanic or Latino|20547922|OKANI,JUDE|43|Male|Yes|Not Currently|Not Currently
+1990-01-11 00:00:00|Black or African American|Not Hispanic or Latino|20554122|JORDAN,CHEMBERLY|35|Female|Quit|Not Currently|Not Currently
+1985-11-04 00:00:00|Black or African American|Not Hispanic or Latino|20557475|PARKS,CANDICE B|40|Female|Never|No|No
+1991-08-23 00:00:00|Multi Racial|Not Hispanic or Latino|20559399|COLLINS,DEMETRIUS D|34|Male|Never|Not Currently|Not Currently
+1968-11-13 00:00:00|Black or African American|Not Hispanic or Latino|20559836|NEAL,MORRIS III|57|Male|Yes|No|No
+1998-04-26 00:00:00|Black or African American|Not Hispanic or Latino|20564058|SAPP,DOMINIC E|27|Male|Never|No|No
+2005-05-22 00:00:00|Black or African American|Not Hispanic or Latino|20564518|BARRIE,SALMANA|20|Female|Not Asked||
+2002-08-22 00:00:00|Black or African American|Not Hispanic or Latino|20568282|JACKSON,SIDNEY|23|Male|Never|Never|Never
+1992-06-26 00:00:00|Black or African American|Not Hispanic or Latino|20568980|FADEYI,OLUBUNMI|33|Male|Never|No|No
+1953-02-14 00:00:00|Black or African American|Not Hispanic or Latino|20573516|MAYNARD,ALISON ROWENA|72|Female|Never|No|No
+1992-08-07 00:00:00|Black or African American|Not Hispanic or Latino|20576561|LOVELACE,CHELESSIA BIANKA|33|Female|Never|No|No
+1993-12-31 00:00:00|Black or African American|Not Hispanic or Latino|20580708|DAVIS,MONESHIA A|32|Female|Never|Never|Never
+2001-01-07 00:00:00|Black or African American|Not Hispanic or Latino|20584243|THOMAS,SHERMETT S|24|Female|Never|Not Currently|Not Currently
+1996-08-21 00:00:00|Black or African American|Not Hispanic or Latino|20586761|MCGOWAN,MAYA J|29|Female|Quit|Yes|Yes
+2004-03-17 00:00:00|Black or African American|Not Hispanic or Latino|20588103|NICOLAS,KERVIN JORRY|21|Male|Never|Never|Never
+1995-12-19 00:00:00|Black or African American|Not Hispanic or Latino|20593413|SMITH,CHRISTOPHER MICHAEL|30|Male|Never|Not Currently|Not Currently
+1994-07-21 00:00:00|Black or African American|Not Hispanic or Latino|20597251|PAGE,KIERRA ALECHIA|31|Female|Never|No|No
+1995-09-12 00:00:00|Black or African American|Not Hispanic or Latino|20597781|PAGE,ALEXIS M|30|Female|Never|No|No
+2001-09-13 00:00:00|Black or African American|Not Hispanic or Latino|20600603|MILLER,JEREMIAH DE SHON|24|Male|Yes|Never|
+2000-01-19 00:00:00|Black or African American|Not Hispanic or Latino|20600750|ALSTON,JUDE AMAYAH|25|Male|Quit|Not Currently|Not Currently
+1998-03-05 00:00:00|Black or African American|Not Hispanic or Latino|20604553|BALDE,MARIAME|27|Female|Never|Never|Never
+1965-04-01 00:00:00|Black or African American|Not Hispanic or Latino|2454554|BURSON,CAROL C|60|Female|Never|No|No
+1967-02-15 00:00:00|Black or African American|Not Hispanic or Latino|2536112|KING,ANGELA R|58|Female|Quit|No|No
+1965-02-12 00:00:00|Black or African American|Not Hispanic or Latino|2580828|GAY,LINDA L|60|Female|Never|No|No
+1967-09-30 00:00:00|Black or African American|Unknown|2796546|NORWOOD,KERRY L|58|Male|Never|Never|Never
+1992-02-06 00:00:00|Black or African American|Not Hispanic or Latino|29000688|DEVORE JOHNSON,DARQUELL S|33|Male|Quit|No|No
+1996-11-14 00:00:00|Black or African American|Not Hispanic or Latino|29000751|PERKINS,KAYLA A|29|Female|Not Asked||
+1962-05-05 00:00:00|Black or African American|Not Hispanic or Latino|29002438|BENNETT,DONNA|63|Female|Never|Never|
+1968-05-19 00:00:00|Black or African American|Not Hispanic or Latino|3052660|GRAY,TRACEY M|57|Female|Never|Yes|Yes
+1947-12-15 00:00:00|White or Caucasian|Not Hispanic or Latino|3193937|SINYARD,MARY LOU|78|Female|Not Asked||
+1966-02-03 00:00:00|Black or African American|Not Hispanic or Latino|3264415|MCDONALD,BARBARA JOYCE|59|Female|Never|Yes|Yes
+1956-09-22 00:00:00|Black or African American|Not Hispanic or Latino|3905140|KENDRICK,JOHNNY L|69|Male|Yes|No|No
+1970-04-23 00:00:00|Black or African American|Unknown|3912535|SANFORD,ANTHONY D|55|Male|Not Asked||
+1970-04-30 00:00:00|Black or African American|Not Hispanic or Latino|3925536|WILLIAMS,ERICK L|55|Male|Quit|Not Currently|Not Currently
+1970-05-04 00:00:00|Black or African American|Not Hispanic or Latino|3932133|WALKER,ANTHONY B|55|Male|Never|Never|Never
+1968-07-13 00:00:00|Black or African American|Not Hispanic or Latino|4282567|HOSKINS,CEDRICK D|57|Male|Quit|No|No
+1958-04-12 00:00:00|Black or African American|Not Hispanic or Latino|433966|COOPER,DAVID C|67|Male|Never|No|No
+1971-07-26 00:00:00|Black or African American|Not Hispanic or Latino|4620086|WILSON,DEMITRUS A|54|Male|Never|Never|Never
+1972-02-17 00:00:00|Black or African American|Not Hispanic or Latino|4906375|LOVE,JIMMY DEMETRIUS|53|Male|Yes|No|No
+1953-01-07 00:00:00|Black or African American|Not Hispanic or Latino|492023|SCOTT,PAUL S|72|Male|Quit|Yes|Yes
+1970-01-31 00:00:00|Black or African American|Not Hispanic or Latino|4997386|HALL,ORJEAN MARIE|55|Female|Never|No|No
+1972-05-19 00:00:00|Black or African American|Not Hispanic or Latino|5040382|GAINES,TAMEKA L|53|Female|Never|No|No
+1972-06-09 00:00:00|Black or African American|Not Hispanic or Latino|5070056|COLBERT,TEDRA B|53|Male|Quit|No|No
+1972-09-10 00:00:00|Black or African American|Not Hispanic or Latino|5210230|SUTSON,IAN A|53|Male|Yes|Never|Never
+1972-09-20 00:00:00|Black or African American|Not Hispanic or Latino|5223419|WESTON,KIZMET L|53|Female|Never|No|No
+1972-12-01 00:00:00|Unknown|Not Hispanic or Latino|5471238|GOODEN,SHELIA ANN|53|Female|Never|Never|Never
+1973-04-18 00:00:00|Black or African American|Not Hispanic or Latino|5509025|SCOTT,AYANNA|52|Female|Never|No|No
+1973-08-15 00:00:00|Black or African American|Not Hispanic or Latino|5662510|JONES,SABRINA MICHELLE|52|Female|Never|No|No
+1959-08-29 00:00:00|Black or African American|Not Hispanic or Latino|582488|REYNOLDS,DEBORAH ELAINE|66|Female|Yes|Not Currently|Not Currently
+1973-12-26 00:00:00|Black or African American|Not Hispanic or Latino|5830953|HOWARD,SONYA|52|Female|Yes|No|No
+1974-03-03 00:00:00|Black or African American|Not Hispanic or Latino|5910844|ELLIOTT,ALFLICIA TALVON|51|Female|Quit|Not Currently|Not Currently
+1973-08-26 00:00:00|Black or African American|Not Hispanic or Latino|5955919|HALL,TIFFANY DENISE|52|Female|Never|No|No
+1942-05-18 00:00:00|Black or African American|Not Hispanic or Latino|6472421|DUGGANS,GLORIA M|83|Female|Never|No|No
+1967-06-23 00:00:00|Black or African American|Not Hispanic or Latino|6568125|WALDON,TRACY|58|Female|Quit|No|No
+1977-01-05 00:00:00|Black or African American|Not Hispanic or Latino|6952182|JONES,TAKISHA N|48|Female|Never|Never|Never
+1978-05-07 00:00:00|Black or African American|Not Hispanic or Latino|7543269|PITTS,TAMEKA|47|Female|Quit|Yes|Yes
+1978-06-15 00:00:00|Black or African American|Not Hispanic or Latino|7598858|MCCOLLUM,CHARETTE L|47|Female|Never|Yes|Yes
+1978-09-22 00:00:00|Black or African American|Not Hispanic or Latino|7687754|DAVENPORT,BRANDY JANTAE|47|Female|Never|Never|Never
+1978-11-05 00:00:00|Black or African American|Not Hispanic or Latino|7816874|MILLER,DIONNA N|47|Female|Quit|Yes|Yes
+1979-07-15 00:00:00|Black or African American|Not Hispanic or Latino|7991286|PATRICK,OGEDA LEJUAN|46|Male|Yes|Yes|Yes
+1975-10-19 00:00:00|Black or African American|Not Hispanic or Latino|7992949|LOVELACE,SHELLEY D|50|Female|Yes|Yes|Yes
+1978-02-21 00:00:00|Black or African American|Not Hispanic or Latino|8067252|CLARK,SHAMIKA YARNELL|47|Female|Never|No|No
+1979-10-08 00:00:00|Black or African American|Not Hispanic or Latino|8082892|JONES,KEYWON D|46|Male|Quit|No|No
+1979-12-08 00:00:00|Black or African American|Not Hispanic or Latino|8143791|CLARK,MARQUET N|46|Male|Never|No|No
+1979-12-12 00:00:00|Black or African American|Not Hispanic or Latino|8148408|FORD WOODS,CATRINA DIONNE|46|Female|Never|Not Currently|Not Currently
+1977-08-28 00:00:00|Black or African American|Not Hispanic or Latino|8258974|BULLOCK,LASHANDA|48|Female|Not Asked|Not Currently|Not Currently
+1967-05-29 00:00:00|Black or African American|Not Hispanic or Latino|8307022|PERDUE,JACQUELINE L|58|Female|Yes|No|No
+1970-08-22 00:00:00|Black or African American|Not Hispanic or Latino|8368343|HARRIS,WIFFI D|55|Female|Never|No|No
+1980-09-09 00:00:00|Black or African American|Not Hispanic or Latino|8416398|BENNING,MANVEL A|45|Male|Never|No|No
+1979-04-10 00:00:00|Black or African American|Not Hispanic or Latino|8838548|MARSHALL,SHAYNA KENNEDY|46|Female|Never|Yes|Yes
+1980-11-19 00:00:00|Black or African American|Not Hispanic or Latino|8851445|PERKINS,LINETA C|45|Female|Never|Not Currently|Not Currently
+1978-08-06 00:00:00|Black or African American|Not Hispanic or Latino|8884743|KING,EARL S|47|Male|Quit|Yes|Yes
+1982-05-07 00:00:00|Black or African American|Not Hispanic or Latino|8946096|SHROPSHIRE,LUCIOUS|43|Male|Yes|Yes|Yes
+1982-08-26 00:00:00|Black or African American|Not Hispanic or Latino|9068924|WHITLOCK,SOMORIO V|43|Male|Never|Yes|Yes
+1982-10-14 00:00:00|Black or African American|Not Hispanic or Latino|9117195|WEEMS,COREY|43|Male|Yes|Yes|Yes
+1979-05-02 00:00:00|Black or African American|Not Hispanic or Latino|9184067|JACKSON,MONYETTA B|46|Female|Never|No|No
+1983-05-08 00:00:00|Black or African American|Not Hispanic or Latino|9301174|GILES,TRAVIS CANTRELL|42|Male|Yes|No|No
+1983-06-12 00:00:00|Black or African American|Not Hispanic or Latino|9331335|BUSCH,TRACHELLE FATEMA|42|Female|Yes|Not Currently|Not Currently
+1983-07-04 00:00:00|Black or African American|Not Hispanic or Latino|9351284|ROBERTS,TEISHA DAMARIS|42|Female|Not Asked|Not Currently|Not Currently
+1983-10-21 00:00:00|Black or African American|Not Hispanic or Latino|9461564|RUSSELL,STEPHANIE EVONN|42|Female|Never|Never|Never
+1970-08-16 00:00:00|Black or African American|Not Hispanic or Latino|9558824|LAVELANET,RACHEL ALLEN|55|Female|Never|Never|Never
+1984-03-05 00:00:00|Black or African American|Not Hispanic or Latino|9583564|BELLAMY,TERRY EUGENE|41|Male|Yes|Not Currently|Not Currently
+1984-03-18 00:00:00|Black or African American|Not Hispanic or Latino|9597244|VANCE,LAQUANDRA Q|41|Female|Never|No|No
+1983-07-21 00:00:00|Black or African American|Not Hispanic or Latino|9601714|TRIMBLE,DEONTAE|42|Male|Quit|No|No
+1984-04-06 00:00:00|Black or African American|Not Hispanic or Latino|9614969|SHIPMAN,JANQUEENA D|41|Female|Never|Yes|Yes
+1968-09-30 00:00:00|Black or African American|Unknown|9754989|KEMP,KATHY|57|Female|Yes|Not Currently|Not Currently
+1984-10-23 00:00:00|Black or African American|Not Hispanic or Latino|9814476|BAILEY,LAERICA S|41|Female|Never|No|No
+1941-07-19 00:00:00|Black or African American|Not Hispanic or Latino|985727|WILLIAMS,MATTIE BELL|84|Female|Quit|Yes|Yes
+1984-12-31 00:00:00|Black or African American|Not Hispanic or Latino|9878729|WEEMS,DAVID B|41|Male|Yes|Yes|Yes
+1954-11-26 00:00:00|Black or African American|Not Hispanic or Latino|9921847|JACKSON,ELIZABETH D|71|Female|Yes|Yes|Yes
+1985-02-28 00:00:00|Black or African American|Not Hispanic or Latino|9937715|ALLEN,AMIRAH J|40|Female|Yes|Yes|Yes
+1984-08-29 00:00:00|Black or African American|Not Hispanic or Latino|9947865|CARR,SANTERIUS|41|Male|Yes|Not Currently|Not Currently
+1984-03-02 00:00:00|Black or African American|Not Hispanic or Latino|9997991|BROWN,TANESHA R|41|Female|Yes|Never|Never
