@@ -18,8 +18,14 @@ export async function GET(request: Request) {
     
     const supabase = await createClient();
     
+    // Handle missing client
+    if (!supabase) {
+        console.warn(`[GET /api/query/values] Supabase client not available for ${schema}.${table}.${column}. Returning empty placeholder.`);
+        return NextResponse.json([]); // Return empty array as placeholder
+    }
+    
     // Build the query
-    let query = supabase
+    let queryBuilder = supabase
       .schema(schema)
       .from(table)
       .select(column)
@@ -27,18 +33,19 @@ export async function GET(request: Request) {
     
     // Add search filter if provided
     if (search) {
-      query = query.ilike(column, `%${search}%`);
+      queryBuilder = queryBuilder.ilike(column, `%${search}%`);
     }
     
     // Execute the query
-    const { data: values, error } = await query;
+    const { data: values, error } = await queryBuilder;
     
     if (error) {
       throw error;
     }
     
     // Extract unique values
-    const uniqueValues = [...new Set(values?.map(v => v[column as keyof typeof v]))]
+    // Added explicit 'any' for v in map callback
+    const uniqueValues = [...new Set(values?.map((v: any) => v[column as keyof typeof v]))]
       .filter((v): v is string | number => v !== null && (typeof v === 'string' || typeof v === 'number'))
       .sort();
     

@@ -1,6 +1,5 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import SamplesTable from '@/components/dashboard/SamplesTable'
-import { convertToNumber } from '@/lib/utils'
 import Link from 'next/link'
 import { PageSizeSelector } from '@/components/samples/PageSizeSelector'
 import { SamplesSearchBar } from '@/components/samples/SamplesSearchBar'
@@ -46,6 +45,15 @@ async function getSamplesData(
   const skip = (page - 1) * pageSize
   const labClient = await createClient() // Default is laboratory schema
   
+  // Define the default return value for errors or missing client
+  const defaultReturn = { samples: [], totalCount: 0, totalPages: 0 };
+
+  // Handle missing client
+  if (!labClient) {
+      console.warn('[getSamplesData] Supabase client not available. Returning empty data.');
+      return defaultReturn;
+  }
+  
   try {
     // Get total count first
     const { count: totalCount, error: countError } = await labClient
@@ -81,7 +89,7 @@ async function getSamplesData(
     }
     
     // Get subject information for all samples
-    const subjectIds = [...new Set(samples.map(sample => sample.subject_id))]
+    const subjectIds = [...new Set(samples.map((sample: any) => sample.subject_id))]
     
     const { data: subjects, error: subjectsError } = await labClient
       .from('omics_subjects')
@@ -93,21 +101,21 @@ async function getSamplesData(
     }
     
     // Create a map of subjects by ID for quick lookup
-    const subjectMap = (subjects || []).reduce((map, subject) => {
+    const subjectMap = (subjects || []).reduce((map: any, subject: any) => {
       map[subject.subject_id] = subject
       return map
     }, {})
     
     // Combine sample data with subject data
-    const samplesWithSubjects = samples.map(sample => ({
+    const samplesWithSubjects = samples.map((sample: any) => ({
       ...sample,
       omics_subjects: subjectMap[sample.subject_id] || null
     }))
 
     // Process samples to include processing and QC status
-    const processedSamples = samplesWithSubjects.map((sample: OmicsResultWithSubject) => {
+    const processedSamples = samplesWithSubjects.map((sample: any) => {
       // Helper function to check if a value is non-zero
-      const isNonZero = (value: number | null) => {
+      const isNonZero = (value: number | null | undefined) => {
         if (value === null || value === undefined) return false
         return value !== 0
       }
@@ -160,17 +168,13 @@ async function getSamplesData(
     })
 
     return {
-      samples: convertToNumber(processedSamples),
+      samples: processedSamples,
       totalCount: totalCount || 0,
       totalPages: Math.ceil((totalCount || 0) / pageSize)
     }
   } catch (error) {
     console.error('Error in getSamplesData:', error)
-    return {
-      samples: [],
-      totalCount: 0,
-      totalPages: 0
-    }
+    return defaultReturn; // Return default on error
   }
 }
 

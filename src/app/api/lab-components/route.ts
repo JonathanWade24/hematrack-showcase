@@ -6,6 +6,12 @@ export async function GET() {
     // Get Supabase client
     const supabase = await createClient()
     
+    // Handle missing client
+    if (!supabase) {
+        console.warn('[GET /api/lab-components] Supabase client not available. Returning empty placeholder.');
+        return NextResponse.json([]); // Return empty array as placeholder
+    }
+    
     const { data: components, error } = await supabase
       .from('labs')
       .select('lab_component_description')
@@ -16,7 +22,7 @@ export async function GET() {
     }
     
     // Get unique component descriptions
-    const uniqueComponents = [...new Set(components.map(c => c.lab_component_description))]
+    const uniqueComponents = [...new Set(components.map((c: any) => c.lab_component_description))]
     
     return NextResponse.json(uniqueComponents)
   } catch (error) {

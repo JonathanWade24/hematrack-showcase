@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/db'
-import { convertToNumber } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/server'
+import { parse as parseCsv } from 'csv-parse/sync'
 
 export async function GET(request: Request) {
   try {
@@ -356,7 +357,7 @@ export async function GET(request: Request) {
 
     console.log(`Successfully returning ${data?.length || 0} records for preview`)
     return NextResponse.json({ 
-      data: convertToNumber(data),
+      data: data,
       debug: {
         type,
         recordCount: data?.length || 0,

@@ -1,12 +1,9 @@
-import { createBrowserClient } from "@supabase/ssr";
+// import { createBrowserClient } from "@supabase/ssr";
 
-export const createClient = () =>
-  createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      db: {
-        schema: 'laboratory'
-      }
-    }
-  ); 
+/**
+ * @deprecated Supabase client is being removed. This function should no longer be used.
+ */
+export const createClient = () => {
+  console.error("DEPRECATED: Attempted to call createClient from utils/supabase/client.ts");
+  return null;
+}; 

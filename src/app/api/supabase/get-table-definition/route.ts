@@ -1,58 +1,77 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServerClient } from '@supabase/ssr'
+import { type SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
     const { table_name, schema } = await request.json()
     
-    if (!table_name) {
+    if (!table_name || !schema) {
       return NextResponse.json(
-        { error: 'Table name is required' },
+        { error: 'Table name and schema are required' }, 
         { status: 400 }
-      )
+      );
     }
     
-    if (!schema) {
-      return NextResponse.json(
-        { error: 'Schema is required' },
-        { status: 400 }
-      )
+    const supabase = await createClient();
+    
+    if (!supabase) {
+        console.warn('[POST /api/supabase/get-table-definition] Default Supabase client not available.');
+        return NextResponse.json(
+            { error: 'Database connection unavailable' },
+            { status: 503 }
+        );
     }
     
-    const supabase = await createClient()
+    let schemaClient: SupabaseClient | null = null;
     
     try {
-      // Create a client that's specifically set to use the requested schema
-      const cookieStore = await cookies()
-      const schemaClient = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          cookies: {
-            getAll() {
-              return cookieStore.getAll()
-            },
-            setAll(cookiesToSet) {
-              try {
-                cookiesToSet.forEach(({ name, value, options }) => 
-                  cookieStore.set(name, value, options)
-                )
-              } catch {
-                // The `setAll` method was called from a Server Component.
-                // This can be ignored if you have middleware refreshing
-                // user sessions.
-              }
-            },
-          },
-          db: {
-            schema: schema
-          }
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseAnonKey) {
+            console.warn(`[POST /api/supabase/get-table-definition] Supabase URL/Key missing. Cannot create client for schema: ${schema}`);
+            return NextResponse.json(
+                { error: 'Database connection configuration missing' },
+                { status: 503 }
+            );
         }
-      )
+
+        const cookieStore = await cookies()
+        schemaClient = createServerClient(
+            supabaseUrl,
+            supabaseAnonKey,
+            {
+              cookies: {
+                getAll() {
+                  return cookieStore.getAll()
+                },
+                setAll(cookiesToSet) {
+                  try {
+                    cookiesToSet.forEach(({ name, value, options }) => 
+                      cookieStore.set(name, value, options)
+                    )
+                  } catch {
+                    // Ignore errors if called from Server Component
+                  }
+                },
+              },
+              db: {
+                schema: schema
+              }
+            }
+        )
       
-      // First attempt: Try to query the table directly to get structure
+      if (!schemaClient) {
+           console.error(`[POST /api/supabase/get-table-definition] Failed to create schema client for: ${schema}. This should not happen if env vars are present.`);
+            return NextResponse.json(
+                { error: 'Failed to initialize database connection for schema' },
+                { status: 500 }
+            );
+      }
+
       const { data, error } = await schemaClient
         .from(table_name)
         .select()
@@ -61,9 +80,7 @@ export async function POST(request: Request) {
       if (error) {
         console.error('Error fetching table data with schema client:', error)
         
-        // Second attempt: Try direct SQL query with schema
         try {
-          // Since we can't use RPC, we'll use the REST API directly with our schema client
           const { data: metadataResponse, error: metadataError } = await supabase
             .from('information_schema.columns')
             .select('column_name, data_type, is_nullable, column_default')
@@ -100,7 +117,6 @@ export async function POST(request: Request) {
         
         return NextResponse.json(extractedColumns)
       } else {
-        // No rows found - try to get column names from CSV
         const { data: csvData, error: csvError } = await schemaClient
           .from(table_name)
           .select()
@@ -135,14 +151,14 @@ export async function POST(request: Request) {
         )
       }
     } catch (error) {
-      console.error('Error in table definition API:', error)
+      console.error('Error in table definition API inner try:', error)
       return NextResponse.json(
         { error: 'Could not retrieve table columns' },
         { status: 500 }
       )
     }
   } catch (error) {
-    console.error('Error in get-table-definition API:', error)
+    console.error('Error in get-table-definition API outer try:', error)
     return NextResponse.json(
       { error: 'Failed to get table definition' },
       { status: 500 }

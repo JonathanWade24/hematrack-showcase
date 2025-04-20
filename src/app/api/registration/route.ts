@@ -25,6 +25,15 @@ export async function POST(request: Request) {
     
     const supabase = await createClient()
     
+    // Handle missing client
+    if (!supabase) {
+        console.warn('[POST /api/registration] Supabase client not available. Registration aborted.');
+        return NextResponse.json(
+            { error: 'Registration service unavailable' },
+            { status: 503 } // Service Unavailable
+        );
+    }
+    
     // Start with patient registration in PHI schema
     console.log("Attempting to create patient in PHI schema")
     const { data: patient, error: patientError } = await supabase

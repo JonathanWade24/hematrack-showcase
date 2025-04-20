@@ -13,6 +13,12 @@ export async function GET(request: NextRequest) {
     // Get Supabase client
     const supabase = await createClient()
 
+    // Handle missing client - redirect to error if unavailable
+    if (!supabase) {
+        console.warn('[GET /auth/confirm] Supabase client not available. Cannot verify OTP.');
+        return redirect('/auth/error?reason=service_unavailable');
+    }
+
     const { error } = await supabase.auth.verifyOtp({
       type,
       token_hash,

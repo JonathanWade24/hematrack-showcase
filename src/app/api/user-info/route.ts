@@ -5,6 +5,15 @@ export async function GET() {
   try {
     const supabase = await createClient();
     
+    // Handle missing client
+    if (!supabase) {
+        console.warn('[GET /api/user-info] Supabase client not available.');
+        return NextResponse.json(
+            { error: 'User information service unavailable' },
+            { status: 503 } // Service Unavailable
+        );
+    }
+    
     // Get current user
     const { data: { user }, error } = await supabase.auth.getUser();
     

@@ -1,6 +1,5 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { VisitsViewer } from '@/components/visits/VisitsViewer'
-import { convertToNumber } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 import { createClient, createPhiClient, createClinicalClient } from '@/lib/supabase/server'
 
@@ -11,6 +10,12 @@ async function getVisitData(patientMrn: string) {
     const phiClient = await createPhiClient()
     const clinicalClient = await createClinicalClient()
     const labClient = await createClient() // default is laboratory
+    
+    // Handle missing clients
+    if (!phiClient || !clinicalClient || !labClient) {
+        console.warn(`[getVisitData] Supabase client(s) not available for MRN: ${patientMrn}. Cannot fetch data.`);
+        return null; // Page will show notFound()
+    }
     
     // Get patient information
     const { data: patient, error: patientError } = await phiClient
@@ -43,7 +48,7 @@ async function getVisitData(patientMrn: string) {
 
     // Get associated data for each visit
     const visitsWithDetails = await Promise.all(
-      visits.map(async (visit) => {
+      visits.map(async (visit: any) => {
         try {
           // Get vitals
           const { data: vitalsResult, error: vitalsError } = await clinicalClient
@@ -73,12 +78,12 @@ async function getVisitData(patientMrn: string) {
             console.error(`Error fetching diagnoses for visit ${visit.id}:`, diagnosesError)
           }
           
-          const diagnoses = (diagnosesResult || []).map(d => [
+          const diagnoses = (diagnosesResult || []).map((d: any) => [
             { code: d.diagnoses.admit_dx, description: d.diagnoses.admit_desc },
             { code: d.diagnoses.final_dx, description: d.diagnoses.final_desc }
-          ]).flat().filter((d, i, arr) => 
+          ]).flat().filter((d: any, i: number, arr: any[]) => 
             // Remove duplicates and null values
-            d.code && d.description && arr.findIndex(x => x.code === d.code) === i
+            d.code && d.description && arr.findIndex((x: any) => x.code === d.code) === i
           )
 
           // Get medications
@@ -91,7 +96,7 @@ async function getVisitData(patientMrn: string) {
             console.error(`Error fetching medications for visit ${visit.id}:`, medicationsError)
           }
           
-          const medications = (medicationsResult || []).map(m => ({
+          const medications = (medicationsResult || []).map((m: any) => ({
             name: m.medication_data.medication,
             dosage: m.medication_data.dosage,
             unit: m.medication_data.unit,
@@ -110,7 +115,7 @@ async function getVisitData(patientMrn: string) {
             console.error(`Error fetching labs for visit ${visit.id}:`, labsError)
           }
           
-          const labs = (labsResult || []).map(lab => ({
+          const labs = (labsResult || []).map((lab: any) => ({
             name: lab.lab_component_description,
             value: lab.lab_result_value,
             time: lab.result_time,
@@ -148,7 +153,7 @@ async function getVisitData(patientMrn: string) {
           }
           
           // Filter samples by patient_mrn - only keep those related to this patient
-          const samples = (omicsSamples || []).filter(sample => {
+          const samples = (omicsSamples || []).filter((sample: any) => {
             // Type-safe check for omics_subjects and its structure
             if (!sample.omics_subjects || typeof sample.omics_subjects !== 'object') {
               return false;
@@ -157,7 +162,7 @@ async function getVisitData(patientMrn: string) {
             // Access patient_mrn using type assertion or optional chaining
             const subjectData = sample.omics_subjects as { patient_mrn?: string };
             return subjectData.patient_mrn === patientMrn;
-          }).map(sample => ({
+          }).map((sample: any) => ({
             sample_id: sample.sample_id,
             subject_id: sample.subject_id,
             collection_date: sample.date_of_collection,
@@ -194,7 +199,7 @@ async function getVisitData(patientMrn: string) {
 
     return {
       patient,
-      visits: convertToNumber(visitsWithDetails)
+      visits: visitsWithDetails
     }
   } catch (error) {
     console.error('Error in getVisitData:', error)

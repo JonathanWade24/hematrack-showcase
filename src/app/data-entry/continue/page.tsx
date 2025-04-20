@@ -1,7 +1,6 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { createClient } from '@/lib/supabase/server'
 import { SampleSearch } from '@/components/data-entry/SampleSearch'
-import { convertToNumber } from '@/lib/utils'
 
 type Sample = {
   sample_id: string
@@ -40,6 +39,12 @@ async function getRecentSamples(): Promise<Sample[]> {
   // Get Supabase client
   const supabase = await createClient()
   
+  // Handle missing client
+  if (!supabase) {
+      console.warn('[getRecentSamples] Supabase client not available. Returning empty array.');
+      return [];
+  }
+  
   try {
     // Get samples without joining to omics_subjects
     const { data: samples, error } = await supabase
@@ -54,7 +59,7 @@ async function getRecentSamples(): Promise<Sample[]> {
     }
     
     // Process samples to include processing and QC status
-    const processedSamples = (samples || []).map((sample: OmicsResult) => {
+    const processedSamples = (samples || []).map((sample: any) => {
       // Check if ADVIA has any non-zero values
       const hasValidAdvia = [
         sample.rbc_advia,
@@ -103,7 +108,7 @@ async function getRecentSamples(): Promise<Sample[]> {
       } as Sample
     })
 
-    return convertToNumber(processedSamples)
+    return processedSamples;
   } catch (error) {
     console.error('Error in getRecentSamples:', error)
     return []

@@ -1,9 +1,9 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { convertToNumber } from '@/lib/utils'
+// import { convertToNumber } from '@/lib/utils' // Removed import
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHospital, faUserDoctor } from '@fortawesome/free-solid-svg-icons'
-import { createClinicalClient, createPhiClient } from '@/lib/supabase/server'
+import { createClinicalClient, createPhiClient } from '@/lib/supabase/server' // Assuming alias path
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -38,6 +38,15 @@ async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) 
   const clinicalClient = await createClinicalClient()
   const phiClient = await createPhiClient()
   
+  // Define default return value
+  const defaultReturn = { visits: [], totalCount: 0, totalPages: 0 };
+
+  // Handle missing clients
+  if (!clinicalClient || !phiClient) {
+      console.warn('[getVisits] Supabase client(s) not available. Returning empty data.');
+      return defaultReturn;
+  }
+  
   // Build the query for visits
   let query = clinicalClient
     .from('unified_visits')
@@ -55,15 +64,11 @@ async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) 
   
   if (error) {
     console.error('Error fetching visits:', error)
-    return {
-      visits: [],
-      totalCount: 0,
-      totalPages: 0
-    }
+    return defaultReturn; // Use default return on error
   }
 
   // Get unique patient MRNs
-  const patientMrns = [...new Set(visitsData?.map(visit => visit.patient_mrn) || [])]
+  const patientMrns = [...new Set(visitsData?.map((visit: any) => visit.patient_mrn) || [])] // Added : any
   
   // Fetch patient data for these MRNs
   const { data: patientsData, error: patientsError } = await phiClient
@@ -73,21 +78,17 @@ async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) 
   
   if (patientsError) {
     console.error('Error fetching patients:', patientsError)
-    return {
-      visits: [],
-      totalCount: 0,
-      totalPages: 0
-    }
+    return defaultReturn; // Use default return on error
   }
   
   // Create a map of patient data by MRN
-  const patientMap: Record<string, Patient> = (patientsData || []).reduce((acc: Record<string, Patient>, patient: Patient) => {
+  const patientMap: Record<string, Patient> = (patientsData || []).reduce((acc: Record<string, Patient>, patient: any) => { // Added : any
     acc[patient.patient_mrn] = patient
     return acc
   }, {})
   
   // Combine visit data with patient data
-  const visits = (visitsData || []).map((visit: unknown) => {
+  const visits = (visitsData || []).map((visit: any) => { // Added : any
     const typedVisit = visit as Record<string, unknown>;
     return {
       ...typedVisit,
@@ -100,7 +101,8 @@ async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) 
   })
   
   return {
-    visits: convertToNumber(visits),
+    // visits: convertToNumber(visits), // Removed convertToNumber
+    visits: visits,
     totalCount: count || 0,
     totalPages: Math.ceil((count || 0) / pageSize)
   }

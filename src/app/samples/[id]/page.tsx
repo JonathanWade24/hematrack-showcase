@@ -1,7 +1,6 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { notFound } from 'next/navigation'
 import { SampleViewer } from '@/components/samples/SampleViewer'
-import { convertToNumber } from '@/lib/utils'
 import { createClient, createPhiClient } from '@/lib/supabase/server'
 
 // Updated page props for Next.js 15
@@ -16,6 +15,12 @@ type SamplePageProps = {
 async function getSampleData(sampleId: string) {
   const laboratoryClient = await createClient() // Default is laboratory schema
   const phiClient = await createPhiClient()
+  
+  // Handle missing clients
+  if (!laboratoryClient || !phiClient) {
+      console.warn(`[getSampleData] Supabase client(s) not available for sample ID: ${sampleId}. Cannot fetch data.`);
+      return null; // Page will show notFound() for null
+  }
   
   try {
     // First get the sample data
@@ -72,7 +77,7 @@ async function getSampleData(sampleId: string) {
     }
 
     // Convert all numeric values to numbers
-    return convertToNumber(combinedData)
+    return combinedData;
   } catch (error) {
     console.error('Error in getSampleData:', error)
     return null

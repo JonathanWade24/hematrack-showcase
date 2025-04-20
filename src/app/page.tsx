@@ -2,6 +2,11 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardClient from '@/components/dashboard/DashboardClient'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { Suspense } from 'react'
+import {
+    getPlaceholderOmicsResults,
+    getPlaceholderCount
+} from '@/lib/placeholder-data';
 
 export const metadata = {
   title: 'Home - SCD Dashboard',
@@ -74,18 +79,66 @@ interface DashboardData {
   subjectCounts: SubjectStatusCounts;
 }
 
+// Define a default/placeholder state for dashboard data
+const PLACEHOLDER_DASHBOARD_DATA: DashboardData = {
+  recentSamples: [],
+  totalSamples: 0,
+  totalSubjects: 0,
+  qcPassedSamples: 0,
+  fullyProcessedSamples: 0,
+  partiallyProcessedSamples: 0,
+  pendingSamples: 0,
+  subjectCounts: { complete: 0, partial: 0, pending: 0 },
+};
+
 export default async function Home() {
-  // Create supabase client with proper cookies handling
+  // Create supabase client
   const supabase = await createClient()
   
-  // Check if user is authenticated
-  const { data: { user }, error } = await supabase.auth.getUser()
+  // Handle missing client scenario first
+  if (!supabase) {
+    console.warn('[Home Page] Supabase client not available. Displaying placeholder data.');
+    // Render the layout with placeholder data and perhaps a warning message
+    // For now, just passing placeholder data
+    return (
+      <DashboardLayout>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Dashboard Overview</h1>
+        <p className="text-red-600 mb-4">Warning: Database connection unavailable. Displaying placeholder data.</p>
+        <Suspense fallback={<p>Loading dashboard client...</p>}>
+          <DashboardClient 
+            initialData={{
+                recentSamples: PLACEHOLDER_DASHBOARD_DATA.recentSamples,
+                qcPassedSamples: PLACEHOLDER_DASHBOARD_DATA.qcPassedSamples,
+                fullyProcessedSamples: PLACEHOLDER_DASHBOARD_DATA.fullyProcessedSamples,
+                partiallyProcessedSamples: PLACEHOLDER_DASHBOARD_DATA.partiallyProcessedSamples,
+                pendingSamples: PLACEHOLDER_DASHBOARD_DATA.pendingSamples,
+                totalSamples: PLACEHOLDER_DASHBOARD_DATA.totalSamples,
+                subjectCounts: PLACEHOLDER_DASHBOARD_DATA.subjectCounts,
+            }}
+            totalSamples={PLACEHOLDER_DASHBOARD_DATA.totalSamples}
+            totalSubjects={PLACEHOLDER_DASHBOARD_DATA.totalSubjects}
+            // patients is optional, can omit if not needed for placeholder view
+          />
+        </Suspense>
+      </DashboardLayout>
+    );
+  }
   
-  if (error || !user) {
-    // Redirect to login if not authenticated
+  // Check if user is authenticated (only if supabase client exists)
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  
+  if (authError || !user) {
+    // Redirect to login if not authenticated or if auth check failed
+    console.error('Auth error or user not found:', authError);
     redirect('/login')
   }
   
+  // Initialize data variables with defaults or placeholders in case fetching fails later
+  let recentSamplesData: OmicsSample[] = [];
+  let allSamplesData: OmicsSample[] = [];
+  let totalSamplesCount = 0;
+  let totalSubjectsCount = 0;
+
   try {
     // Helper function to check if a value is non-zero
     const isNonZero = (value: unknown): boolean => {
@@ -363,7 +416,22 @@ export default async function Home() {
     
     return (
       <DashboardLayout>
-        <DashboardClient initialData={dashboardData} />
+        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Dashboard Overview</h1>
+        <Suspense fallback={<p>Loading dashboard client...</p>}>
+            <DashboardClient 
+                initialData={{
+                    recentSamples: dashboardData.recentSamples,
+                    qcPassedSamples: dashboardData.qcPassedSamples,
+                    fullyProcessedSamples: dashboardData.fullyProcessedSamples,
+                    partiallyProcessedSamples: dashboardData.partiallyProcessedSamples,
+                    pendingSamples: dashboardData.pendingSamples,
+                    totalSamples: dashboardData.totalSamples,
+                    subjectCounts: dashboardData.subjectCounts,
+                }}
+                totalSamples={dashboardData.totalSamples}
+                totalSubjects={dashboardData.totalSubjects}
+            />
+        </Suspense>
       </DashboardLayout>
     )
   } catch (error) {
@@ -387,8 +455,23 @@ export default async function Home() {
     
     return (
       <DashboardLayout>
-        <DashboardClient initialData={emptyData} />
+        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Dashboard Overview</h1>
+        <Suspense fallback={<p>Loading dashboard client...</p>}>
+            <DashboardClient 
+                initialData={{
+                    recentSamples: PLACEHOLDER_DASHBOARD_DATA.recentSamples,
+                    qcPassedSamples: PLACEHOLDER_DASHBOARD_DATA.qcPassedSamples,
+                    fullyProcessedSamples: PLACEHOLDER_DASHBOARD_DATA.fullyProcessedSamples,
+                    partiallyProcessedSamples: PLACEHOLDER_DASHBOARD_DATA.partiallyProcessedSamples,
+                    pendingSamples: PLACEHOLDER_DASHBOARD_DATA.pendingSamples,
+                    totalSamples: PLACEHOLDER_DASHBOARD_DATA.totalSamples,
+                    subjectCounts: PLACEHOLDER_DASHBOARD_DATA.subjectCounts,
+                }}
+                totalSamples={PLACEHOLDER_DASHBOARD_DATA.totalSamples}
+                totalSubjects={PLACEHOLDER_DASHBOARD_DATA.totalSubjects}
+            />
+        </Suspense>
       </DashboardLayout>
-    )
+    );
   }
 }

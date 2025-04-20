@@ -1,6 +1,5 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { notFound } from 'next/navigation'
-import { convertToNumber } from '@/lib/utils'
 import { SampleEntryForm } from '@/components/data-entry/SampleEntryForm'
 import { createClient } from '@/lib/supabase/server'
 import { SampleData } from '@/components/data-entry/form-sections/types'
@@ -55,6 +54,12 @@ async function getSampleData(sampleId: string): Promise<RawSampleData | null> {
     // Create client - properly await it
     const supabase = await createClient()
     
+    // Handle missing client
+    if (!supabase) {
+        console.warn(`[getSampleData] Supabase client not available for sample ID: ${sampleId}.`);
+        return null; // Page will show notFound()
+    }
+    
     // Set the schema to laboratory
     const { data, error } = await supabase
       .schema('laboratory')
@@ -79,7 +84,7 @@ async function getSampleData(sampleId: string): Promise<RawSampleData | null> {
       return null
     }
     
-    return convertToNumber(data) as RawSampleData
+    return data as RawSampleData
   } catch (error) {
     // Log the detailed error
     if (error instanceof Error) {

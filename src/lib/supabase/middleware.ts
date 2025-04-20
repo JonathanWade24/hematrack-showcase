@@ -1,15 +1,29 @@
 import { createServerClient } from '@supabase/ssr'
+import { type SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export function createClient(request: NextRequest) {
+// Define a type for the return value, which could be null
+type CreateClientReturn = { supabase: SupabaseClient; response: NextResponse } | { supabase: null; response: NextResponse };
+
+export function createClient(request: NextRequest): CreateClientReturn {
   // Create an initial response to modify
   let supabaseResponse = NextResponse.next({
     request,
   })
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Check if Supabase credentials are provided
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn("Supabase URL or Anon Key missing in middleware. Skipping client creation.");
+    // Return null for supabase but keep the response object
+    return { supabase: null, response: supabaseResponse };
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl, // Use the checked variable
+    supabaseAnonKey, // Use the checked variable
     {
       cookies: {
         getAll() {
@@ -41,8 +55,15 @@ export function createClient(request: NextRequest) {
 // Modified: Simpler role check that avoids SQL functions that might cause stack depth issues
 export async function checkUserRole(request: NextRequest, requiredRoles: string[]) {
   try {
+    // Get client; handle potential null return
     const { supabase } = createClient(request)
-    
+
+    // If client creation failed (missing env vars), deny access
+    if (!supabase) {
+        console.warn("Cannot check user role: Supabase client not available in middleware.");
+        return false;
+    }
+
     // Get user directly to extract role from app_metadata
     const { data: { user }, error } = await supabase.auth.getUser()
     

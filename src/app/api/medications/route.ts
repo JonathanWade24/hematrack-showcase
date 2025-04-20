@@ -6,6 +6,12 @@ export async function GET() {
     // Get Supabase client
     const supabase = await createClient()
     
+    // Handle missing client
+    if (!supabase) {
+        console.warn('[GET /api/medications] Supabase client not available. Returning empty placeholder.');
+        return NextResponse.json([]); // Return empty array as placeholder
+    }
+    
     const { data: medications, error } = await supabase
       .from('op_medications')
       .select('generic_description')
@@ -16,7 +22,7 @@ export async function GET() {
     }
     
     // Get unique medication descriptions
-    const uniqueMedications = [...new Set(medications.map(m => m.generic_description))]
+    const uniqueMedications = [...new Set(medications.map((m: any) => m.generic_description))]
       .filter((desc): desc is string => desc !== null)
     
     return NextResponse.json(uniqueMedications)
