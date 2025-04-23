@@ -13,4 +13,55 @@ test-data/
 db_backups/
 etl/
 *.csv
-migration_dump.sql 
+migration_dump.sql
+
+# Next.js build output
+.next
+
+# Build outputs from other tools (if any)
+dist
+build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test files
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Editor directories and files
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile*
+docker-compose.yml
+.dockerignore
+Junk/ 

@@ -1,43 +1,73 @@
-# Stage 1: Install dependencies and build the application
-FROM node:20-alpine AS deps
+# Dockerfile
+# Base image for installing dependencies
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock / pnpm-lock.yaml)
+# Assumes package files are in the workspace root
 COPY package.json package-lock.json* ./
+
+# Install dependencies using npm ci for consistency
 RUN npm ci
 
-FROM node:20-alpine AS builder
+# ---
+
+# Builder stage: Build the Next.js application
+FROM base AS builder
 WORKDIR /app
+
+# Copy dependencies from the previous stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
-# Set build-time environment variables if needed (can be passed during build)
-# ARG NEXT_PUBLIC_SOME_VAR
-# ENV NEXT_PUBLIC_SOME_VAR=$NEXT_PUBLIC_SOME_VAR
+# Copy the rest of the application source code from the root
+# This includes the 'src' directory if it exists in the root
+COPY . ./
 
+# Set environment variables
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV production
+
+# Build the Next.js application
+# This assumes your build script is named 'build' in package.json
 RUN npm run build
 
-# Stage 2: Production image with only necessary artifacts
-FROM node:20-alpine AS runner
+# ---
+
+# Runner stage: Create the final production image
+FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-# Optionally set timezone if needed by your app
-# ENV TZ=America/New_York
-# RUN apk add --no-cache tzdata
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy built artifacts from the builder stage
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy the standalone output from the builder stage (relative to WORKDIR /app in builder)
+COPY --from=builder /app/.next/standalone ./
+# Copy the static assets from the public directory (relative to WORKDIR /app in builder)
 COPY --from=builder /app/public ./public
-# Copy standalone output
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+# Copy the static assets built by Next.js (relative to WORKDIR /app in builder)
+COPY --from=builder /app/.next/static ./.next/static
 
-# Set user to non-root for better security
-USER node
+# Copy prisma schema and generate client
+COPY --from=builder /app/prisma ./prisma
+RUN npm install -g prisma
+RUN prisma generate
 
-# Expose port 3000 (Next.js default)
+USER nextjs
+
+# Expose the port the app runs on (default 3000)
 EXPOSE 3000
 
-# Set run-time environment variables (App Runner can override these)
-ENV PORT=3000
+ENV PORT 3000
+# set hostname to localhost
+ENV HOSTNAME "0.0.0.0"
 
-# Command to run the standalone server
+# Define the command to start the application
+# The entrypoint is server.js in the standalone output directory
 CMD ["node", "server.js"] 
