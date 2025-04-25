@@ -455,6 +455,16 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
   expires: 'expires'
 };
 
+exports.Prisma.AccountRequestScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  approvedByUserId: 'approvedByUserId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -499,7 +509,8 @@ exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
   Session: 'Session',
-  VerificationToken: 'VerificationToken'
+  VerificationToken: 'VerificationToken',
+  AccountRequest: 'AccountRequest'
 };
 
 /**

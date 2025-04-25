@@ -394,34 +394,34 @@ model subject_registration {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String    // Added for credentials auth
-  role          String    @default("user") // Added for role-based access
-  accounts      Account[]
-  sessions      Session[]
+  id                     String           @id @default(cuid())
+  name                   String?
+  email                  String?          @unique
+  emailVerified          DateTime?
+  image                  String?
+  password               String
+  role                   String           @default("user")
+  accounts               Account[]
+  sessions               Session[]
+  handledAccountRequests AccountRequest[] @relation("ApprovedAccountRequests")
 
   @@schema("app")
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@schema("app")
@@ -444,4 +444,19 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@schema("app")
+}
+
+// --- Model for Account Requests ---
+model AccountRequest {
+  id               String   @id @default(cuid())
+  email            String   @unique // Ensure only one pending request per email
+  name             String? // Optional name provided during request
+  status           String   @default("pending") // pending, approved, rejected
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  approvedByUserId String? // ID of the admin who approved/rejected
+  approvedByUser   User?    @relation("ApprovedAccountRequests", fields: [approvedByUserId], references: [id])
+
+  @@index([status])
+  @@schema("app") // Keep user/auth related tables in the app schema
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
+import { useSession, signOut } from 'next-auth/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faUser, 
@@ -12,33 +12,16 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import Link from 'next/link'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { User } from '@/types/supabase'
 
 export function UserProfile() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) {
-        console.error('Error fetching user:', error)
-        return
-      }
-      setUser(user)
-      setLoading(false)
-    }
-
-    getUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const loading = status === 'loading';
+  
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    window.location.href = '/login';
+  };
 
   if (loading) {
     return (
@@ -78,7 +61,7 @@ export function UserProfile() {
             </div>
             <div className="ml-3 text-left">
               <p className="text-sm font-medium text-gray-700">
-                {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                {user.name || user.email?.split('@')[0]}
               </p>
               <p className="text-xs text-gray-500">
                 {user.email}
@@ -103,10 +86,7 @@ export function UserProfile() {
               Settings
             </Link>
             <button
-              onClick={async () => {
-                await supabase.auth.signOut()
-                window.location.href = '/login'
-              }}
+              onClick={handleLogout}
               className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
             >
               <FontAwesomeIcon icon={faSignOutAlt} className="mr-3 h-4 w-4" />

@@ -1,184 +1,157 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseClient, getSupabaseAdminClient } from '@/db'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import type { ip_admissions, op_visits, ip_medications, op_medications, bone_marrow } from '@/generated/prisma' // Import model types
+
+// Define allowed roles for accessing this sensitive route
+const ALLOWED_ROLES = ['admin', 'clinician', 'editor'] // Adjust roles as needed
+
+// Helper type for combined data
+type CombinedClinicalData = (ip_admissions | op_visits | ip_medications | op_medications | bone_marrow) & { type: string };
 
 export async function GET(request: Request) {
+  // --- Authentication & Authorization ---
+  const session = await getServerSession(authOptions)
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  // Check if the user has one of the allowed roles
+  if (!session.user.role || !ALLOWED_ROLES.includes(session.user.role)) {
+    console.warn(`[API /clinical] User ${session.user.email} (Role: ${session.user.role}) attempted unauthorized access.`);
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  // --- Parameter Handling ---
   try {
     const { searchParams } = new URL(request.url)
     const mrn = searchParams.get('mrn')
-    const dataType = searchParams.get('type') || 'all'
+    const dataType = searchParams.get('type') || 'all' // Default to 'all'
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
     if (!mrn) {
-      return NextResponse.json({ error: 'MRN is required' }, { status: 400 })
+      return NextResponse.json({ error: 'MRN query parameter is required' }, { status: 400 })
     }
 
-    // Get supabase clients
-    const phiClient = await getSupabaseAdminClient()
-
-    // Get patient info
-    const { data: patient, error: patientError } = await phiClient
-      .from('patients')
-      .select(`
-        patient_mrn, 
-        first_name, 
-        last_name, 
-        birth_date, 
-        sex, 
-        race, 
-        ethnicity
-      `)
-      .eq('patient_mrn', mrn)
-      .single()
-
-    if (patientError) {
-      console.error('Error fetching patient:', patientError)
-      return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
-    }
+    // --- Data Fetching (PHI) ---
+    // Fetch patient info from the PHI schema
+    const patient = await prisma.patients.findUnique({
+      where: { patient_mrn: mrn },
+      select: {
+        patient_mrn: true,
+        first_name: true,
+        last_name: true,
+        birth_date: true,
+        sex: true,
+        race: true,
+        ethnicity: true,
+      },
+    })
 
     if (!patient) {
-      return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
+      return NextResponse.json({ error: `Patient with MRN ${mrn} not found` }, { status: 404 })
     }
 
-    // Fetch clinical data based on type
-    const clinicalData = []
-    const clinicalClient = await getSupabaseClient()
+    // --- Data Fetching (Clinical) ---
+    const clinicalDataPromises: Promise<CombinedClinicalData[]>[] = []
+    const dateFilter: { gte?: Date; lte?: Date } = {}
+    if (startDate) dateFilter.gte = new Date(startDate)
+    if (endDate) dateFilter.lte = new Date(endDate)
 
+    // Define fetches based on dataType with explicit types
     if (dataType === 'all' || dataType === 'admissions') {
-      let query = clinicalClient
-        .from('ip_admissions')
-        .select('*')
-        .eq('patient_mrn', mrn)
-        .order('adm_date_time', { ascending: false })
-      
-      if (startDate) {
-        query = query.gte('adm_date_time', startDate)
-      }
-      
-      if (endDate) {
-        query = query.lte('adm_date_time', endDate)
-      }
-      
-      const { data: admissions, error: admissionsError } = await query
-      
-      if (!admissionsError && admissions) {
-        clinicalData.push(...admissions.map(admission => ({
-          ...admission,
-          type: 'admission'
-        })))
-      }
+      clinicalDataPromises.push(
+        prisma.ip_admissions.findMany({
+          where: {
+            patient_mrn: mrn,
+            adm_date_time: dateFilter,
+          },
+          orderBy: { adm_date_time: 'desc' },
+        }).then((data: ip_admissions[]) => data.map(d => ({ ...d, type: 'admission' })))
+      )
     }
 
     if (dataType === 'all' || dataType === 'visits') {
-      let query = clinicalClient
-        .from('op_visits')
-        .select('*')
-        .eq('patient_mrn', mrn)
-        .order('visit_date', { ascending: false })
-      
-      if (startDate) {
-        query = query.gte('visit_date', startDate)
-      }
-      
-      if (endDate) {
-        query = query.lte('visit_date', endDate)
-      }
-      
-      const { data: visits, error: visitsError } = await query
-      
-      if (!visitsError && visits) {
-        clinicalData.push(...visits.map(visit => ({
-          ...visit,
-          type: 'visit'
-        })))
-      }
+      clinicalDataPromises.push(
+        prisma.op_visits.findMany({
+          where: {
+            patient_mrn: mrn,
+            visit_date: dateFilter,
+          },
+          orderBy: { visit_date: 'desc' },
+        }).then((data: op_visits[]) => data.map(d => ({ ...d, type: 'visit' })))
+      )
     }
 
     if (dataType === 'all' || dataType === 'medications') {
-      // IP medications
-      let ipQuery = clinicalClient
-        .from('ip_medications')
-        .select('*')
-        .eq('patient_mrn', mrn)
-        .order('taken_time', { ascending: false })
-      
-      if (startDate) {
-        ipQuery = ipQuery.gte('taken_time', startDate)
-      }
-      
-      if (endDate) {
-        ipQuery = ipQuery.lte('taken_time', endDate)
-      }
-      
-      const { data: ipMeds, error: ipMedsError } = await ipQuery
-      
-      // OP medications
-      let opQuery = clinicalClient
-        .from('op_medications')
-        .select('*')
-        .eq('patient_mrn', mrn)
-        .order('visit_date', { ascending: false })
-      
-      if (startDate) {
-        opQuery = opQuery.gte('visit_date', startDate)
-      }
-      
-      if (endDate) {
-        opQuery = opQuery.lte('visit_date', endDate)
-      }
-      
-      const { data: opMeds, error: opMedsError } = await opQuery
-      
-      if (!ipMedsError && ipMeds) {
-        clinicalData.push(...ipMeds.map(med => ({ ...med, type: 'ip_medication' })))
-      }
-      
-      if (!opMedsError && opMeds) {
-        clinicalData.push(...opMeds.map(med => ({ ...med, type: 'op_medication' })))
-      }
+      // IP Medications
+      clinicalDataPromises.push(
+        prisma.ip_medications.findMany({
+          where: {
+            patient_mrn: mrn,
+            taken_time: dateFilter.gte || dateFilter.lte ? { gte: dateFilter.gte, lte: dateFilter.lte } : undefined,
+          },
+          orderBy: { taken_time: 'desc' },
+        }).then((data: ip_medications[]) => data.map(d => ({ ...d, type: 'ip_medication' })))
+      );
+      // OP Medications
+      clinicalDataPromises.push(
+        prisma.op_medications.findMany({
+          where: {
+            patient_mrn: mrn,
+            visit_date: dateFilter,
+          },
+          orderBy: { visit_date: 'desc' },
+        }).then((data: op_medications[]) => data.map(d => ({ ...d, type: 'op_medication' })))
+      );
     }
 
+    // Note: Original code fetched `bone_marrow` for labs/bonemarrow. Assuming this is correct.
     if (dataType === 'all' || dataType === 'labs' || dataType === 'bonemarrow') {
-      let query = clinicalClient
-        .from('bone_marrow')
-        .select('*')
-        .eq('patient_mrn', mrn)
-        .order('result_time', { ascending: false })
-      
-      if (startDate) {
-        query = query.gte('result_time', startDate)
-      }
-      
-      if (endDate) {
-        query = query.lte('result_time', endDate)
-      }
-      
-      const { data: labs, error: labsError } = await query
-      
-      if (!labsError && labs) {
-        clinicalData.push(...labs.map(lab => ({
-          ...lab,
-          type: 'lab'
-        })))
-      }
+      clinicalDataPromises.push(
+        prisma.bone_marrow.findMany({
+          where: {
+            patient_mrn: mrn,
+            result_time: dateFilter,
+          },
+          orderBy: { result_time: 'desc' },
+        }).then((data: bone_marrow[]) => data.map(d => ({ ...d, type: 'lab' }))) // Type remains 'lab' based on original code
+      )
     }
 
-    // Sort all data by date
-    clinicalData.sort((a, b) => {
-      const dateA = new Date(a.result_time || a.visit_date || a.taken_time || a.adm_date_time)
-      const dateB = new Date(b.result_time || b.visit_date || b.taken_time || b.adm_date_time)
-      return dateB.getTime() - dateA.getTime()
-    })
+    // --- Combine and Sort Results ---
+    const results = await Promise.all(clinicalDataPromises)
+    const combinedClinicalData: CombinedClinicalData[] = results.flat() // Flatten the array of arrays
 
+    // Sort all combined data by the most relevant date field
+    combinedClinicalData.sort((a, b) => {
+      const getDate = (item: CombinedClinicalData): Date | null => {
+        // Type assertion to access potential date fields safely
+        const dateVal = (item as any).result_time || (item as any).visit_date || (item as any).taken_time || (item as any).adm_date_time;
+        return dateVal ? new Date(dateVal) : null;
+      }
+      const dateA = getDate(a);
+      const dateB = getDate(b);
+      if (!dateA && !dateB) return 0; // Both null
+      if (!dateA) return 1; // Place nulls after valid dates
+      if (!dateB) return -1; // Place nulls after valid dates
+      return dateB.getTime() - dateA.getTime(); // Sort descending
+    });
+
+    // --- Return Response ---
     return NextResponse.json({
       patient,
-      clinicalData
-    })
+      clinicalData: combinedClinicalData,
+    });
+
   } catch (error) {
-    console.error('Error fetching clinical data:', error)
+    console.error('[API /clinical] Error fetching clinical data:', error);
+    // Provide a more generic error message in production
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch clinical data'
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch clinical data' },
+      { error: errorMessage },
       { status: 500 }
-    )
+    );
   }
 } 

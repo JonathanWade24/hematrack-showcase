@@ -1,41 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
 import { useRole } from '@/hooks/useRole';
-import { User } from '@supabase/supabase-js';
 
 export default function UserMenu() {
-  const [user, setUser] = useState<User | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { role } = useRole();
-  const supabase = createClient();
-  
-  useEffect(() => {
-    async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    }
-    
-    getUser();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-        setUser(session?.user || null);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-      }
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
+  const { data: session } = useSession();
+  const user = session?.user;
   
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut({ redirect: false });
     router.push('/login');
     router.refresh();
   };
@@ -58,7 +36,7 @@ export default function UserMenu() {
         <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 overflow-hidden">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700">
             <p className="text-sm font-semibold">{user.email}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{role || 'No role'}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role || 'No role'}</p>
           </div>
           <div className="p-2">
             <button

@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHospital, faUserDoctor } from '@fortawesome/free-solid-svg-icons'
-import { createClinicalClient, createPhiClient } from '@/lib/supabase/server' // Assuming alias path
+import { getSupabaseServerClient } from '@/lib/supabase/db'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -18,6 +18,7 @@ type PageProps = {
   searchParams: Promise<SearchParamsType> | undefined;
 };
 
+// Restored local type definitions
 interface Patient {
   first_name: string;
   last_name: string;
@@ -35,20 +36,20 @@ interface Visit {
 }
 
 async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) {
-  const clinicalClient = await createClinicalClient()
-  const phiClient = await createPhiClient()
+  const supabase = await getSupabaseServerClient()
   
   // Define default return value
   const defaultReturn = { visits: [], totalCount: 0, totalPages: 0 };
 
-  // Handle missing clients
-  if (!clinicalClient || !phiClient) {
-      console.warn('[getVisits] Supabase client(s) not available. Returning empty data.');
+  // Handle missing client
+  if (!supabase) {
+      console.warn('[getVisits] Supabase client not available. Returning empty data.');
       return defaultReturn;
   }
   
-  // Build the query for visits
-  let query = clinicalClient
+  // Build the query for visits, specifying the 'clinical' schema
+  let query = supabase
+    .schema('clinical')
     .from('unified_visits')
     .select('*', { count: 'exact' })
     .order('start_date', { ascending: false })
@@ -70,8 +71,9 @@ async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) 
   // Get unique patient MRNs
   const patientMrns = [...new Set(visitsData?.map((visit: any) => visit.patient_mrn) || [])] // Added : any
   
-  // Fetch patient data for these MRNs
-  const { data: patientsData, error: patientsError } = await phiClient
+  // Fetch patient data for these MRNs, specifying the 'phi' schema
+  const { data: patientsData, error: patientsError } = await supabase
+    .schema('phi')
     .from('patients')
     .select('first_name, last_name, patient_mrn')
     .in('patient_mrn', patientMrns)
@@ -186,7 +188,7 @@ export default async function VisitsPage({ searchParams }: PageProps) {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {visits.map((visit) => (
+                  {visits.map((visit: Visit) => (
                     <tr key={visit.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">

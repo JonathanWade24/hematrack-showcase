@@ -107,12 +107,13 @@ const defaultFormData: SampleData = {
 }
 
 interface SampleEntryFormProps {
-  initialData?: SampleData
+  initialData?: SampleData;
+  isEditing?: boolean;
 }
 
 type FormSection = 'basic' | 'advia' | 'dna' | 'pbmc' | 'plasma' | 'lorrca' | 'viscosity' | 'hvr' | 'fcells' | 'adhesion' | 'hplc'
 
-export function SampleEntryForm({ initialData }: SampleEntryFormProps) {
+export function SampleEntryForm({ initialData, isEditing = false }: SampleEntryFormProps) {
   const router = useRouter()
   const [formData, setFormData] = useState<SampleData>(initialData || defaultFormData)
   const [isSubmitting, setIsSubmitting] = useState(false)

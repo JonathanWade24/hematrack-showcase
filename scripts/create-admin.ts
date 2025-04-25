@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+const { PrismaClient } = require('../src/generated/prisma')
+const bcrypt = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
@@ -24,9 +24,18 @@ async function main() {
       },
     })
 
-    console.log('Admin user created:', user)
-  } catch (error) {
-    console.error('Error creating admin user:', error)
+    console.log('Admin user created successfully:', {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    })
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      console.error(`Error: A user with the email "${email}" already exists.`)
+    } else {
+      console.error('Error creating admin user:', error)
+    }
+    process.exit(1)
   } finally {
     await prisma.$disconnect()
   }

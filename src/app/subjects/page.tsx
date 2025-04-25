@@ -1,31 +1,48 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import Link from 'next/link'
-import { convertToNumber } from '@/lib/utils'
-import { getAllOmicsSubjects } from '@/lib/supabase/operations'
+// import { convertToNumber } from '@/lib/utils' // Removed incorrect import
+// import { getAllOmicsSubjects } from '@/lib/supabase/operations' // Old Supabase import
+import { getAllOmicsSubjects } from '@/lib/prisma/operations' // Import Prisma version
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-interface Subject {
-  subject_id: string
-  patient_mrn: string | null
-  project: string | null
-  date_of_birth: string | null
-  gender: string | null
-  ethnicity: string | null
-  genotype: string | null
-  sample_count: number
-  latest_sample_date: string | null
+// Use Prisma's generated type if available, otherwise define necessary fields
+// Assuming a Prisma type `omics_subjects` exists
+import { omics_subjects } from '@prisma/client'; 
+
+// Define structure needed for the table, now receiving serialized data
+interface SubjectForTable extends Omit<omics_subjects, 'created_at' | 'updated_at'> { // Omit original Date fields
+  sample_count: number; 
+  latest_sample_date: string | null; // Expecting string from serialization
+  created_at: string | null; // Expecting string from serialization
+  updated_at: string | null; // Expecting string from serialization
 }
 
+// Helper to format Date or null to 'YYYY-MM-DD' or null
+const formatDate = (date: Date | null): string | null => {
+  if (!date) return null;
+  // Simple ISO string date part
+  return date.toISOString().split('T')[0]; 
+};
+
 export default async function SubjectsPage() {
-  console.log('Fetching all omics subjects...');
-  const subjectsData = await getAllOmicsSubjects();
-  console.log(`Fetched ${subjectsData?.length || 0} subjects`);
-  console.log('First few subjects:', subjectsData?.slice(0, 3));
-  
-  const subjects = convertToNumber(subjectsData) as Subject[];
-  
+  console.log('Fetching all omics subjects with counts/dates using Prisma...');
+  const rawSubjectsData = await getAllOmicsSubjects(); // Fetch using updated Prisma function
+  console.log(`Fetched ${rawSubjectsData?.length || 0} subjects`);
+
+  // Map and serialize the data for the component
+  const subjects: SubjectForTable[] = (rawSubjectsData || []).map(subject => ({
+    ...subject, // Spread existing fields (like subject_id, project, etc.)
+    sample_count: subject._count.omics_results, // Get count from fetched data
+    // Serialize dates
+    latest_sample_date: formatDate(subject.latest_sample_date), 
+    created_at: formatDate(subject.created_at), 
+    updated_at: formatDate(subject.updated_at), 
+  }));
+
+  // Rest of the component using `subjects` array
+  // ... (table rendering logic remains the same)
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -57,9 +74,9 @@ export default async function SubjectsPage() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Project
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Genotype
-                  </th>
+                  </th> */}
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Sample Count
                   </th>
@@ -82,16 +99,14 @@ export default async function SubjectsPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {subject.project || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {subject.genotype || 'N/A'}
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {subject.sample_count}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {subject.latest_sample_date 
-                        ? new Date(subject.latest_sample_date).toLocaleDateString() 
-                        : 'N/A'}
+                      {subject.latest_sample_date || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <Link 
@@ -106,7 +121,7 @@ export default async function SubjectsPage() {
                 
                 {subjects.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500"> {/* Adjusted colSpan */} 
                       No subjects found
                     </td>
                   </tr>

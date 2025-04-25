@@ -1,0 +1,1 @@
+DELETE FROM app."User" WHERE email = 'admin@email.com'; 

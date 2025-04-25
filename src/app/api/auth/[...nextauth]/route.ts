@@ -1,12 +1,11 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import { PrismaClient } from "@prisma/client"
-import NextAuth from "next-auth"
+import NextAuth, { User, type NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
+import { prisma } from "@/lib/prisma"
 
-const prisma = new PrismaClient()
-
-const handler = NextAuth({
+// Define the auth options object
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -16,8 +15,10 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log("[Authorize] Attempting login for:", credentials?.email);
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Missing credentials")
+          console.log("[Authorize] Missing credentials.");
+          throw new Error("CredentialsSignin")
         }
 
         const user = await prisma.user.findUnique({
@@ -27,15 +28,27 @@ const handler = NextAuth({
         })
 
         if (!user) {
-          throw new Error("No user found")
+          console.log(`[Authorize] User not found for email: ${credentials.email}`);
+          throw new Error("CredentialsSignin")
+        }
+        console.log(`[Authorize] User found: ${user.email}, ID: ${user.id}`);
+
+        if (!user.password) {
+          console.log(`[Authorize] User ${user.email} has no password set.`);
+          throw new Error("CredentialsSignin")
         }
 
+        console.log("[Authorize] Comparing passwords...");
         const isValid = await bcrypt.compare(credentials.password, user.password)
+        console.log(`[Authorize] Password validation result for ${user.email}:`, isValid);
 
         if (!isValid) {
-          throw new Error("Invalid password")
+          console.log(`[Authorize] Invalid password for user: ${user.email}`);
+          throw new Error("CredentialsSignin")
         }
 
+        console.log(`[Authorize] Login successful for: ${user.email}`);
+        // Return only necessary user fields for the session/token
         return {
           id: user.id,
           email: user.email,
@@ -54,18 +67,26 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
+      // The user object passed here is the one returned from authorize
       if (user) {
-        token.role = user.role
+        token.id = user.id
+        token.role = user.role // Add role to the JWT token
       }
       return token
     },
     async session({ session, token }) {
+      // Add custom properties to the session object
       if (session?.user) {
-        session.user.role = token.role
+        session.user.id = token.id as string
+        session.user.role = token.role as string // Add role to the session user
       }
       return session
     }
   }
-})
+};
 
-export { handler as GET, handler as POST } 
+// Initialize NextAuth with the options
+const handler = NextAuth(authOptions);
+
+// Export the handler for GET/POST requests
+export { handler as GET, handler as POST }; 

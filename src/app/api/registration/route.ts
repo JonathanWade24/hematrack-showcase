@@ -1,138 +1,132 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { Prisma, PrismaClient } from '@/generated/prisma' // Import Prisma namespace and PrismaClient
 
 interface RegistrationData {
   first_name: string
   last_name: string
   middle_name?: string
-  birth_date: string
-  date_of_birth: string
+  birth_date: string // Keep as string if received as such, Prisma expects Date
+  date_of_birth: string // Duplicate? Keep for now
   sex: string
   race: string
   ethnicity: string
   patient_mrn: string
   subject_id: string
   project: string
-  registration_date: string
-  consent_date: string
+  registration_date: string // Keep as string if received as such
+  consent_date: string      // Keep as string if received as such
   corporate_id?: string
 }
 
+// Define allowed roles for creating registrations
+const ALLOWED_ROLES = ['admin', 'registrar', 'editor'] // Adjust roles as needed
+
 export async function POST(request: Request) {
+  // --- Authentication & Authorization ---
+  const session = await getServerSession(authOptions)
+  if (!session || !session.user || !session.user.role || !ALLOWED_ROLES.includes(session.user.role)) {
+    const reason = !session ? 'No session' : !session.user ? 'No user' : 'Insufficient role';
+    console.warn(`[API /registration] Unauthorized registration attempt: ${reason}`);
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const data: RegistrationData = await request.json()
-    console.log("Registration data received:", data)
-    
-    const supabase = await createClient()
-    
-    // Handle missing client
-    if (!supabase) {
-        console.warn('[POST /api/registration] Supabase client not available. Registration aborted.');
+    console.log("[API /registration] Received data:", data);
+
+    // Validate required fields (basic check)
+    const requiredFields: (keyof RegistrationData)[] = [
+        'first_name', 'last_name', 'birth_date', 'date_of_birth', 'sex',
+        'race', 'ethnicity', 'patient_mrn', 'subject_id', 'project',
+        'registration_date', 'consent_date'
+    ];
+    for (const field of requiredFields) {
+        if (!data[field]) {
+            return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
+        }
+    }
+
+    // --- Database Transaction ---
+    // Add type for the transaction client `tx`
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      console.log("[API /registration] Starting transaction...");
+
+      // 1. Create Patient in PHI schema
+      console.log("[API /registration] Creating patient...");
+      const patient = await tx.patients.create({
+        data: {
+          first_name: data.first_name,
+          last_name: data.last_name,
+          middle_name: data.middle_name,
+          // Convert string dates to Date objects for Prisma
+          birth_date: new Date(data.birth_date),
+          sex: data.sex,
+          race: data.race,
+          ethnicity: data.ethnicity,
+          patient_mrn: data.patient_mrn
+        }
+      });
+      console.log("[API /registration] Patient created:", patient.patient_mrn);
+
+      // 2. Create Omics Subject in Laboratory schema
+      console.log("[API /registration] Creating omics subject...");
+      const omicsSubject = await tx.omics_subjects.create({
+        data: {
+          subject_id: data.subject_id,
+          patient_mrn: data.patient_mrn,
+          project: data.project
+        }
+      });
+      console.log("[API /registration] Omics subject created:", omicsSubject.subject_id);
+
+      // 3. Create Subject Registration in PHI schema
+      console.log("[API /registration] Creating subject registration...");
+      const registration = await tx.subject_registration.create({
+        data: {
+          subject_id: data.subject_id,
+          patient_mrn: data.patient_mrn,
+          registration_date: new Date(data.registration_date),
+          consent_date: new Date(data.consent_date),
+          corporate_id: data.corporate_id || null,
+          first_name: data.first_name,
+          middle_name: data.middle_name || null,
+          last_name: data.last_name,
+          date_of_birth: new Date(data.date_of_birth)
+        }
+      });
+      console.log("[API /registration] Subject registration created:", registration.subject_id);
+
+      console.log("[API /registration] Transaction successful.");
+      return { patient, omicsSubject, registration };
+    });
+
+    // --- Return Success Response ---
+    return NextResponse.json(result);
+
+  } catch (error) {
+    console.error('[API /registration] Error during registration transaction:', error);
+
+    // Check for Prisma unique constraint violation (P2002)
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        let conflictingField = 'Unknown field';
+        if (Array.isArray(error.meta?.target)) {
+            conflictingField = (error.meta.target as string[]).join(', ');
+        }
+        console.warn(`[API /registration] Unique constraint violation on field(s): ${conflictingField}`);
         return NextResponse.json(
-            { error: 'Registration service unavailable' },
-            { status: 503 } // Service Unavailable
+            { error: `Unique constraint violation: A record with conflicting data already exists (field: ${conflictingField}).` },
+            { status: 409 } // Conflict
         );
     }
-    
-    // Start with patient registration in PHI schema
-    console.log("Attempting to create patient in PHI schema")
-    const { data: patient, error: patientError } = await supabase
-      .schema('phi')
-      .from('patients')
-      .insert({
-        first_name: data.first_name,
-        last_name: data.last_name,
-        middle_name: data.middle_name,
-        birth_date: data.birth_date,
-        sex: data.sex,
-        race: data.race,
-        ethnicity: data.ethnicity,
-        patient_mrn: data.patient_mrn
-      })
-      .select()
-      .single()
-    
-    if (patientError) {
-      console.error("Patient creation error:", patientError)
-      if (patientError.code === '23505') { // Unique constraint violation
-        return NextResponse.json(
-          { error: 'Patient with this MRN already exists', details: patientError },
-          { status: 409 }
-        )
-      }
-      throw patientError
-    }
-    
-    console.log("Patient created successfully:", patient)
-    
-    // Switch to laboratory schema for omics data
-    console.log("Attempting to create omics subject in laboratory schema")
-    const { data: omicsSubject, error: omicsError } = await supabase
-      .schema('laboratory')
-      .from('omics_subjects')
-      .insert({
-        subject_id: data.subject_id,
-        patient_mrn: data.patient_mrn,
-        project: data.project
-      })
-      .select()
-      .single()
-    
-    if (omicsError) {
-      console.error("Omics subject creation error:", omicsError)
-      if (omicsError.code === '23505') { // Unique constraint violation
-        return NextResponse.json(
-          { error: 'Subject ID already exists', details: omicsError },
-          { status: 409 }
-        )
-      }
-      throw omicsError
-    }
-    
-    console.log("Omics subject created successfully:", omicsSubject)
-    
-    // Create subject registration in PHI schema (corrected from laboratory schema)
-    console.log("Attempting to create subject registration in PHI schema")
-    const { data: registration, error: registrationError } = await supabase
-      .schema('phi')
-      .from('subject_registration')
-      .insert({
-        subject_id: data.subject_id,
-        patient_mrn: data.patient_mrn,
-        project: data.project,
-        registration_date: data.registration_date,
-        consent_date: data.consent_date,
-        corporate_id: data.corporate_id || null,
-        first_name: data.first_name,
-        middle_name: data.middle_name || null,
-        last_name: data.last_name,
-        date_of_birth: data.date_of_birth
-      })
-      .select()
-      .single()
-    
-    if (registrationError) {
-      console.error("Subject registration error:", registrationError)
-      throw registrationError
-    }
-    
-    console.log("Subject registration created successfully")
-    
-    return NextResponse.json({
-      patient,
-      omicsSubject,
-      registration
-    })
-  } catch (error) {
-    console.error('Error in registration:', error)
-    // Enhanced error logging
-    const errorDetails = error instanceof Error 
-      ? { message: error.message, stack: error.stack, name: error.name } 
-      : { error }
-    
+
+    // Generic server error
+    const errorMessage = error instanceof Error ? error.message : 'Failed to register subject'
     return NextResponse.json(
-      { error: 'Failed to register subject', details: errorDetails },
+      { error: errorMessage },
       { status: 500 }
-    )
+    );
   }
 } 

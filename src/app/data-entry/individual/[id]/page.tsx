@@ -1,8 +1,19 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { notFound } from 'next/navigation'
 import { SampleEntryForm } from '@/components/data-entry/SampleEntryForm'
-import { createClient } from '@/lib/supabase/server'
+import { getOmicsResultBySampleId } from '@/lib/prisma/operations'
 import { SampleData } from '@/components/data-entry/form-sections/types'
+import { omics_results, omics_subjects } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
+
+// Helper to format Date or null to 'YYYY-MM-DD' or empty string
+const formatDateForInput = (date: Date | null | undefined): string => {
+  if (!date) return '';
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 // Updated PageProps to match Next.js 15 expectations exactly
 type PageParams = {
@@ -13,211 +24,144 @@ type PageProps = {
   params: Promise<PageParams> | undefined;
 };
 
-interface OmicsSubject {
-  subject_id: string
-  patient_mrn: string
-  project: string
-}
+// Combine Prisma types for the data structure returned by the updated function
+type FetchedSampleData = (omics_results & { omics_subjects: omics_subjects | null });
 
-interface RawSampleData {
-  sample_id: string
-  sample_number: number
-  subject_id: string
-  date_of_collection: string | null
-  genotype: string | null
-  rbc_advia: number | null
-  hb_advia: number | null
-  hct_advia: number | null
-  mcv_advia: number | null
-  mch_advia: number | null
-  mchc_advia: number | null
-  rdw_advia: number | null
-  plt_advia: number | null
-  wbc_advia: number | null
-  concentration_1_dna: number | null
-  cell_number_1_pbmc: number | null
-  vol_plasma_1: number | null
-  qc_pass_advia: string | null
-  qc_pass_lorrca: string | null
-  qc_pass_dna: string | null
-  qc_pass_viscosity: string | null
-  qc_pass_hvr: string | null
-  qc_pass_f_cells: string | null
-  qc_pass_adhesion: string | null
-  sent_to_gt_pbmc: string | null
-  omics_subject: OmicsSubject | null
-  [key: string]: unknown
-}
-
-async function getSampleData(sampleId: string): Promise<RawSampleData | null> {
-  try {
-    // Create client - properly await it
-    const supabase = await createClient()
-    
-    // Handle missing client
-    if (!supabase) {
-        console.warn(`[getSampleData] Supabase client not available for sample ID: ${sampleId}.`);
-        return null; // Page will show notFound()
-    }
-    
-    // Set the schema to laboratory
-    const { data, error } = await supabase
-      .schema('laboratory')
-      .from('omics_results')
-      .select(`
-        *,
-        omics_subject:omics_subjects (
-          subject_id,
-          patient_mrn,
-          project
-        )
-      `)
-      .eq('sample_id', sampleId)
-      .single()
-    
-    if (error) {
-      console.error('Error fetching sample:', error)
-      return null
-    }
-    
-    if (!data) {
-      return null
-    }
-    
-    return data as RawSampleData
-  } catch (error) {
-    // Log the detailed error
-    if (error instanceof Error) {
-      console.error('Error in getSampleData:', error.message, error.stack)
-    } else {
-      console.error('Unknown error in getSampleData:', error)
-    }
-    return null
-  }
-}
-
-// Function to transform raw database data to match the expected SampleData type
-function transformToSampleData(raw: RawSampleData): SampleData {
-  // Ensure required string fields are present
-  const requiredDefaults = {
-    subject_id: raw.subject_id,
-    sample_number: raw.sample_number || 1,
-    date_of_collection: raw.date_of_collection || new Date().toISOString().split('T')[0]
+// Function to transform raw database data (from Prisma) to match the expected SampleData type
+function transformToSampleData(raw: FetchedSampleData): SampleData {
+  // Helper to convert Decimal to number or null
+  const toNumber = (val: Decimal | number | null | undefined): number | null => {
+    if (val instanceof Decimal) return val.toNumber();
+    return val ?? null;
+  };
+  
+  // Default values (ensure sample_number has a fallback)
+  const defaults = {
+    sample_number: raw.sample_number ?? 1,
+    date_of_collection: formatDateForInput(raw.date_of_collection) // Format date (now returns '')
   }
   
-  // Handle QC fields to ensure they match the expected enum values
-  const validateQcStatus = (status: string | null): 'Yes' | 'No' | 'Review' | null => {
-    if (status === 'Yes' || status === 'No' || status === 'Review') {
-      return status;
+  // Handle QC fields validation (remains the same)
+  const validateQcStatus = (status: string | null | undefined): 'Yes' | 'No' | 'Review' | null => {
+    const validStatus = status?.trim();
+    if (validStatus === 'Yes' || validStatus === 'No' || validStatus === 'Review') {
+      return validStatus;
     }
     return null;
-  }
+  };
   
-  // Pick only the fields that are expected in SampleData
+  // Transform using data from the Prisma result
   const transformed: SampleData = {
-    ...requiredDefaults,
-    // Optional fields from raw data
-    age_at_collection: raw.age_at_collection as number | null,
-    sex: raw.sex as string | null,
-    genotype: raw.genotype || null,
+    subject_id: raw.subject_id,
+    sample_number: defaults.sample_number,
+    date_of_collection: defaults.date_of_collection,
     
-    // ADVIA Data
-    rbc_advia: raw.rbc_advia,
-    hb_advia: raw.hb_advia,
-    hct_advia: raw.hct_advia,
-    mcv_advia: raw.mcv_advia,
-    mch_advia: raw.mch_advia,
-    mchc_advia: raw.mchc_advia,
-    rdw_advia: raw.rdw_advia,
-    hdw_advia: raw.hdw_advia as number | null,
-    plt_advia: raw.plt_advia,
-    mpv_advia: raw.mpv_advia as number | null,
-    wbc_advia: raw.wbc_advia,
-    neut_advia: raw.neut_advia as number | null,
-    retic_advia: raw.retic_advia as number | null,
-    chr_advia: raw.chr_advia as number | null,
-    hc41_v120_advia: raw.hc41_v120_advia as number | null,
-    hc41_v60_120_advia: raw.hc41_v60_120_advia as number | null,
-    hc41_v60_advia: raw.hc41_v60_advia as number | null,
-    drbc_advia: raw.drbc_advia as number | null,
-    hyper_advia: raw.hyper_advia as number | null,
-    nrbc_advia: raw.nrbc_advia as number | null,
+    age_at_collection: toNumber(raw.age_at_collection),
+    sex: raw.sex ?? null,
+    genotype: raw.genotype ?? null,
+    
+    // ADVIA Data (convert Decimals using toNumber)
+    rbc_advia: toNumber(raw.rbc_advia),
+    hb_advia: toNumber(raw.hb_advia),
+    hct_advia: toNumber(raw.hct_advia),
+    mcv_advia: toNumber(raw.mcv_advia),
+    mch_advia: toNumber(raw.mch_advia),
+    mchc_advia: toNumber(raw.mchc_advia),
+    rdw_advia: toNumber(raw.rdw_advia),
+    hdw_advia: toNumber(raw.hdw_advia),
+    plt_advia: toNumber(raw.plt_advia),
+    mpv_advia: toNumber(raw.mpv_advia),
+    wbc_advia: toNumber(raw.wbc_advia),
+    neut_advia: toNumber(raw.neut_advia),
+    retic_advia: toNumber(raw.retic_advia),
+    chr_advia: toNumber(raw.chr_advia),
+    // These might not exist in schema? Handle potential undefined
+    hc41_v120_advia: toNumber(raw.hc41_v120_advia),
+    hc41_v60_120_advia: toNumber(raw.hc41_v60_120_advia),
+    hc41_v60_advia: toNumber(raw.hc41_v60_advia),
+    drbc_advia: toNumber(raw.drbc_advia),
+    hyper_advia: toNumber(raw.hyper_advia),
+    nrbc_advia: toNumber(raw.nrbc_advia),
     qc_pass_advia: validateQcStatus(raw.qc_pass_advia),
-    qc_notes_advia: raw.qc_notes_advia as string | null,
-    date_advia: raw.date_advia as string | null,
+    qc_notes_advia: raw.qc_notes_advia ?? null,
+    date_advia: formatDateForInput(raw.date_advia),
     
     // DNA Data
-    date_dna: raw.date_dna as string | null,
-    concentration_1_dna: raw.concentration_1_dna,
-    purity_1_dna: raw.purity_1_dna as number | null,
-    concentration_2_dna: raw.concentration_2_dna as number | null,
-    purity_2_dna: raw.purity_2_dna as number | null,
+    date_dna: formatDateForInput(raw.date_dna),
+    concentration_1_dna: toNumber(raw.concentration_1_dna),
+    purity_1_dna: toNumber(raw.purity_1_dna),
+    concentration_2_dna: toNumber(raw.concentration_2_dna),
+    purity_2_dna: toNumber(raw.purity_2_dna),
     qc_pass_dna: validateQcStatus(raw.qc_pass_dna),
-    qc_notes_dna: raw.qc_notes_dna as string | null,
+    qc_notes_dna: raw.qc_notes_dna ?? null,
     
     // PBMC Data
-    date_pmbc: raw.date_pmbc as string | null,
-    cell_number_1_pbmc: raw.cell_number_1_pbmc,
-    cell_number_2_pbmc: raw.cell_number_2_pbmc as number | null,
-    sent_to_gt_pbmc: validateQcStatus(raw.sent_to_gt_pbmc) as 'Yes' | 'No' | null,
-    qc_notes_pbmc: raw.qc_notes_pbmc as string | null,
+    date_pmbc: formatDateForInput(raw.date_pmbc),
+    cell_number_1_pbmc: toNumber(raw.cell_number_1_pbmc),
+    cell_number_2_pbmc: toNumber(raw.cell_number_2_pbmc),
+    sent_to_gt_pbmc: ((status) => status === 'Review' ? null : status)(validateQcStatus(raw.sent_to_gt_pbmc)),
+    qc_notes_pbmc: raw.qc_notes_pbmc ?? null,
     
     // Plasma Data
-    date_plasma: raw.date_plasma as string | null,
-    vol_plasma_1: raw.vol_plasma_1,
-    vol_plasma_2: raw.vol_plasma_2 as number | null,
-    vol_plasma_3: raw.vol_plasma_3 as number | null,
-    qc_notes_plasma: raw.qc_notes_plasma as string | null,
+    date_plasma: formatDateForInput(raw.date_plasma),
+    vol_plasma_1: toNumber(raw.vol_plasma_1),
+    vol_plasma_2: toNumber(raw.vol_plasma_2),
+    vol_plasma_3: toNumber(raw.vol_plasma_3),
+    qc_notes_plasma: raw.qc_notes_plasma ?? null,
     
     // Lorrca Data
-    date_lorrca: raw.date_lorrca as string | null,
-    ei_min_lorrca: raw.ei_min_lorrca as number | null,
-    ei_max_lorrca: raw.ei_max_lorrca as number | null,
-    ei_delta_lorrca: raw.ei_delta_lorrca as number | null,
-    pos_lorrca: raw.pos_lorrca as number | null,
-    instrument_lorrca: raw.instrument_lorrca as string | null,
+    date_lorrca: formatDateForInput(raw.date_lorrca),
+    ei_min_lorrca: toNumber(raw.ei_min_lorrca),
+    ei_max_lorrca: toNumber(raw.ei_max_lorrca),
+    ei_delta_lorrca: toNumber(raw.ei_delta_lorrca),
+    pos_lorrca: toNumber(raw.pos_lorrca),
+    instrument_lorrca: raw.instrument_lorrca ?? null,
     qc_pass_lorrca: validateQcStatus(raw.qc_pass_lorrca),
-    qc_notes_lorrca: raw.qc_notes_lorrca as string | null,
+    qc_notes_lorrca: raw.qc_notes_lorrca ?? null,
     
-    // Other sections with proper validation
-    date_visc: raw.date_visc as string | null,
-    visc_45: raw.visc_45 as number | null,
-    visc_225: raw.visc_225 as number | null,
+    // Viscosity Data
+    date_visc: formatDateForInput(raw.date_visc),
+    visc_45: toNumber(raw.visc_45),
+    visc_225: toNumber(raw.visc_225),
     qc_pass_viscosity: validateQcStatus(raw.qc_pass_viscosity),
-    qc_notes_viscosity: raw.qc_notes_viscosity as string | null,
+    qc_notes_viscosity: raw.qc_notes_viscosity ?? null,
     
-    date_hvr: raw.date_hvr as string | null,
-    hvr_45: raw.hvr_45 as number | null,
-    hvr_225: raw.hvr_225 as number | null,
+    // HVR Data
+    date_hvr: formatDateForInput(raw.date_hvr),
+    hvr_45: toNumber(raw.hvr_45),
+    hvr_225: toNumber(raw.hvr_225),
     qc_pass_hvr: validateQcStatus(raw.qc_pass_hvr),
-    qc_notes_hvr: raw.qc_notes_hvr as string | null,
+    qc_notes_hvr: raw.qc_notes_hvr ?? null,
     
-    date_f_cells: raw.date_f_cells as string | null,
-    percent_f_cells: raw.percent_f_cells as number | null,
-    stain_f_cells: raw.stain_f_cells as string | null,
-    cytometer_f_cells: raw.cytometer_f_cells as string | null,
+    // F-Cells Data
+    date_f_cells: formatDateForInput(raw.date_f_cells),
+    percent_f_cells: toNumber(raw.percent_f_cells),
+    stain_f_cells: raw.stain_f_cells ?? null,
+    cytometer_f_cells: raw.cytometer_f_cells ?? null,
     qc_pass_f_cells: validateQcStatus(raw.qc_pass_f_cells),
-    qc_notes_f_cells: raw.qc_notes_f_cells as string | null,
+    qc_notes_f_cells: raw.qc_notes_f_cells ?? null,
     
-    date_adhesion: raw.date_adhesion as string | null,
-    cells_adhered_adhesion: raw.cells_adhered_adhesion as number | null,
+    // Adhesion Data
+    date_adhesion: formatDateForInput(raw.date_adhesion),
+    cells_adhered_adhesion: toNumber(raw.cells_adhered_adhesion),
     qc_pass_adhesion: validateQcStatus(raw.qc_pass_adhesion),
-    qc_notes_adhesion: raw.qc_notes_adhesion as string | null,
+    qc_notes_adhesion: raw.qc_notes_adhesion ?? null,
     
-    date_hplc: raw.date_hplc as string | null,
-    hbf_percent_grady_hplc: raw.hbf_percent_grady_hplc as number | null,
-    hba_percent_grady_hplc: raw.hba_percent_grady_hplc as number | null,
-    hbc_percent_grady_hplc: raw.hbc_percent_grady_hplc as number | null,
-    hba2_percent_grady_hplc: raw.hba2_percent_grady_hplc as number | null,
-    hbs_percent_grady_hplc: raw.hbs_percent_grady_hplc as number | null,
-    hbf_percent_d10_hplc: raw.hbf_percent_d10_hplc as number | null,
-    hba_percent_d10_hplc: raw.hba_percent_d10_hplc as number | null,
-    hbc_percent_d10_hplc: raw.hbc_percent_d10_hplc as number | null,
-    hba2_percent_d10_hplc: raw.hba2_percent_d10_hplc as number | null,
-    hbs_percent_d10_hplc: raw.hbs_percent_d10_hplc as number | null,
-    hbf_percent_d10_fcell_ratio: raw.hbf_percent_d10_fcell_ratio as number | null,
-    hbf_percent_grady_fcell_ratio: raw.hbf_percent_grady_fcell_ratio as number | null
-  }
+    // HPLC Data
+    date_hplc: formatDateForInput(raw.date_hplc),
+    hbf_percent_grady_hplc: toNumber(raw.hbf_percent_grady_hplc),
+    hba_percent_grady_hplc: toNumber(raw.hba_percent_grady_hplc),
+    hbc_percent_grady_hplc: toNumber(raw.hbc_percent_grady_hplc),
+    hba2_percent_grady_hplc: toNumber(raw.hba2_percent_grady_hplc),
+    hbs_percent_grady_hplc: toNumber(raw.hbs_percent_grady_hplc),
+    hbf_percent_d10_hplc: toNumber(raw.hbf_percent_d10_hplc),
+    hba_percent_d10_hplc: toNumber(raw.hba_percent_d10_hplc),
+    hbc_percent_d10_hplc: toNumber(raw.hbc_percent_d10_hplc),
+    hba2_percent_d10_hplc: toNumber(raw.hba2_percent_d10_hplc),
+    hbs_percent_d10_hplc: toNumber(raw.hbs_percent_d10_hplc),
+    hbf_percent_d10_fcell_ratio: toNumber(raw.hbf_percent_d10_fcell_ratio),
+    hbf_percent_grady_fcell_ratio: toNumber(raw.hbf_percent_grady_fcell_ratio)
+  };
   
   return transformed;
 }
@@ -233,13 +177,14 @@ export default async function EditSamplePage({ params }: PageProps) {
     const paramsObj = await params;
     const id = paramsObj.id;
     
-    const rawSample = await getSampleData(id)
+    // Fetch data using Prisma function
+    const rawSample = await getOmicsResultBySampleId(id)
 
     if (!rawSample) {
       notFound()
     }
 
-    // Transform the raw data to match the expected type
+    // Transform the raw data using the updated function
     const sample = transformToSampleData(rawSample);
 
     return (
@@ -248,20 +193,18 @@ export default async function EditSamplePage({ params }: PageProps) {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
             <h1 className="text-2xl font-semibold text-gray-900">Edit Sample {rawSample.sample_id}</h1>
             <p className="mt-2 text-sm text-gray-700">
-              Update sample information. All fields are optional unless marked as required.
+              Editing sample data for Subject ID: {rawSample.omics_subjects?.subject_id ?? 'N/A'}
             </p>
           </div>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-            <div className="py-4">
-              <SampleEntryForm initialData={sample} />
-            </div>
+          <div className="mx-auto mt-4 max-w-7xl px-4 sm:px-6 md:px-8">
+            <SampleEntryForm initialData={sample} isEditing={true} />
           </div>
         </div>
       </DashboardLayout>
     )
   } catch (error) {
-    // Add comprehensive error handling at the page level
-    console.error("Error in EditSamplePage:", error);
-    throw error; // Let Next.js error handling take over
+    // Log the error and show notFound or a specific error page
+    console.error('Error in EditSamplePage:', error)
+    notFound() // Or render an error component
   }
 } 

@@ -1,35 +1,42 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function GET() {
+  // Check authentication
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
-    // Get Supabase client
-    const supabase = await createClient()
-    
-    // Handle missing client
-    if (!supabase) {
-        console.warn('[GET /api/lab-components] Supabase client not available. Returning empty placeholder.');
-        return NextResponse.json([]); // Return empty array as placeholder
-    }
-    
-    const { data: components, error } = await supabase
-      .from('labs')
-      .select('lab_component_description')
-      .order('lab_component_description')
-    
-    if (error) {
-      throw error
-    }
-    
-    // Get unique component descriptions
-    const uniqueComponents = [...new Set(components.map((c: any) => c.lab_component_description))]
-    
-    return NextResponse.json(uniqueComponents)
+    // Use Prisma client to query the Labs table for distinct component descriptions
+    const components = await prisma.labs.findMany({
+      distinct: ['lab_component_description'],
+      select: {
+        lab_component_description: true
+      },
+      where: {
+        lab_component_description: { not: null } // Exclude null values
+      },
+      orderBy: {
+        lab_component_description: 'asc'
+      }
+    });
+
+    // Extract the unique descriptions, filtering out potential nulls from the DB query result
+    const uniqueComponents = components
+        .map((c: { lab_component_description: string | null }) => c.lab_component_description)
+        .filter((desc: string | null): desc is string => desc !== null);
+
+    return NextResponse.json(uniqueComponents);
+
   } catch (error) {
-    console.error('Error fetching lab components:', error)
+    console.error('Error fetching lab components:', error);
     return NextResponse.json(
       { error: 'Failed to fetch lab components' },
       { status: 500 }
-    )
+    );
   }
 } 
