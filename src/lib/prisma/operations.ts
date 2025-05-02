@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'; // Correct path to prisma client
-import { omics_subjects, omics_results, patients, Prisma } from '@prisma/client'; // Use correct generated type names and import Prisma namespace for types
+import { omics_subjects, omics_results, patients, Prisma, audit_log, unified_visits, ip_medications, op_medications, ip_admissions, Labs } from '@prisma/client'; // Use correct generated type names and import Prisma namespace for types
 import { Decimal } from '@prisma/client/runtime/library'; // Keep for Decimal type
 import { AssayType } from '@/lib/types'; // Import AssayType
 
@@ -512,6 +512,186 @@ export async function getOmicsResultsCount(): Promise<number> {
   } catch (error) {
     console.error('[Prisma] Error getting omics results count:', error);
     return 0; // Return 0 on error
+  }
+}
+
+/**
+ * Fetches all Visit records from the unified_visits table, including related patient data.
+ */
+export async function getAllVisits(): Promise<(unified_visits & { patient: patients | null })[]> { // Adjust relation name in return type
+  try {
+    const visitsData = await prisma.unified_visits.findMany({
+      orderBy: {
+        start_date: 'desc' // Order by visit start date, descending
+      },
+      include: {
+        patient: true // Use singular 'patient' as suggested by linter
+      }
+    });
+    // Cast matches the structure with singular 'patient' relation
+    return visitsData as (unified_visits & { patient: patients | null })[];
+  } catch (error) {
+    console.error('[Prisma] Error fetching all unified visits:', error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
+       console.error(`[Prisma] The table 'unified_visits' might not exist. Check schema.prisma.`);
+    }
+    return []; // Return empty array on error
+  }
+}
+
+// Define structure for combined medication data
+interface CombinedMedication {
+  name: string;
+  dosage?: string | null;
+  unit?: string | null;
+  frequency?: string | null;
+  // Fields specific to source
+  source: 'IP' | 'OP';
+  taken_time?: Date | null; // From ip_medications
+  order_dttm?: Date | null; // From op_medications
+  rx_status?: string | null; // From op_medications
+}
+
+// Define structure for detailed diagnosis data
+interface DetailedDiagnosis {
+  code: string;
+  description: string | null;
+  type: 'admission' | 'final';
+  sequence: number;
+}
+
+// Define structure for lab results passed to viewer
+interface LabResultForViewer {
+  name: string | null;
+  value: string | null;
+  time?: Date | null; // Keep as Date for now, serialize in page component
+  test?: string | null;
+}
+
+/**
+ * Fetches a patient and their associated unified visits by Patient MRN,
+ * including related medications, detailed diagnoses, and labs for each visit.
+ */
+export async function getVisitDetailsByMrn(patientMrn: string): Promise<(
+  patients & { 
+    unified_visits: (unified_visits & { 
+        medications: CombinedMedication[];
+        detailed_diagnoses?: DetailedDiagnosis[];
+        labs: LabResultForViewer[]; // Add labs array
+    })[] 
+  }
+) | null> { // Updated return type
+  if (!patientMrn) {
+    console.warn('[Prisma getVisitDetailsByMrn] No MRN provided.');
+    return null;
+  }
+
+  try {
+    // Step 1: Fetch patient and their visits (as before)
+    const patientWithVisits = await prisma.patients.findUnique({
+      where: { patient_mrn: patientMrn },
+      include: {
+        unified_visits: {
+          orderBy: { start_date: 'desc' },
+        },
+      },
+    });
+
+    if (!patientWithVisits) {
+      console.warn(`[Prisma getVisitDetailsByMrn] Patient not found for MRN: ${patientMrn}`);
+      return null;
+    }
+
+    // Step 2: Fetch related data
+    const [allIpMeds, allOpMeds, allIpAdmissions, allLabs] = await Promise.all([
+        prisma.ip_medications.findMany({ where: { patient_mrn: patientMrn }, orderBy: { taken_time: 'asc' } }),
+        prisma.op_medications.findMany({ where: { patient_mrn: patientMrn }, orderBy: { order_dttm: 'asc' } }),
+        prisma.ip_admissions.findMany({ where: { patient_mrn: patientMrn } }),
+        prisma.labs.findMany({ where: { patient_mrn: patientMrn }, orderBy: { result_time: 'asc' } }) // Use lowercase labs
+    ]);
+
+    // Create map with explicit type
+    const ipAdmissionsMap = new Map<string, ip_admissions>(allIpAdmissions.map((adm: ip_admissions) => [adm.hsp_account_id, adm]));
+
+    // Step 3: Map details to each visit
+    const visitsWithDetails = patientWithVisits.unified_visits.map(visit => {
+        const visitStart = visit.start_date;
+        const visitEnd = visit.end_date ?? new Date(visitStart.getTime() + 24 * 60 * 60 * 1000);
+        
+        // Add a buffer to the date range for labs (e.g., 1 day before/after)
+        const labStartDate = new Date(visitStart.getTime() - (24 * 60 * 60 * 1000));
+        const labEndDate = new Date(visitEnd.getTime() + (24 * 60 * 60 * 1000));
+
+        // Medication mapping with explicit types
+        const relevantIpMeds: CombinedMedication[] = allIpMeds
+            .filter((med: ip_medications) => med.taken_time && med.taken_time >= visitStart && med.taken_time <= visitEnd)
+            .map((med: ip_medications) => ({
+                source: 'IP',
+                name: med.medication,
+                dosage: med.dosage,
+                unit: med.unit,
+                frequency: med.frequency,
+                taken_time: med.taken_time,
+            }));
+        const relevantOpMeds: CombinedMedication[] = allOpMeds
+            .filter((med: op_medications) => med.order_dttm && med.order_dttm >= visitStart && med.order_dttm <= visitEnd)
+            .map((med: op_medications) => ({
+                source: 'OP',
+                name: med.generic_description || 'Unknown', // Use generic_description
+                rx_status: med.rx_status,
+                order_dttm: med.order_dttm,
+                // Add other fields if needed
+            }));
+        const combinedMeds = [...relevantIpMeds, ...relevantOpMeds];
+        combinedMeds.sort((a, b) => {
+            const timeA = a.taken_time || a.order_dttm || new Date(0);
+            const timeB = b.taken_time || b.order_dttm || new Date(0);
+            return timeA.getTime() - timeB.getTime();
+        });
+
+        // Detailed diagnosis mapping with explicit type assertion for ipAdmission
+        let detailedDiagnoses: DetailedDiagnosis[] | undefined = undefined;
+        if (visit.visit_type === 'IP' && visit.source_id) {
+            const ipAdmission: ip_admissions | undefined = ipAdmissionsMap.get(visit.source_id);
+            if (ipAdmission) { // Check ensures ipAdmission is not undefined here
+                detailedDiagnoses = [];
+                if (ipAdmission.admit_dx_cd_1) detailedDiagnoses.push({ code: ipAdmission.admit_dx_cd_1, description: ipAdmission.admit_dx_description_1, type: 'admission', sequence: 1 });
+                if (ipAdmission.admit_dx_cd_2) detailedDiagnoses.push({ code: ipAdmission.admit_dx_cd_2, description: ipAdmission.admit_dx_description_2, type: 'admission', sequence: 2 });
+                if (ipAdmission.final_dx_cd_1) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_1, description: ipAdmission.final_dx_description_1, type: 'final', sequence: 1 });
+                if (ipAdmission.final_dx_cd_2) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_2, description: ipAdmission.final_dx_description_2, type: 'final', sequence: 2 });
+                if (ipAdmission.final_dx_cd_3) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_3, description: ipAdmission.final_dx_description_3, type: 'final', sequence: 3 });
+                if (ipAdmission.final_dx_cd_4) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_4, description: ipAdmission.final_dx_description_4, type: 'final', sequence: 4 });
+                if (ipAdmission.final_dx_cd_5) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_5, description: ipAdmission.final_dx_description_5, type: 'final', sequence: 5 });
+            }
+        }
+        
+        // Lab mapping with explicit type
+        const relevantLabs: LabResultForViewer[] = allLabs
+            .filter((lab: Labs) => lab.result_time && lab.result_time >= labStartDate && lab.result_time <= labEndDate)
+            .map((lab: Labs) => ({
+                name: lab.lab_component_description,
+                value: lab.lab_result_value,
+                time: lab.result_time,
+                test: lab.proc_name,
+            }));
+
+        return {
+            ...visit,
+            medications: combinedMeds,
+            detailed_diagnoses: detailedDiagnoses,
+            labs: relevantLabs, // Add the filtered labs
+        };
+    });
+
+    // Step 4: Return combined data
+    return {
+        ...patientWithVisits,
+        unified_visits: visitsWithDetails,
+    };
+
+  } catch (error) {
+    console.error(`[Prisma getVisitDetailsByMrn] Error fetching data for MRN ${patientMrn}:`, error);
+    return null;
   }
 }
 

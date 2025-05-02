@@ -5,7 +5,8 @@ npm-debug.log
 README.md
 .next
 .git
-.env*
+# Commented out .env* - replace with specific ignores below
+# .env*
 test-data/
 *.sql
 *.txt
@@ -15,8 +16,8 @@ etl/
 *.csv
 migration_dump.sql
 
-# Next.js build output
-.next
+# Next.js build output - keep needed parts
+# .next/cache # Example: ignore only cache
 
 # Build outputs from other tools (if any)
 dist
@@ -30,8 +31,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment variables
-.env*
+# Specific Environment variable files to ignore
+# DO NOT ignore .env.docker if used in build
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -60,8 +62,7 @@ Thumbs.db
 .git
 .gitignore
 
-# Docker files
-Dockerfile*
+# Docker files to ignore (excluding this one and Dockerfile itself)
 docker-compose.yml
-.dockerignore
+
 Junk/ 

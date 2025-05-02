@@ -1,322 +1,187 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-// import { convertToNumber } from '@/lib/utils' // Removed import
 import Link from 'next/link'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHospital, faUserDoctor } from '@fortawesome/free-solid-svg-icons'
-import { getSupabaseServerClient } from '@/lib/supabase/db'
+// Remove old/deprecated imports
+// import { createClinicalClient, createPhiClient } from '@/lib/supabase/server' 
+// import { ITEMS_PER_PAGE as DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import { getAllVisits } from '@/lib/prisma/operations' // Import new Prisma function
+import { unified_visits, patients } from '@prisma/client' // Import relevant Prisma types
+import Pagination from '@/components/samples/Pagination' // Use default import for Pagination
 
-const DEFAULT_PAGE_SIZE = 20
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 
-// Update PageProps for Next.js 15
-type SearchParamsType = {
-  page?: string
-  pageSize?: string
-  type?: string
+// Define structure needed for the table, based on Prisma return type
+// Use Omit to exclude the actual relation object if needed, or just select fields
+type VisitForTable = unified_visits & { 
+  patient: patients | null; // Expecting patient relation 
+  // We will serialize dates before rendering
 };
 
-type PageProps = {
-  searchParams: Promise<SearchParamsType> | undefined;
+// Helper to format Date for display
+const formatDate = (date: Date | null | undefined): string => {
+  return date ? new Date(date).toLocaleDateString() : 'N/A';
 };
 
-// Restored local type definitions
-interface Patient {
-  first_name: string;
-  last_name: string;
-  patient_mrn: string;
+// Define Page Props, including searchParams for pagination/filtering
+interface VisitsPageProps {
+  searchParams?: { 
+    page?: string;
+    pageSize?: string;
+    type?: string; // Keep type filter if needed
+  };
 }
 
-interface Visit {
-  id: number;
-  patient_mrn: string;
-  visit_type: string;
-  department?: string;
-  start_date: string;
-  end_date?: string;
-  patient: Patient;
-}
+// Remove the old local getVisits function
+// async function getVisits(...) { ... }
 
-async function getVisits(page = 1, pageSize = DEFAULT_PAGE_SIZE, type?: string) {
-  const supabase = await getSupabaseServerClient()
-  
-  // Define default return value
-  const defaultReturn = { visits: [], totalCount: 0, totalPages: 0 };
+export default async function VisitsPage({ searchParams }: VisitsPageProps) {
+  const currentPage = Number(searchParams?.page) || 1;
+  const pageSize = Number(searchParams?.pageSize) || 20; // Default page size
+  const type = searchParams?.type;
 
-  // Handle missing client
-  if (!supabase) {
-      console.warn('[getVisits] Supabase client not available. Returning empty data.');
-      return defaultReturn;
-  }
-  
-  // Build the query for visits, specifying the 'clinical' schema
-  let query = supabase
-    .schema('clinical')
-    .from('unified_visits')
-    .select('*', { count: 'exact' })
-    .order('start_date', { ascending: false })
-    .range((page - 1) * pageSize, page * pageSize - 1)
-  
-  // Add type filter if specified
-  if (type) {
-    query = query.eq('visit_type', type)
-  }
-  
-  // Execute the query
-  const { data: visitsData, count, error } = await query
-  
-  if (error) {
-    console.error('Error fetching visits:', error)
-    return defaultReturn; // Use default return on error
-  }
+  console.log('Fetching all unified visits using Prisma...');
+  const allVisitsData: (unified_visits & { patient: patients | null })[] = await getAllVisits(); 
+  console.log(`Fetched ${allVisitsData?.length || 0} visits`);
 
-  // Get unique patient MRNs
-  const patientMrns = [...new Set(visitsData?.map((visit: any) => visit.patient_mrn) || [])] // Added : any
-  
-  // Fetch patient data for these MRNs, specifying the 'phi' schema
-  const { data: patientsData, error: patientsError } = await supabase
-    .schema('phi')
-    .from('patients')
-    .select('first_name, last_name, patient_mrn')
-    .in('patient_mrn', patientMrns)
-  
-  if (patientsError) {
-    console.error('Error fetching patients:', patientsError)
-    return defaultReturn; // Use default return on error
-  }
-  
-  // Create a map of patient data by MRN
-  const patientMap: Record<string, Patient> = (patientsData || []).reduce((acc: Record<string, Patient>, patient: any) => { // Added : any
-    acc[patient.patient_mrn] = patient
-    return acc
-  }, {})
-  
-  // Combine visit data with patient data
-  const visits = (visitsData || []).map((visit: any) => { // Added : any
-    const typedVisit = visit as Record<string, unknown>;
-    return {
-      ...typedVisit,
-      patient: patientMap[typedVisit.patient_mrn as string] || { 
-        first_name: 'Unknown', 
-        last_name: 'Patient',
-        patient_mrn: typedVisit.patient_mrn
-      }
-    } as Visit
-  })
-  
-  return {
-    // visits: convertToNumber(visits), // Removed convertToNumber
-    visits: visits,
-    totalCount: count || 0,
-    totalPages: Math.ceil((count || 0) / pageSize)
-  }
-}
+  // --- Client-side Pagination/Filtering (Apply AFTER fetching all) ---
+  const filteredVisits: (unified_visits & { patient: patients | null })[] = type 
+    ? allVisitsData.filter(visit => visit.visit_type?.toLowerCase() === type.toLowerCase())
+    : allVisitsData;
 
-export default async function VisitsPage({ searchParams }: PageProps) {
-  // Handle searchParams correctly, checking for undefined
-  if (!searchParams) {
-    throw new Error('Missing search parameters');
-  }
+  const totalVisits = filteredVisits.length;
+  const totalPages = Math.ceil(totalVisits / pageSize);
   
-  // Resolve searchParams if it's a Promise
-  const params = await searchParams;
-  const currentPage = Number(params.page) || 1
-  const pageSize = Number(params.pageSize) || DEFAULT_PAGE_SIZE
-  const type = params.type
+  // Explicitly type the result of slice
+  const paginatedVisits: (unified_visits & { patient: patients | null })[] = filteredVisits.slice(
+      (currentPage - 1) * pageSize, 
+      currentPage * pageSize
+  );
+  // --- End Pagination/Filtering ---
 
-  const { visits, totalPages } = await getVisits(currentPage, pageSize, type)
+  const visitsToDisplay = paginatedVisits;
+
+  const handlePageChange = (newPage: number) => {
+    // This function won't work directly in Server Component
+    // Pagination needs URL updates handled by Link or router push in Client Component
+    // For now, pagination links update the URL search params
+    console.log("Page change requires URL update, handled by Pagination component links");
+  };
 
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Visit History</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              View all patient visits and their details
-            </p>
-          </div>
-
-          {/* Filters */}
-          <div className="flex gap-4">
-            <Link
-              href="/visits"
-              className={`px-4 py-2 rounded-lg ${
-                !type ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              All Visits
-            </Link>
-            <Link
-              href="/visits?type=IP"
-              className={`px-4 py-2 rounded-lg ${
-                type === 'IP' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Inpatient Stays
-            </Link>
-            <Link
-              href="/visits?type=OP"
-              className={`px-4 py-2 rounded-lg ${
-                type === 'OP' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Outpatient Visits
-            </Link>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">All Visits</h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Showing {paginatedVisits.length} of {totalVisits} total visits {type ? `(Type: ${type})` : ''}
+              </p>
+            </div>
+            {/* Add Filter controls here if needed */}
           </div>
 
           {/* Visits Table */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Visit Type
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Patient
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Department
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+          {/* Allow horizontal scrolling on smaller screens */}
+          <div className="bg-white shadow overflow-x-auto rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Visit ID
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Patient MRN
+                  </th>
+                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Patient Name
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Start Date
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    End Date
+                  </th>
+                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Department
+                  </th>
+                  {/* Add Actions Header */}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {visitsToDisplay.map((visit: unified_visits & { patient: patients | null }) => (
+                  <tr key={visit.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                       {/* Link to specific visit page if it exists */}
+                      {/* <Link href={`/visits/${visit.visit_id}`}> */}
+                        {visit.visit_id}
+                      {/* </Link> */}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <Link href={`/patients/${visit.patient_mrn}`} className="text-indigo-600 hover:text-indigo-900">
+                        {visit.patient_mrn}
+                      </Link>
+                    </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                       {visit.patient ? `${visit.patient.first_name || ''} ${visit.patient.last_name || ''}`.trim() : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {visit.visit_type} {visit.specific_visit_type ? `(${visit.specific_visit_type})` : ''} 
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(visit.start_date)}
+                    </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(visit.end_date)}
+                    </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {visit.department || 'N/A'}
+                    </td>
+                    {/* Add Actions Cell */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Link 
+                        href={`/visits/${visit.patient_mrn}`}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        View Timeline
+                      </Link>
+                       {/* Add link to specific visit page? (if it exists) */}
+                      {/* <Link href={`/visit-details/${visit.visit_id}`} className="ml-4 text-gray-600 hover:text-gray-900">Details</Link> */}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {visits.map((visit: Visit) => (
-                    <tr key={visit.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <FontAwesomeIcon
-                            icon={visit.visit_type === 'IP' ? faHospital : faUserDoctor}
-                            className={visit.visit_type === 'IP' ? 'text-red-500 mr-2' : 'text-blue-500 mr-2'}
-                          />
-                          <span className="text-sm text-gray-900">
-                            {visit.visit_type === 'IP' ? 'Inpatient Stay' : 'Outpatient Visit'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Link
-                          href={`/visits/${visit.patient.patient_mrn}`}
-                          className="text-sm text-indigo-600 hover:text-indigo-900"
-                        >
-                          {visit.patient.first_name} {visit.patient.last_name}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {visit.department || 'Not specified'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(visit.start_date).toLocaleDateString()}
-                        {visit.end_date && ` - ${new Date(visit.end_date).toLocaleDateString()}`}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <Link
-                          href={`/visits/${visit.patient.patient_mrn}?selected=${visit.id}`}
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          View Details
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                
+                {visitsToDisplay.length === 0 && (
+                  <tr>
+                    {/* Adjust colspan */}
+                    <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500"> 
+                      No visits found {type ? `for type ${type}` : ''}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-wrap justify-center items-center gap-2 px-4">
-              <Link
-                href={`/visits?page=${Math.max(1, currentPage - 1)}${type ? `&type=${type}` : ''}`}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage === 1
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Previous
-              </Link>
-              
-              <div className="flex flex-wrap justify-center gap-2">
-                {/* First page */}
-                <Link
-                  href={`/visits?page=1${type ? `&type=${type}` : ''}`}
-                  className={`px-3 py-2 rounded-md ${
-                    currentPage === 1
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  1
-                </Link>
+           {/* Pagination Controls */}
+          <div className="mt-6 flex justify-center">
+             <Pagination 
+               currentPage={currentPage} 
+               totalPages={totalPages} 
+               // Pass the base path and any existing query params except 'page'
+               // Note: The Pagination component needs to handle constructing the links
+               // For server components, it might render Links directly.
+               // We remove the onPageChange prop as it cannot be used directly here.
+             />
+           </div>
 
-                {/* Left ellipsis */}
-                {currentPage > 4 && (
-                  <span className="px-3 py-2">...</span>
-                )}
-
-                {/* Pages around current page */}
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(page => {
-                    if (page === 1 || page === totalPages) return false
-                    return Math.abs(currentPage - page) <= 2
-                  })
-                  .map(page => (
-                    <Link
-                      key={page}
-                      href={`/visits?page=${page}${type ? `&type=${type}` : ''}`}
-                      className={`px-3 py-2 rounded-md ${
-                        currentPage === page
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </Link>
-                  ))}
-
-                {/* Right ellipsis */}
-                {currentPage < totalPages - 3 && (
-                  <span className="px-3 py-2">...</span>
-                )}
-
-                {/* Last page */}
-                {totalPages > 1 && (
-                  <Link
-                    href={`/visits?page=${totalPages}${type ? `&type=${type}` : ''}`}
-                    className={`px-3 py-2 rounded-md ${
-                      currentPage === totalPages
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {totalPages}
-                  </Link>
-                )}
-              </div>
-
-              <Link
-                href={`/visits?page=${Math.min(totalPages, currentPage + 1)}${type ? `&type=${type}` : ''}`}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage === totalPages
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Next
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 } 

@@ -6,6 +6,8 @@ import type { FilterCriteria } from '@/components/data/DataDownload'
 import type { omics_results, omics_subjects, Labs, op_medications } from '@/generated/prisma'
 import { Decimal } from '@prisma/client/runtime/library'
 
+export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
+
 // Define allowed roles for accessing this sensitive route
 const ALLOWED_ROLES = ['admin', 'clinician', 'editor'] // Adjust roles as needed
 

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { Prisma, PrismaClient } from '@/generated/prisma' // Import Prisma namespace and PrismaClient
+import { Prisma } from '@/generated/prisma'
+import type { subject_registration } from '@/generated/prisma'
 
 interface RegistrationData {
   first_name: string
@@ -50,7 +51,6 @@ export async function POST(request: Request) {
     }
 
     // --- Database Transaction ---
-    // Add type for the transaction client `tx`
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       console.log("[API /registration] Starting transaction...");
 
@@ -124,6 +124,42 @@ export async function POST(request: Request) {
 
     // Generic server error
     const errorMessage = error instanceof Error ? error.message : 'Failed to register subject'
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+
+// Define allowed roles for accessing this sensitive route
+const ALLOWED_ROLES_GET = ['admin', 'clinician', 'editor']
+
+export async function GET(request: Request) {
+  // Use the imported prisma instance directly
+  // const prisma = getPrismaClient(); // Remove this incorrect instantiation
+  
+  // --- Authentication & Authorization ---
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  // Add role check for GET request
+  if (!session.user.role || !ALLOWED_ROLES_GET.includes(session.user.role)) {
+    console.warn(`[API /registration] Unauthorized GET attempt: Insufficient role`);
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  // TODO: Implement actual GET logic here using the imported `prisma` instance
+  // Example: Fetch all registrations (adjust as needed)
+  try {
+    const registrations = await prisma.subject_registration.findMany({
+      orderBy: { registration_date: 'desc' },
+      // Add includes or selects as needed
+    });
+    return NextResponse.json(registrations);
+  } catch (error) {
+    console.error('[API /registration] Error fetching registrations:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch registrations'
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 }

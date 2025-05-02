@@ -1,0 +1,3866 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "6",
+  "dialect": "postgresql",
+  "tables": {
+    "clinical.patients": {
+      "name": "patients",
+      "schema": "clinical",
+      "columns": {
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "middle_name": {
+          "name": "middle_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sex": {
+          "name": "sex",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "race": {
+          "name": "race",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ethnicity": {
+          "name": "ethnicity",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_tobacco_user": {
+          "name": "is_tobacco_user",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alcohol_user": {
+          "name": "alcohol_user",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ill_drug_user": {
+          "name": "ill_drug_user",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "clinical.lab_results": {
+      "name": "lab_results",
+      "schema": "clinical",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "component_id": {
+          "name": "component_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "component_name": {
+          "name": "component_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_value": {
+          "name": "result_value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_value_numeric": {
+          "name": "result_value_numeric",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reference_range": {
+          "name": "reference_range",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "units": {
+          "name": "units",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "abnormal_flag": {
+          "name": "abnormal_flag",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_time": {
+          "name": "result_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "lab_results_order_id_fkey": {
+          "name": "lab_results_order_id_fkey",
+          "tableFrom": "lab_results",
+          "tableTo": "lab_orders",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "order_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "lab_results_order_id_component_id_key": {
+          "columns": [
+            "order_id",
+            "component_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "lab_results_order_id_component_id_key"
+        }
+      }
+    },
+    "clinical.bone_marrow_results": {
+      "name": "bone_marrow_results",
+      "schema": "clinical",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "component_id": {
+          "name": "component_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "component_name": {
+          "name": "component_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_text": {
+          "name": "result_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "bone_marrow_results_order_id_fkey": {
+          "name": "bone_marrow_results_order_id_fkey",
+          "tableFrom": "bone_marrow_results",
+          "tableTo": "lab_orders",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "order_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "bone_marrow_results_order_id_component_id_key": {
+          "columns": [
+            "order_id",
+            "component_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "bone_marrow_results_order_id_component_id_key"
+        }
+      }
+    },
+    "laboratory.results_dna": {
+      "name": "results_dna",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_dna": {
+          "name": "date_dna",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "concentration_1_dna": {
+          "name": "concentration_1_dna",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "purity_1_dna": {
+          "name": "purity_1_dna",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "concentration_2_dna": {
+          "name": "concentration_2_dna",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "purity_2_dna": {
+          "name": "purity_2_dna",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_pass_dna": {
+          "name": "qc_pass_dna",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_dna": {
+          "name": "qc_notes_dna",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_results_dna_sample_id": {
+          "name": "idx_results_dna_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_dna_date": {
+          "name": "idx_results_dna_date",
+          "columns": [
+            "date_dna"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_dna_sample_id_fkey": {
+          "name": "results_dna_sample_id_fkey",
+          "tableFrom": "results_dna",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_dna_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_dna_sample_id_unique"
+        }
+      }
+    },
+    "laboratory.results_plasma": {
+      "name": "results_plasma",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_plasma": {
+          "name": "date_plasma",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol_plasma_1": {
+          "name": "vol_plasma_1",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol_plasma_2": {
+          "name": "vol_plasma_2",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vol_plasma_3": {
+          "name": "vol_plasma_3",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_plasma": {
+          "name": "qc_notes_plasma",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_results_plasma_sample_id": {
+          "name": "idx_results_plasma_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_plasma_date": {
+          "name": "idx_results_plasma_date",
+          "columns": [
+            "date_plasma"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_plasma_sample_id_fkey": {
+          "name": "results_plasma_sample_id_fkey",
+          "tableFrom": "results_plasma",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_plasma_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_plasma_sample_id_unique"
+        }
+      }
+    },
+    "laboratory.results_pbmc": {
+      "name": "results_pbmc",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_pbmc": {
+          "name": "date_pbmc",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sent_to_gt_pbmc": {
+          "name": "sent_to_gt_pbmc",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_pbmc": {
+          "name": "qc_notes_pbmc",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "cell_number_1_pbmc": {
+          "name": "cell_number_1_pbmc",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cell_number_2_pbmc": {
+          "name": "cell_number_2_pbmc",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_results_pbmc_sample_id": {
+          "name": "idx_results_pbmc_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_pbmc_date": {
+          "name": "idx_results_pbmc_date",
+          "columns": [
+            "date_pbmc"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_pbmc_sample_id_fkey": {
+          "name": "results_pbmc_sample_id_fkey",
+          "tableFrom": "results_pbmc",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_pbmc_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_pbmc_sample_id_unique"
+        }
+      }
+    },
+    "laboratory.results_adhesion": {
+      "name": "results_adhesion",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_adhesion": {
+          "name": "date_adhesion",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cells_adhered_adhesion": {
+          "name": "cells_adhered_adhesion",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_pass_adhesion": {
+          "name": "qc_pass_adhesion",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_adhesion": {
+          "name": "qc_notes_adhesion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_results_adhesion_sample_id": {
+          "name": "idx_results_adhesion_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_adhesion_date": {
+          "name": "idx_results_adhesion_date",
+          "columns": [
+            "date_adhesion"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_adhesion_sample_id_fkey": {
+          "name": "results_adhesion_sample_id_fkey",
+          "tableFrom": "results_adhesion",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_adhesion_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_adhesion_sample_id_unique"
+        }
+      }
+    },
+    "laboratory.omics_subjects": {
+      "name": "omics_subjects",
+      "schema": "laboratory",
+      "columns": {
+        "subject_id": {
+          "name": "subject_id",
+          "type": "varchar(20)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "project": {
+          "name": "project",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'OMI'::character varying"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "clinical.v_acs_pneumonia_admissions_summary": {
+      "name": "v_acs_pneumonia_admissions_summary",
+      "schema": "clinical",
+      "columns": {
+        "visit_id": {
+          "name": "visit_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_omics_data": {
+          "name": "has_omics_data",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_acs_pneumonia_admission": {
+          "name": "is_acs_pneumonia_admission",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "laboratory.samples": {
+      "name": "samples",
+      "schema": "laboratory",
+      "columns": {
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "subject_id": {
+          "name": "subject_id",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sample_number": {
+          "name": "sample_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_of_collection": {
+          "name": "date_of_collection",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "age_at_collection": {
+          "name": "age_at_collection",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "genotype": {
+          "name": "genotype",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "therapies": {
+          "name": "therapies",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "days_to_processing": {
+          "name": "days_to_processing",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "steady_state": {
+          "name": "steady_state",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transfusion_status": {
+          "name": "transfusion_status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transfusion_confirmed": {
+          "name": "transfusion_confirmed",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "samples_subject_id_fkey": {
+          "name": "samples_subject_id_fkey",
+          "tableFrom": "samples",
+          "tableTo": "omics_subjects",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "subject_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "samples_subject_id_sample_number_key": {
+          "columns": [
+            "subject_id",
+            "sample_number"
+          ],
+          "nullsNotDistinct": false,
+          "name": "samples_subject_id_sample_number_key"
+        }
+      }
+    },
+    "clinical.subject_registration": {
+      "name": "subject_registration",
+      "schema": "clinical",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "subject_id": {
+          "name": "subject_id",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "registration_date": {
+          "name": "registration_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "consent_date": {
+          "name": "consent_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "corporate_id": {
+          "name": "corporate_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "subject_registration_subject_id_fkey": {
+          "name": "subject_registration_subject_id_fkey",
+          "tableFrom": "subject_registration",
+          "tableTo": "omics_subjects",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "subject_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "subject_registration_patient_mrn_fkey": {
+          "name": "subject_registration_patient_mrn_fkey",
+          "tableFrom": "subject_registration",
+          "tableTo": "patients",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "patient_mrn"
+          ],
+          "columnsTo": [
+            "patient_mrn"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "subject_registration_subject_id_key": {
+          "columns": [
+            "subject_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "subject_registration_subject_id_key"
+        }
+      }
+    },
+    "clinical.medication_orders": {
+      "name": "medication_orders",
+      "schema": "clinical",
+      "columns": {
+        "medication_order_id": {
+          "name": "medication_order_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "epic_order_med_id": {
+          "name": "epic_order_med_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medication_name": {
+          "name": "medication_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_time": {
+          "name": "order_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dose": {
+          "name": "dose",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "units": {
+          "name": "units",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "route": {
+          "name": "route",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "medication_orders_visit_id_fkey": {
+          "name": "medication_orders_visit_id_fkey",
+          "tableFrom": "medication_orders",
+          "tableTo": "visits",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "visit_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "medication_orders_patient_mrn_fkey": {
+          "name": "medication_orders_patient_mrn_fkey",
+          "tableFrom": "medication_orders",
+          "tableTo": "patients",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "patient_mrn"
+          ],
+          "columnsTo": [
+            "patient_mrn"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "laboratory.results_advia": {
+      "name": "results_advia",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_advia": {
+          "name": "date_advia",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rbc_advia": {
+          "name": "rbc_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hb_advia": {
+          "name": "hb_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hct_advia": {
+          "name": "hct_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mcv_advia": {
+          "name": "mcv_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mch_advia": {
+          "name": "mch_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mchc_advia": {
+          "name": "mchc_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rdw_advia": {
+          "name": "rdw_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hdw_advia": {
+          "name": "hdw_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plt_advia": {
+          "name": "plt_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mpv_advia": {
+          "name": "mpv_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "wbc_advia": {
+          "name": "wbc_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "neut_advia": {
+          "name": "neut_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retic_advia": {
+          "name": "retic_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chr_advia": {
+          "name": "chr_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hc41_v120_advia": {
+          "name": "hc41_v120_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hc41_v60_120_advia": {
+          "name": "hc41_v60_120_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hc41_v60_advia": {
+          "name": "hc41_v60_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drbc_advia": {
+          "name": "drbc_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hyper_advia": {
+          "name": "hyper_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nrbc_advia": {
+          "name": "nrbc_advia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_pass_advia": {
+          "name": "qc_pass_advia",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_advia": {
+          "name": "qc_notes_advia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_results_advia_sample_id": {
+          "name": "idx_results_advia_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_advia_date": {
+          "name": "idx_results_advia_date",
+          "columns": [
+            "date_advia"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_advia_sample_id_fkey": {
+          "name": "results_advia_sample_id_fkey",
+          "tableFrom": "results_advia",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_advia_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_advia_sample_id_unique"
+        }
+      }
+    },
+    "laboratory.results_fcells": {
+      "name": "results_fcells",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_f_cells": {
+          "name": "date_f_cells",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "percent_f_cells": {
+          "name": "percent_f_cells",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stain_f_cells": {
+          "name": "stain_f_cells",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cytometer_f_cells": {
+          "name": "cytometer_f_cells",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_pass_f_cells": {
+          "name": "qc_pass_f_cells",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_f_cells": {
+          "name": "qc_notes_f_cells",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_results_fcells_sample_id": {
+          "name": "idx_results_fcells_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_fcells_date": {
+          "name": "idx_results_fcells_date",
+          "columns": [
+            "date_f_cells"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_fcells_sample_id_fkey": {
+          "name": "results_fcells_sample_id_fkey",
+          "tableFrom": "results_fcells",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_fcells_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_fcells_sample_id_unique"
+        }
+      }
+    },
+    "clinical.visits": {
+      "name": "visits",
+      "schema": "clinical",
+      "columns": {
+        "visit_id": {
+          "name": "visit_id",
+          "type": "varchar(50)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pat_enc_csn_id": {
+          "name": "pat_enc_csn_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visit_type": {
+          "name": "visit_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visit_subtype": {
+          "name": "visit_subtype",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visit_start_datetime": {
+          "name": "visit_start_datetime",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visit_end_datetime": {
+          "name": "visit_end_datetime",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "department_id": {
+          "name": "department_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "department_name": {
+          "name": "department_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "discharge_disposition": {
+          "name": "discharge_disposition",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "icu_admission": {
+          "name": "icu_admission",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "bp_systolic": {
+          "name": "bp_systolic",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bp_diastolic": {
+          "name": "bp_diastolic",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weight_kg": {
+          "name": "weight_kg",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "visits_patient_mrn_fkey": {
+          "name": "visits_patient_mrn_fkey",
+          "tableFrom": "visits",
+          "tableTo": "patients",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "patient_mrn"
+          ],
+          "columnsTo": [
+            "patient_mrn"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "visits_pat_enc_csn_id_key": {
+          "columns": [
+            "pat_enc_csn_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "visits_pat_enc_csn_id_key"
+        }
+      }
+    },
+    "clinical.fact_bone_marrow_order": {
+      "name": "fact_bone_marrow_order",
+      "schema": "clinical",
+      "columns": {
+        "bone_marrow_order_key": {
+          "name": "bone_marrow_order_key",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_key": {
+          "name": "patient_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "grady_mrn": {
+          "name": "grady_mrn",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hsp_account_id": {
+          "name": "hsp_account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "result_time": {
+          "name": "result_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_code": {
+          "name": "lab_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_name": {
+          "name": "lab_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_staging_table": {
+          "name": "source_staging_table",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'staging.raw_bone_marrow'"
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dw_imported_at": {
+          "name": "dw_imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "fact_bone_marrow_order_order_id_key": {
+          "columns": [
+            "order_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "fact_bone_marrow_order_order_id_key"
+        }
+      }
+    },
+    "laboratory.results_lorrca": {
+      "name": "results_lorrca",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_lorrca": {
+          "name": "date_lorrca",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ei_min_lorrca": {
+          "name": "ei_min_lorrca",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ei_max_lorrca": {
+          "name": "ei_max_lorrca",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ei_delta_lorrca": {
+          "name": "ei_delta_lorrca",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pos_lorrca": {
+          "name": "pos_lorrca",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "instrument_lorrca": {
+          "name": "instrument_lorrca",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_pass_lorrca": {
+          "name": "qc_pass_lorrca",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_lorrca": {
+          "name": "qc_notes_lorrca",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_results_lorrca_sample_id": {
+          "name": "idx_results_lorrca_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_lorrca_date": {
+          "name": "idx_results_lorrca_date",
+          "columns": [
+            "date_lorrca"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_lorrca_sample_id_fkey": {
+          "name": "results_lorrca_sample_id_fkey",
+          "tableFrom": "results_lorrca",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_lorrca_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_lorrca_sample_id_unique"
+        }
+      }
+    },
+    "laboratory.results_viscosity": {
+      "name": "results_viscosity",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_analysis": {
+          "name": "date_analysis",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visc_45": {
+          "name": "visc_45",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visc_225": {
+          "name": "visc_225",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hvr_45": {
+          "name": "hvr_45",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hvr_225": {
+          "name": "hvr_225",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_pass": {
+          "name": "qc_pass",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes": {
+          "name": "qc_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_results_viscosity_sample_id": {
+          "name": "idx_results_viscosity_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_viscosity_date_analysis": {
+          "name": "idx_results_viscosity_date_analysis",
+          "columns": [
+            "date_analysis"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_viscosity_sample_id_fkey": {
+          "name": "results_viscosity_sample_id_fkey",
+          "tableFrom": "results_viscosity",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_viscosity_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_viscosity_sample_id_unique"
+        }
+      }
+    },
+    "clinical.medication_administrations": {
+      "name": "medication_administrations",
+      "schema": "clinical",
+      "columns": {
+        "administration_id": {
+          "name": "administration_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "epic_order_med_id": {
+          "name": "epic_order_med_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medication_name": {
+          "name": "medication_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "administration_time": {
+          "name": "administration_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dose_given": {
+          "name": "dose_given",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "units": {
+          "name": "units",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "route": {
+          "name": "route",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason_for_action": {
+          "name": "reason_for_action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "administering_user": {
+          "name": "administering_user",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "medication_administrations_visit_id_fkey": {
+          "name": "medication_administrations_visit_id_fkey",
+          "tableFrom": "medication_administrations",
+          "tableTo": "visits",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "visit_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "medication_administrations_patient_mrn_fkey": {
+          "name": "medication_administrations_patient_mrn_fkey",
+          "tableFrom": "medication_administrations",
+          "tableTo": "patients",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "patient_mrn"
+          ],
+          "columnsTo": [
+            "patient_mrn"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "clinical.fact_bone_marrow_component": {
+      "name": "fact_bone_marrow_component",
+      "schema": "clinical",
+      "columns": {
+        "bone_marrow_component_key": {
+          "name": "bone_marrow_component_key",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "bone_marrow_order_key": {
+          "name": "bone_marrow_order_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "component_id": {
+          "name": "component_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "component_name": {
+          "name": "component_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_text": {
+          "name": "result_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_staging_id": {
+          "name": "source_staging_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dw_imported_at": {
+          "name": "dw_imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fact_bone_marrow_component_bone_marrow_order_key_fkey": {
+          "name": "fact_bone_marrow_component_bone_marrow_order_key_fkey",
+          "tableFrom": "fact_bone_marrow_component",
+          "tableTo": "fact_bone_marrow_order",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "bone_marrow_order_key"
+          ],
+          "columnsTo": [
+            "bone_marrow_order_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "fact_bone_marrow_component_bone_marrow_order_key_component__key": {
+          "columns": [
+            "bone_marrow_order_key",
+            "component_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "fact_bone_marrow_component_bone_marrow_order_key_component__key"
+        }
+      }
+    },
+    "clinical.visit_diagnoses": {
+      "name": "visit_diagnoses",
+      "schema": "clinical",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "diagnosis_type": {
+          "name": "diagnosis_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "icd10_code": {
+          "name": "icd10_code",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "diagnosis_name": {
+          "name": "diagnosis_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sequence_num": {
+          "name": "sequence_num",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "visit_diagnoses_visit_id_fkey": {
+          "name": "visit_diagnoses_visit_id_fkey",
+          "tableFrom": "visit_diagnoses",
+          "tableTo": "visits",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "visit_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "visit_diagnoses_visit_id_diagnosis_type_icd10_code_sequence_key": {
+          "columns": [
+            "visit_id",
+            "diagnosis_type",
+            "icd10_code",
+            "sequence_num"
+          ],
+          "nullsNotDistinct": false,
+          "name": "visit_diagnoses_visit_id_diagnosis_type_icd10_code_sequence_key"
+        }
+      }
+    },
+    "staging.raw_bone_marrow": {
+      "name": "raw_bone_marrow",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hsp_account_id": {
+          "name": "hsp_account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_time": {
+          "name": "result_time",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_code": {
+          "name": "lab_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_name": {
+          "name": "lab_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "component_id": {
+          "name": "component_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_component_description": {
+          "name": "lab_component_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bone_marrow_results_by_component": {
+          "name": "bone_marrow_results_by_component",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "clinical.lab_orders": {
+      "name": "lab_orders",
+      "schema": "clinical",
+      "columns": {
+        "order_id": {
+          "name": "order_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "order_type": {
+          "name": "order_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accession_num": {
+          "name": "accession_num",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_code": {
+          "name": "lab_code",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_name": {
+          "name": "lab_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_time": {
+          "name": "order_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_time": {
+          "name": "result_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "collection_time": {
+          "name": "collection_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proc_bgn_time": {
+          "name": "proc_bgn_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proc_end_time": {
+          "name": "proc_end_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "lab_orders_patient_mrn_fkey": {
+          "name": "lab_orders_patient_mrn_fkey",
+          "tableFrom": "lab_orders",
+          "tableTo": "patients",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "patient_mrn"
+          ],
+          "columnsTo": [
+            "patient_mrn"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "lab_orders_visit_id_fkey": {
+          "name": "lab_orders_visit_id_fkey",
+          "tableFrom": "lab_orders",
+          "tableTo": "visits",
+          "schemaTo": "clinical",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "visit_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "lab_orders_accession_num_key": {
+          "columns": [
+            "accession_num"
+          ],
+          "nullsNotDistinct": false,
+          "name": "lab_orders_accession_num_key"
+        }
+      }
+    },
+    "staging.raw_op_visits": {
+      "name": "raw_op_visits",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PATIENT_MRN": {
+          "name": "PATIENT_MRN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PAT_ID": {
+          "name": "PAT_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "HSP_ACCOUNT_ID": {
+          "name": "HSP_ACCOUNT_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "VISIT_DATE": {
+          "name": "VISIT_DATE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "VISIT_TYPE": {
+          "name": "VISIT_TYPE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DEPARTMENT_ID": {
+          "name": "DEPARTMENT_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DEPARTMENT_NAME": {
+          "name": "DEPARTMENT_NAME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "BP_SYSTOLIC": {
+          "name": "BP_SYSTOLIC",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "BP_DIASTOLIC": {
+          "name": "BP_DIASTOLIC",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "WEIGHT_LBS": {
+          "name": "WEIGHT_LBS",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "WEIGHT_KG": {
+          "name": "WEIGHT_KG",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "CURRENT_ICD10_LIST": {
+          "name": "CURRENT_ICD10_LIST",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DX_NAME": {
+          "name": "DX_NAME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_staging_raw_op_visits_mrn": {
+          "name": "idx_staging_raw_op_visits_mrn",
+          "columns": [
+            "PATIENT_MRN"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_op_visits_acctid": {
+          "name": "idx_staging_raw_op_visits_acctid",
+          "columns": [
+            "HSP_ACCOUNT_ID"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_op_visits_visitdt": {
+          "name": "idx_staging_raw_op_visits_visitdt",
+          "columns": [
+            "VISIT_DATE"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_op_visits_icd10": {
+          "name": "idx_staging_raw_op_visits_icd10",
+          "columns": [
+            "CURRENT_ICD10_LIST"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "staging.raw_ip_meds": {
+      "name": "raw_ip_meds",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PATIENT_MRN": {
+          "name": "PATIENT_MRN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "HSP_ACCOUNT_ID": {
+          "name": "HSP_ACCOUNT_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ADM_DATE_TIME": {
+          "name": "ADM_DATE_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DISCH_DATE_TIME": {
+          "name": "DISCH_DATE_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "MEDICATION": {
+          "name": "MEDICATION",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DOSAGE": {
+          "name": "DOSAGE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "UNIT": {
+          "name": "UNIT",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FREQUENCY": {
+          "name": "FREQUENCY",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "TAKEN_TIME": {
+          "name": "TAKEN_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "RX_CLASS_NAME": {
+          "name": "RX_CLASS_NAME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_staging_raw_ip_meds_mrn": {
+          "name": "idx_staging_raw_ip_meds_mrn",
+          "columns": [
+            "PATIENT_MRN"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_ip_meds_acctid": {
+          "name": "idx_staging_raw_ip_meds_acctid",
+          "columns": [
+            "HSP_ACCOUNT_ID"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_ip_meds_med": {
+          "name": "idx_staging_raw_ip_meds_med",
+          "columns": [
+            "MEDICATION"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "app.User": {
+      "name": "User",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emailVerified": {
+          "name": "emailVerified",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_user_email": {
+          "name": "idx_user_email",
+          "columns": [
+            "email"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "User_email_key": {
+          "columns": [
+            "email"
+          ],
+          "nullsNotDistinct": false,
+          "name": "User_email_key"
+        }
+      }
+    },
+    "app.Account": {
+      "name": "Account",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "providerAccountId": {
+          "name": "providerAccountId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_type": {
+          "name": "token_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "session_state": {
+          "name": "session_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_account_userid": {
+          "name": "idx_account_userid",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "idx_account_provider_account_id": {
+          "name": "idx_account_provider_account_id",
+          "columns": [
+            "provider",
+            "providerAccountId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "Account_userId_fkey": {
+          "name": "Account_userId_fkey",
+          "tableFrom": "Account",
+          "tableTo": "User",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "app.Session": {
+      "name": "Session",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sessionToken": {
+          "name": "sessionToken",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires": {
+          "name": "expires",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "idx_session_userid": {
+          "name": "idx_session_userid",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Session_userId_fkey": {
+          "name": "Session_userId_fkey",
+          "tableFrom": "Session",
+          "tableTo": "User",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Session_sessionToken_key": {
+          "columns": [
+            "sessionToken"
+          ],
+          "nullsNotDistinct": false,
+          "name": "Session_sessionToken_key"
+        }
+      }
+    },
+    "staging.raw_imaging": {
+      "name": "raw_imaging",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PATIENT_MRN": {
+          "name": "PATIENT_MRN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PAT_ENC_CSN_ID": {
+          "name": "PAT_ENC_CSN_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ORDER_ID": {
+          "name": "ORDER_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ACCESSION_NUM": {
+          "name": "ACCESSION_NUM",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ORDER_TIME": {
+          "name": "ORDER_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PROC_BGN_TIME": {
+          "name": "PROC_BGN_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PROC_END_TIME": {
+          "name": "PROC_END_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "NARRATIVE": {
+          "name": "NARRATIVE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "IMPRESSION": {
+          "name": "IMPRESSION",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PROC_CODE": {
+          "name": "PROC_CODE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PROCEDURE_DESCRIPTION": {
+          "name": "PROCEDURE_DESCRIPTION",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_staging_raw_imaging_mrn": {
+          "name": "idx_staging_raw_imaging_mrn",
+          "columns": [
+            "PATIENT_MRN"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_imaging_ordid": {
+          "name": "idx_staging_raw_imaging_ordid",
+          "columns": [
+            "ORDER_ID"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_imaging_accnum": {
+          "name": "idx_staging_raw_imaging_accnum",
+          "columns": [
+            "ACCESSION_NUM"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "staging.raw_demographics": {
+      "name": "raw_demographics",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "BIRTH_DATE": {
+          "name": "BIRTH_DATE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "RACE": {
+          "name": "RACE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ETHNICITY": {
+          "name": "ETHNICITY",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PATIENT_MRN": {
+          "name": "PATIENT_MRN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PATIENT_NAME": {
+          "name": "PATIENT_NAME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "AGE": {
+          "name": "AGE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "GENDER": {
+          "name": "GENDER",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "IS_TOBACCO_USER_YN": {
+          "name": "IS_TOBACCO_USER_YN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ALCOHOL_USER_YN": {
+          "name": "ALCOHOL_USER_YN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ILL_DRUG_USER_YN": {
+          "name": "ILL_DRUG_USER_YN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_staging_raw_demographics_mrn_new": {
+          "name": "idx_staging_raw_demographics_mrn_new",
+          "columns": [
+            "PATIENT_MRN"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "staging.raw_ip_admissions": {
+      "name": "raw_ip_admissions",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PATIENT_MRN": {
+          "name": "PATIENT_MRN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "HSP_ACCOUNT_ID": {
+          "name": "HSP_ACCOUNT_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ADM_DATE_TIME": {
+          "name": "ADM_DATE_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DISCH_DATE_TIME": {
+          "name": "DISCH_DATE_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DISCHARGE_DEPARTMENT": {
+          "name": "DISCHARGE_DEPARTMENT",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DISCHARGE_DISPOSITION": {
+          "name": "DISCHARGE_DISPOSITION",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ICU_ADMISSION_YN": {
+          "name": "ICU_ADMISSION_YN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ADMIT_DX_CD_1": {
+          "name": "ADMIT_DX_CD_1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ADMIT_DX_DESCRIPTION_1": {
+          "name": "ADMIT_DX_DESCRIPTION_1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ADMIT_DX_CD_2": {
+          "name": "ADMIT_DX_CD_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ADMIT_DX_DESCRIPTION_2": {
+          "name": "ADMIT_DX_DESCRIPTION_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_CD_1": {
+          "name": "FINAL_DX_CD_1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_DESCRIPTION_1": {
+          "name": "FINAL_DX_DESCRIPTION_1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_CD_2": {
+          "name": "FINAL_DX_CD_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_DESCRIPTION_2": {
+          "name": "FINAL_DX_DESCRIPTION_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_CD_3": {
+          "name": "FINAL_DX_CD_3",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_DESCRIPTION_3": {
+          "name": "FINAL_DX_DESCRIPTION_3",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_CD_4": {
+          "name": "FINAL_DX_CD_4",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_DESCRIPTION_4": {
+          "name": "FINAL_DX_DESCRIPTION_4",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_CD_5": {
+          "name": "FINAL_DX_CD_5",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "FINAL_DX_DESCRIPTION_5": {
+          "name": "FINAL_DX_DESCRIPTION_5",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_staging_raw_ip_adm_mrn": {
+          "name": "idx_staging_raw_ip_adm_mrn",
+          "columns": [
+            "PATIENT_MRN"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_ip_adm_hospid": {
+          "name": "idx_staging_raw_ip_adm_hospid",
+          "columns": [
+            "HSP_ACCOUNT_ID"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "staging.raw_op_avs": {
+      "name": "raw_op_avs",
+      "schema": "staging",
+      "columns": {
+        "staging_op_avs_pk": {
+          "name": "staging_op_avs_pk",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "PATIENT_MRN": {
+          "name": "PATIENT_MRN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "HSP_ACCOUNT_ID": {
+          "name": "HSP_ACCOUNT_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "VISIT_DATE": {
+          "name": "VISIT_DATE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ORDER_MED_ID": {
+          "name": "ORDER_MED_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ORDER_DTTM": {
+          "name": "ORDER_DTTM",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "RX_STATUS": {
+          "name": "RX_STATUS",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "GENERIC_DESCRIPTION": {
+          "name": "GENERIC_DESCRIPTION",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "loaded_at": {
+          "name": "loaded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "idx_raw_op_avs_mrn": {
+          "name": "idx_raw_op_avs_mrn",
+          "columns": [
+            "PATIENT_MRN"
+          ],
+          "isUnique": false
+        },
+        "idx_raw_op_avs_visitdate": {
+          "name": "idx_raw_op_avs_visitdate",
+          "columns": [
+            "VISIT_DATE"
+          ],
+          "isUnique": false
+        },
+        "idx_raw_op_avs_ordermedid": {
+          "name": "idx_raw_op_avs_ordermedid",
+          "columns": [
+            "ORDER_MED_ID"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "staging.raw_labs": {
+      "name": "raw_labs",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PATIENT_MRN": {
+          "name": "PATIENT_MRN",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PAT_ENC_CSN_ID": {
+          "name": "PAT_ENC_CSN_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ORDER_TIME": {
+          "name": "ORDER_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PROC_CODE": {
+          "name": "PROC_CODE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "PROC_NAME": {
+          "name": "PROC_NAME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "COMPONENT_ID": {
+          "name": "COMPONENT_ID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "LAB_COMPONENT_DESCRIPTION": {
+          "name": "LAB_COMPONENT_DESCRIPTION",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "LAB_RESULT_VALUE": {
+          "name": "LAB_RESULT_VALUE",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "RESULT_TIME": {
+          "name": "RESULT_TIME",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_processed": {
+          "name": "is_processed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        }
+      },
+      "indexes": {
+        "idx_staging_raw_labs_mrn": {
+          "name": "idx_staging_raw_labs_mrn",
+          "columns": [
+            "PATIENT_MRN"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_labs_csn": {
+          "name": "idx_staging_raw_labs_csn",
+          "columns": [
+            "PAT_ENC_CSN_ID"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_raw_labs_compid": {
+          "name": "idx_staging_raw_labs_compid",
+          "columns": [
+            "COMPONENT_ID"
+          ],
+          "isUnique": false
+        },
+        "idx_raw_labs_is_processed": {
+          "name": "idx_raw_labs_is_processed",
+          "columns": [
+            "is_processed"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "laboratory.results_hplc": {
+      "name": "results_hplc",
+      "schema": "laboratory",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_hplc": {
+          "name": "date_hplc",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_pass_hplc": {
+          "name": "qc_pass_hplc",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qc_notes_hplc": {
+          "name": "qc_notes_hplc",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "hplc_pellet_collected": {
+          "name": "hplc_pellet_collected",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hplc_pellet_run": {
+          "name": "hplc_pellet_run",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hbf_percent": {
+          "name": "hbf_percent",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hba_percent": {
+          "name": "hba_percent",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hbs_percent": {
+          "name": "hbs_percent",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hba2_percent": {
+          "name": "hba2_percent",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hbc_percent": {
+          "name": "hbc_percent",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_results_hplc_sample_id": {
+          "name": "idx_results_hplc_sample_id",
+          "columns": [
+            "sample_id"
+          ],
+          "isUnique": false
+        },
+        "idx_results_hplc_date": {
+          "name": "idx_results_hplc_date",
+          "columns": [
+            "date_hplc"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "results_hplc_sample_id_fkey": {
+          "name": "results_hplc_sample_id_fkey",
+          "tableFrom": "results_hplc",
+          "tableTo": "samples",
+          "schemaTo": "laboratory",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "results_hplc_sample_id_unique": {
+          "columns": [
+            "sample_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "results_hplc_sample_id_unique"
+        }
+      }
+    },
+    "clinical.imaging_results": {
+      "name": "imaging_results",
+      "schema": "clinical",
+      "columns": {
+        "imaging_result_id": {
+          "name": "imaging_result_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_mrn": {
+          "name": "patient_mrn",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "procedure_name": {
+          "name": "procedure_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_time": {
+          "name": "order_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_time": {
+          "name": "result_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_text": {
+          "name": "result_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "impression": {
+          "name": "impression",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accession_number": {
+          "name": "accession_number",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_file": {
+          "name": "source_file",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "staging.raw_mrn_mapping": {
+      "name": "raw_mrn_mapping",
+      "schema": "staging",
+      "columns": {
+        "staging_id": {
+          "name": "staging_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "source_file_name": {
+          "name": "source_file_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "subject_id": {
+          "name": "subject_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "grady_mrn": {
+          "name": "grady_mrn",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "app.VerificationToken": {
+      "name": "VerificationToken",
+      "schema": "app",
+      "columns": {
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires": {
+          "name": "expires",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "VerificationToken_pkey": {
+          "name": "VerificationToken_pkey",
+          "columns": [
+            "identifier",
+            "token"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "clinical": "clinical",
+    "laboratory": "laboratory",
+    "staging": "staging",
+    "app": "app"
+  },
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {}
+  }
+}

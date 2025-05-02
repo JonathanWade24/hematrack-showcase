@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import type { ip_admissions, op_visits, ip_medications, op_medications, bone_marrow } from '@/generated/prisma' // Import model types
 
+export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
+
 // Define allowed roles for accessing this sensitive route
 const ALLOWED_ROLES = ['admin', 'clinician', 'editor'] // Adjust roles as needed
 

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
+export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
+
 // Define allowed roles for accessing this data import preview
 const ALLOWED_ROLES = ['admin', 'editor'] // Adjust roles as needed
 

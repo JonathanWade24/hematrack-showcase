@@ -1,73 +1,74 @@
 # Dockerfile
-# Base image for installing dependencies
+# Base image
 FROM node:20-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-# Copy package.json and package-lock.json (or yarn.lock / pnpm-lock.yaml)
-# Assumes package files are in the workspace root
-COPY package.json package-lock.json* ./
-
-# Install dependencies using npm ci for consistency
-RUN npm ci
-
-# ---
-
-# Builder stage: Build the Next.js application
+# 1. Builder stage
 FROM base AS builder
-WORKDIR /app
 
-# Copy dependencies from the previous stage
-COPY --from=deps /app/node_modules ./node_modules
+# Copy package files and prisma schema FIRST
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+# Add .npmrc file if it exists (optional, for engine config etc.)
+# COPY .npmrc ./
 
-# Copy the rest of the application source code from the root
-# This includes the 'src' directory if it exists in the root
-COPY . ./
+# Install dependencies
+# This will also trigger the `postinstall` script (prisma generate)
+# which now has access to the schema
+RUN npm ci 
 
-# Set environment variables
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
+# Copy the rest of the application code
+# Important: Copy code AFTER npm ci + postinstall to leverage caching
+COPY . .
+
+# Copy build-time environment variables
+COPY .env.docker .env
+
+# --- Prisma generate is now handled by postinstall --- 
 
 # Build the Next.js application
-# This assumes your build script is named 'build' in package.json
+# Needs NODE_ENV=production and the .env file
+ENV NODE_ENV=production
 RUN npm run build
 
-# ---
+# Clean up the temporary .env file
+RUN rm .env
 
-# Runner stage: Create the final production image
+# --- Installation of production dependencies is handled by `output: standalone` --- 
+
+# 2. Runner stage
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+# ENV NEXT_TELEMETRY_DISABLED=1 # Already set in builder, check if needed here
 
+# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the standalone output from the builder stage (relative to WORKDIR /app in builder)
+# Copy application artifact from builder stage
+# Includes node_modules needed for runtime via `standalone` output
 COPY --from=builder /app/.next/standalone ./
-# Copy the static assets from the public directory (relative to WORKDIR /app in builder)
+
+# Copy static assets
 COPY --from=builder /app/public ./public
-# Copy the static assets built by Next.js (relative to WORKDIR /app in builder)
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy prisma schema and generate client
+# Copy Prisma schema needed for runtime (e.g., for migrations)
 COPY --from=builder /app/prisma ./prisma
-RUN npm install -g prisma
-RUN prisma generate
+
+# Optionally, copy Prisma Client Engines if not included in standalone 
+# (May be needed depending on Prisma version and specific features used)
+# COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 USER nextjs
 
-# Expose the port the app runs on (default 3000)
 EXPOSE 3000
 
-ENV PORT 3000
-# set hostname to localhost
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Define the command to start the application
-# The entrypoint is server.js in the standalone output directory
+# Runtime command - relies on env vars passed via `docker run -e ...`
 CMD ["node", "server.js"] 

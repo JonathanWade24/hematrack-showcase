@@ -1,0 +1,53 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+# Specify the following for Cursor rules
+description: Guidelines for keeping the project README updated
+globs: ["**/*"] # Apply broadly, as changes anywhere might need documentation
+---
+
+# Documentation: Update README.md
+
+As we work on the project, ensure the main `README.md` file is kept reasonably up-to-date with concise notes on significant developments.
+
+## When to Update
+
+Update the README when we:
+
+1.  **Implement a significant new feature** or modify existing core functionality substantially.
+2.  **Make important architectural decisions** (e.g., choosing a library, changing data flow).
+3.  **Introduce or modify key configuration points** (like the sample status logic).
+4.  **Complete major refactoring** that changes how parts of the application work.
+5.  **Fix a particularly complex or noteworthy bug** where understanding the fix is important.
+6.  **Identify important TODOs** or future considerations that arise during development.
+
+*Self-correction: Do not update the README for every minor change, simple bug fix, or routine code edit. Focus on information that provides context or tracks important evolution.*
+
+## How to Update
+
+1.  **Target File:** `README.md` at the project root.
+2.  **Location:**
+    *   Add chronological notes under the `## Development Notes` section.
+    *   Add or update entries under `## Configuration Points` if applicable.
+    *   Add items under `## TODO / Future Considerations` if relevant.
+3.  **Format:**
+    *   Use clear and concise Markdown.
+    *   Start notes with the date (e.g., `YYYY-MM-DD: ...`) under `Development Notes`.
+    *   Reference relevant file paths (`src/app/page.tsx`) where appropriate.
+    *   Keep it brief – these are notes, not the final manual.
+
+## Example Update (Development Notes)
+
+```markdown
+## Development Notes (Add as we go)
+
+*   **2023-10-27:** Refactored sample status calculation logic into shared helper functions (`calculateProcessingStatus`, `isNonZero`) and introduced configuration objects (`ASSAY_DEFINITIONS`, `REQUIRED_ASSAYS_FOR_COMPLETION`) in `src/app/page.tsx` and `src/app/samples/page.tsx` to define "Complete" status and handle assay checks dynamically.
+*   **2023-10-26:** Migrated `getOmicsSubjectById` function from Supabase (`src/lib/supabase/operations.ts`) to Prisma (`src/lib/prisma/operations.ts`). Updated calling page `src/app/subjects/[id]/page.tsx` to use the new Prisma function and handle data serialization (Decimals, Dates).
+```
+
+## Goal
+
+Maintain a running log of key changes and decisions to aid future development and the eventual creation of a more formal technical manual. Remember to prompt the user to add specific notes if unsure what needs documenting after a change.

@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "557690625517.dkr.Shoecr.us-east-1.amazonaws.com/hematrack:latest",
+    "Name": "557690625517.dkr.ecr.us-east-1.amazonaws.com/hematrack:latest",
     "Update": "true"
   },
   "Ports": [

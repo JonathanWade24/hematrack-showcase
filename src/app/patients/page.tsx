@@ -57,7 +57,7 @@ export default async function PatientsPage() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sex</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Race</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ethnicity</th>
-                  {/* Add Actions? */}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -67,7 +67,7 @@ export default async function PatientsPage() {
                       {/* Link to patient detail page? */}
                       {patient.patient_mrn}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500">
                       {`${patient.last_name || ''}, ${patient.first_name || ''} ${patient.middle_name || ''}`.trim()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -82,12 +82,20 @@ export default async function PatientsPage() {
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {patient.ethnicity || 'N/A'}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Link 
+                        href={`/visits/${patient.patient_mrn}`}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        View Timeline
+                      </Link>
+                    </td>
                   </tr>
                 ))}
                 
                 {patientsForTable.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500"> 
+                    <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500"> 
                       No patients found
                     </td>
                   </tr>

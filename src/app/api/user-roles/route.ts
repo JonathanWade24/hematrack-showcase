@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
+export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
+
 // Define the roles that can be assigned
 // It's good practice to define this centrally if used elsewhere
 const VALID_ROLES = [

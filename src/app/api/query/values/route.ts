@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { Prisma } from '@/generated/prisma'; // Import Prisma namespace
+import { z } from 'zod';
+
+export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
 
 // Define allowed columns for querying distinct values
 // Key: "schema.table.column", Value: { model: prismaModel, column: columnName }
