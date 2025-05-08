@@ -1,250 +1,291 @@
-import { prisma } from '@/lib/prisma'; // Correct path to prisma client
-import { omics_subjects, omics_results, patients, Prisma, audit_log, unified_visits, ip_medications, op_medications, ip_admissions, Labs } from '@prisma/client'; // Use correct generated type names and import Prisma namespace for types
-import { Decimal } from '@prisma/client/runtime/library'; // Keep for Decimal type
+// Remove Prisma imports
+// import { prisma } from '@/lib/prisma'; 
+// import { omics_subjects, omics_results, patients, Prisma } from '@prisma/client';
+// import { Decimal } from '@prisma/client/runtime/library';
+
+// Add Drizzle imports
+// import { db } from '@/lib/db'; // Attempting relative path due to error
+import { db } from '../db/index'; // Try direct import
+
+// Import directly from schema file first
+import { 
+    omics_subjectsInLaboratory, 
+    samplesInLaboratory, 
+    patientsInClinical, 
+    subject_registrationInClinical, 
+    // Import staging tables instead of missing clinical ones
+    raw_ip_medsInStaging, 
+    raw_op_avsInStaging, 
+    raw_ip_admissionsInStaging,
+    // Other required tables
+    visitsInClinical,
+    visit_diagnosesInClinical,
+    lab_ordersInClinical,
+    lab_resultsInClinical,
+    medication_administrationsInClinical,
+    // audit_log // Commented out - not found in schema.ts
+} from '../db/schema/schema'; 
+
+import { eq, desc, inArray, count, max, or, like, sql } from 'drizzle-orm'; // Import Drizzle operators
+import { PgTable } from 'drizzle-orm/pg-core';
+
 import { AssayType } from '@/lib/types'; // Import AssayType
 
+// Define the expected return type using Drizzle schema types
+// Note: Using generated types directly. Adjust if needed.
+type OmicsSubjectSelect = typeof omics_subjectsInLaboratory.$inferSelect;
+type SampleSelect = typeof samplesInLaboratory.$inferSelect;
+type PatientSelect = typeof patientsInClinical.$inferSelect;
+
+type OmicsSubjectWithDetails = OmicsSubjectSelect & {
+  samples: SampleSelect[];
+  patient: PatientSelect | null;
+};
+
 /**
- * Fetches an OmicsSubject by its ID, including related OmicsResults and Patient data.
- * Mimics the structure returned by the previous Supabase function.
+ * Fetches an OmicsSubject by its ID, including related Samples (ordered) and Patient data.
+ * Adapts the goal of the original function to the new database schema.
  * 
  * @param subject_id The ID of the subject to fetch.
- * @returns The subject data with related results and patient, or null if not found or on error.
+ * @returns The subject data with related samples and patient, or null if not found or on error.
  */
-export async function getOmicsSubjectById(subject_id: string): Promise<(
-  omics_subjects & { 
-    omics_results: omics_results[];
-    patient: patients | null; // Use 'patients' type here
-  }
-) | null> {
+export async function getOmicsSubjectById(subject_id: string): Promise<OmicsSubjectWithDetails | null> {
   try {
-    const subject = await prisma.omics_subjects.findUnique({
-      where: { 
-        subject_id: subject_id 
-      },
-      include: {
-        // Include related omics_results, order by date
-        omics_results: {
-          orderBy: {
-            date_of_collection: 'desc'
-          }
+    const subjectData = await db.query.omics_subjectsInLaboratory.findFirst({
+      where: eq(omics_subjectsInLaboratory.subject_id, subject_id),
+      with: {
+        // Include related samples, ordered by date
+        samplesInLaboratories: {
+          // orderBy: (samples: typeof samplesInLaboratory, { desc }: { desc: typeof desc }) => [desc(samples.date_of_collection)],
+          orderBy: [desc(samplesInLaboratory.date_of_collection)], // Use array syntax
         },
-        // Include related patient data via the patient_mrn foreign key
-        patients: true // Relation name from schema
-      }
+        // Include related registrations to get the patient
+        subject_registrationInClinicals: {
+          with: {
+            patientsInClinical: true, // Include the patient linked to the registration
+          },
+        },
+      },
     });
 
-    if (!subject) {
-      console.warn(`[Prisma] Subject with ID ${subject_id} not found.`);
+    if (!subjectData) {
+      console.warn(`[Drizzle] Subject with ID ${subject_id} not found.`);
       return null;
     }
 
-    // The included 'patients' relation contains the single related patient record
-    const patientData = subject.patients ?? null;
+    // Extract the patient data
+    // Assuming one registration per subject; handle potential multiple registrations if needed
+    const patientData = subjectData.subject_registrationInClinicals?.[0]?.patientsInClinical ?? null;
 
-    // Adjust the return type to match the expected structure, removing the extra 'patients' field from the top level
-    const { patients, ...subjectWithoutPatients } = subject; 
-
-    return {
-      ...subjectWithoutPatients,
-      omics_results: subject.omics_results, // Keep included omics_results
-      patient: patientData 
+    // Manually construct to avoid spreading potentially unwanted relations fields
+    const result: OmicsSubjectWithDetails = {
+      subject_id: subjectData.subject_id,
+      patient_mrn: subjectData.patient_mrn, 
+      project: subjectData.project,
+      created_at: subjectData.created_at,
+      updated_at: subjectData.updated_at,
+      samples: subjectData.samplesInLaboratories,
+      patient: patientData,
     };
 
+    return result;
+
   } catch (error) {
-    console.error(`[Prisma] Error fetching subject by ID ${subject_id}:`, error);
+    console.error(`[Drizzle] Error fetching subject by ID ${subject_id}:`, error);
+    // Consider more specific error handling if needed
     throw error; // Re-throw the error after logging
   }
 }
 
+// Define type alias for clarity
+type OmicsSubjectWithCountAndDate = OmicsSubjectSelect & { 
+  _count: { samplesInLaboratories: number };
+  latest_sample_date: Date | null;
+};
+
 /**
- * Fetches all OmicsSubjects.
- * 
- * @returns An array of all omics_subjects including sample count and latest sample date, or an empty array on error.
+ * Fetches all OmicsSubjects including sample count and latest sample date.
+ * @returns An array of subjects or an empty array on error.
  */
-export async function getAllOmicsSubjects(): Promise<(omics_subjects & { 
-  _count: { omics_results: number },
-  latest_sample_date: Date | null
-})[]> { // Updated return type
+export async function getAllOmicsSubjects(): Promise<OmicsSubjectWithCountAndDate[]> {
   try {
-    // Fetch subjects
-    const subjectsData = await prisma.omics_subjects.findMany({
-      orderBy: {
-        created_at: 'desc' // Or sort by subject_id, etc.
-      },
-      include: {
-        // Include the count of related omics_results
-        _count: {
-          select: { omics_results: true },
-        },
+    // Fetch subjects and count of samples using Drizzle's relation counting
+    // Need to fetch actual samples to count them correctly in the map phase
+    const subjectsData = await db.query.omics_subjectsInLaboratory.findMany({
+      // orderBy: (subjects, { desc }) => [desc(subjects.created_at)],
+      orderBy: [desc(omics_subjectsInLaboratory.created_at)], // Use array syntax
+      with: {
+        samplesInLaboratories: { columns: { sample_id: true } } // Fetch sample IDs for counting
       }
     });
 
-    // Fetch the latest sample date for each subject separately for efficiency
-    // (Avoids complex subquery within the main findMany if possible)
-    const subjectIds = subjectsData.map(s => s.subject_id);
-    const latestDates = await prisma.omics_results.groupBy({
-      by: ['subject_id'],
-      _max: {
-        date_of_collection: true,
-      },
-      where: {
-        subject_id: {
-          in: subjectIds,
-        },
-      },
-    });
+    // Fetch the latest sample date for each subject separately
+    const subjectIds = subjectsData.map((s: OmicsSubjectSelect) => s.subject_id);
+    if (subjectIds.length === 0) return []; // No subjects, return early
+
+    const latestDatesQuery = await db
+      .select({
+        subject_id: samplesInLaboratory.subject_id,
+        latest_date: max(samplesInLaboratory.date_of_collection),
+      })
+      .from(samplesInLaboratory)
+      .where(inArray(samplesInLaboratory.subject_id, subjectIds))
+      .groupBy(samplesInLaboratory.subject_id);
 
     // Create a map for easy lookup
     const latestDateMap = new Map<string, Date | null>();
-    latestDates.forEach(item => {
-      latestDateMap.set(item.subject_id, item._max.date_of_collection);
+    latestDatesQuery.forEach((item: { subject_id: string; latest_date: string | null }) => {
+      // Drizzle returns dates as strings by default, convert them
+      latestDateMap.set(item.subject_id, item.latest_date ? new Date(item.latest_date) : null);
     });
 
     // Combine the data
-    const subjectsWithCountsAndDates = subjectsData.map(subject => ({
+    // Add type annotation for subject in map
+    const subjectsWithCountsAndDates = subjectsData.map((subject: OmicsSubjectSelect & { samplesInLaboratories: { sample_id: string }[] }): OmicsSubjectWithCountAndDate => ({
       ...subject,
+      _count: { samplesInLaboratories: subject.samplesInLaboratories.length }, // Count the fetched sample IDs
       latest_sample_date: latestDateMap.get(subject.subject_id) ?? null,
     }));
 
     return subjectsWithCountsAndDates;
   } catch (error) {
-    console.error('[Prisma] Error fetching all subjects with counts/dates:', error);
+    console.error('[Drizzle] Error fetching all subjects with counts/dates:', error);
     return []; // Return empty array on error
   }
 }
 
-// --- NEW Prisma Operations ---
+// --- NEW Drizzle Operations ---
+
+type SampleInsert = typeof samplesInLaboratory.$inferInsert;
+type SampleUpdate = Partial<SampleInsert>; // Use Partial for updates
 
 /**
- * Creates a new OmicsResult record.
+ * Creates a new Sample record (formerly OmicsResult).
  */
-export async function createOmicsResult(data: Prisma.omics_resultsUncheckedCreateInput): Promise<omics_results | null> {
+export async function createOmicsResult(data: SampleInsert): Promise<SampleSelect | null> {
   try {
     // Ensure sample_id is present if not auto-generated based on subject/number
     if (!data.sample_id && data.subject_id && data.sample_number) {
       data.sample_id = `${data.subject_id}-${data.sample_number}`;
     }
-    // Prisma handles Decimal conversion automatically if input is number/string
-    const result = await prisma.omics_results.create({
-      data: data,
-    });
-    return result;
+    // Drizzle expects numbers/strings for numeric/decimal types
+    const result = await db.insert(samplesInLaboratory).values(data).returning();
+    return result[0] ?? null;
   } catch (error) {
-    console.error('[Prisma] Error creating omics result:', error);
-    // Handle potential Prisma errors (e.g., unique constraint violation)
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          console.error('Unique constraint violation creating omics result.');
-          // Potentially throw a custom error or return specific null/error object
-        }
+    console.error('[Drizzle] Error creating sample:', error);
+    // Basic error check for unique constraint (adapt based on actual error messages)
+    if (error instanceof Error && /unique constraint/i.test(error.message)) {
+        console.error('Unique constraint violation creating sample.');
+        // Potentially throw a custom error or return specific null/error object
     }
-    throw error; // Re-throw the error after logging
+    // Throw the original error or a custom one
+    throw error; 
   }
 }
 
 /**
- * Updates an existing OmicsResult record by its sample_id.
+ * Updates an existing Sample record by its sample_id.
  */
-export async function updateOmicsResult(sample_id: string, data: Prisma.omics_resultsUpdateInput): Promise<omics_results | null> {
+export async function updateOmicsResult(sample_id: string, data: SampleUpdate): Promise<SampleSelect | null> {
   try {
-    // Remove fields that should not be updated directly if present
-    // delete data.sample_id; 
-    // delete data.subject_id;
-    // delete data.created_at;
+    // Remove fields that should not be updated directly if present in data
+    const { sample_id: _, subject_id: __, created_at: ___, ...updateData } = data;
 
-    const result = await prisma.omics_results.update({
-      where: { sample_id: sample_id },
-      data: data,
-    });
-    return result;
-  } catch (error) {
-    console.error(`[Prisma] Error updating omics result ${sample_id}:`, error);
-     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // P2025: Record to update not found
-        if (error.code === 'P2025') {
-          console.error(`Omics result with sample_id ${sample_id} not found for update.`);
-          return null; // Or throw specific error
-        }
+    if (Object.keys(updateData).length === 0) {
+       console.warn('[Drizzle] No valid fields provided for update.');
+       // Fetch and return the existing record if needed, or return null/error
+       return await getOmicsResultBySampleId(sample_id);
     }
+
+    const result = await db
+        .update(samplesInLaboratory)
+        .set(updateData)
+        .where(eq(samplesInLaboratory.sample_id, sample_id))
+        .returning();
+        
+    if (result.length === 0) {
+        console.error(`Sample with sample_id ${sample_id} not found for update.`);
+        return null; // Record not found
+    }
+    return result[0];
+  } catch (error) {
+    console.error(`[Drizzle] Error updating sample ${sample_id}:`, error);
+     // Basic error check (adapt based on actual error messages if needed)
+     // Drizzle/pg might not have specific error codes like Prisma's P2025
+     // Check if the update returned an empty array (handled above)
     return null;
   }
 }
+
+type OmicsSubjectInsert = typeof omics_subjectsInLaboratory.$inferInsert;
+type OmicsSubjectUpdate = Partial<OmicsSubjectInsert>; // Use Partial
 
 /**
  * Creates a new OmicsSubject record.
  */
-export async function createOmicsSubject(data: Prisma.omics_subjectsUncheckedCreateInput): Promise<omics_subjects | null> {
+export async function createOmicsSubject(data: OmicsSubjectInsert): Promise<OmicsSubjectSelect | null> {
   try {
-    const result = await prisma.omics_subjects.create({
-      data: data,
-    });
-    return result;
+    const result = await db.insert(omics_subjectsInLaboratory).values(data).returning();
+    return result[0] ?? null;
   } catch (error) {
-    console.error('[Prisma] Error creating omics subject:', error);
-     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          console.error('Unique constraint violation creating omics subject.');
-        }
-    }
-    return null;
+    console.error('[Drizzle] Error creating omics subject:', error);
+     if (error instanceof Error && /unique constraint/i.test(error.message)) {
+        console.error('Unique constraint violation creating omics subject.');
+     }
+    // Decide whether to return null or re-throw
+    // return null;
+    throw error;
   }
 }
+
+type PatientInsert = typeof patientsInClinical.$inferInsert;
+type PatientUpdate = Partial<PatientInsert>; // Use Partial
 
 /**
  * Creates a new Patient record.
  */
-export async function createPatient(data: Prisma.patientsUncheckedCreateInput): Promise<patients | null> {
+export async function createPatient(data: PatientInsert): Promise<PatientSelect | null> {
   try {
-    const result = await prisma.patients.create({
-      data: data,
-    });
-    return result;
+    const result = await db.insert(patientsInClinical).values(data).returning();
+    return result[0] ?? null;
   } catch (error) {
-    console.error('[Prisma] Error creating patient:', error);
-     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          console.error('Unique constraint violation creating patient.');
-        }
-    }
-    return null;
+    console.error('[Drizzle] Error creating patient:', error);
+     if (error instanceof Error && /unique constraint/i.test(error.message)) {
+        console.error('Unique constraint violation creating patient.');
+     }
+    // return null;
+    throw error;
   }
 }
 
 /**
- * Gets an OmicsResult by its sample_id (needed for GET handler).
+ * Gets a Sample by its sample_id (formerly OmicsResult).
  */
-export async function getOmicsResultBySampleId(sample_id: string): Promise<(omics_results & { omics_subjects: omics_subjects | null }) | null> {
+export async function getOmicsResultBySampleId(sample_id: string): Promise<SampleSelect | null> {
     try {
-        const sample = await prisma.omics_results.findUnique({
-            where: { sample_id: sample_id },
-            // Include related subject data
-            include: { omics_subjects: true } 
-        });
-        return sample;
+        // Note: Original function included omics_subjects. 
+        // Decide if this is still needed. If so, use db.query...findFirst with `with`
+        const sample = await db.select().from(samplesInLaboratory).where(eq(samplesInLaboratory.sample_id, sample_id)).limit(1);
+        return sample[0] ?? null;
     } catch (error) {
-        console.error(`[Prisma] Error fetching omics result by sample ID ${sample_id}:`, error);
+        console.error(`[Drizzle] Error fetching sample by sample ID ${sample_id}:`, error);
         return null;
     }
 }
 
 /**
- * Fetches all Patient records, potentially including related data.
+ * Fetches all Patient records.
  */
-export async function getAllPatients(): Promise<patients[]> { // Consider adding related data if needed
+export async function getAllPatients(): Promise<PatientSelect[]> {
   try {
-    const patientsData = await prisma.patients.findMany({
-      orderBy: {
-        created_at: 'desc' // Or patient_mrn, etc.
-      },
-      // Include related data if needed by the patients page
-      // include: {
-      //   omics_subjects: true, // Example: Include related subjects
-      //   // subject_registration: true // Example: Include registrations
-      // }
+    // Original included related data optionally. Add `with` clause if needed.
+    const patientsData = await db.query.patientsInClinical.findMany({
+      // orderBy: (patients, {desc}) => [desc(patients.created_at)] 
+      orderBy: [desc(patientsInClinical.created_at)] // Use array syntax
     });
     return patientsData;
   } catch (error) {
-    console.error('[Prisma] Error fetching all patients:', error);
+    console.error('[Drizzle] Error fetching all patients:', error);
     return []; // Return empty array on error
   }
 }
@@ -252,27 +293,31 @@ export async function getAllPatients(): Promise<patients[]> { // Consider adding
 /**
  * Updates an OmicsSubject record by its subject_id.
  */
-export async function updateOmicsSubject(subject_id: string, data: Prisma.omics_subjectsUpdateInput): Promise<omics_subjects | null> {
+export async function updateOmicsSubject(subject_id: string, data: OmicsSubjectUpdate): Promise<OmicsSubjectSelect | null> {
   try {
     // Remove fields that should not typically be updated if present
-    // delete data.subject_id; 
-    // delete data.patient_mrn;
-    // delete data.created_at;
+    const { subject_id: _, created_at: __, patient_mrn: ___, ...updateData } = data; 
 
-    const result = await prisma.omics_subjects.update({
-      where: { subject_id: subject_id },
-      data: data,
-    });
-    return result;
-  } catch (error) {
-    console.error(`[Prisma] Error updating omics subject ${subject_id}:`, error);
-     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // P2025: Record to update not found
-        if (error.code === 'P2025') {
-          console.error(`Omics subject with subject_id ${subject_id} not found for update.`);
-          return null; 
-        }
+    if (Object.keys(updateData).length === 0) {
+       console.warn('[Drizzle] No valid fields provided for omics subject update.');
+       // Fetch and return existing or handle as error
+       return await db.query.omics_subjectsInLaboratory.findFirst({ where: eq(omics_subjectsInLaboratory.subject_id, subject_id)}) ?? null;
     }
+
+    const result = await db
+        .update(omics_subjectsInLaboratory)
+        .set(updateData)
+        .where(eq(omics_subjectsInLaboratory.subject_id, subject_id))
+        .returning();
+
+    if (result.length === 0) {
+        console.error(`Omics subject with subject_id ${subject_id} not found for update.`);
+        return null;
+    }
+    return result[0];
+  } catch (error) {
+    console.error(`[Drizzle] Error updating omics subject ${subject_id}:`, error);
+    // Add specific checks if needed, e.g., constraint violations
     return null;
   }
 }
@@ -280,55 +325,59 @@ export async function updateOmicsSubject(subject_id: string, data: Prisma.omics_
 /**
  * Updates a Patient record by its patient_mrn.
  */
-export async function updatePatient(patient_mrn: string, data: Prisma.patientsUpdateInput): Promise<patients | null> {
+export async function updatePatient(patient_mrn: string, data: PatientUpdate): Promise<PatientSelect | null> {
   try {
-    // Remove fields that should not typically be updated if present
-    // delete data.patient_mrn;
-    // delete data.created_at;
+    // Remove fields that should not typically be updated
+    const { patient_mrn: _, created_at: __, ...updateData } = data;
 
-    const result = await prisma.patients.update({
-      where: { patient_mrn: patient_mrn },
-      data: data,
-    });
-    return result;
-  } catch (error) {
-    console.error(`[Prisma] Error updating patient ${patient_mrn}:`, error);
-     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // P2025: Record to update not found
-        if (error.code === 'P2025') {
-          console.error(`Patient with MRN ${patient_mrn} not found for update.`);
-          return null; 
-        }
+    if (Object.keys(updateData).length === 0) {
+       console.warn('[Drizzle] No valid fields provided for patient update.');
+       return await db.query.patientsInClinical.findFirst({ where: eq(patientsInClinical.patient_mrn, patient_mrn)}) ?? null;
     }
+
+    const result = await db
+        .update(patientsInClinical)
+        .set(updateData)
+        .where(eq(patientsInClinical.patient_mrn, patient_mrn))
+        .returning();
+
+    if (result.length === 0) {
+        console.error(`Patient with MRN ${patient_mrn} not found for update.`);
+        return null;
+    }
+    return result[0];
+  } catch (error) {
+    console.error(`[Drizzle] Error updating patient ${patient_mrn}:`, error);
+     // Add specific checks if needed
     return null;
   }
 }
 
 /**
- * Fetches all OmicsResult records for a given subject_id.
+ * Fetches all Sample records for a given subject_id.
  */
-export async function getOmicsResultsBySubjectId(subject_id: string): Promise<omics_results[]> {
+export async function getOmicsResultsBySubjectId(subject_id: string): Promise<SampleSelect[]> {
   try {
-    const results = await prisma.omics_results.findMany({
-      where: { 
-        subject_id: subject_id 
-      },
-      orderBy: {
-        date_of_collection: 'desc' // Or sample_number, etc.
-      }
-      // Do we need to include the related subject data here as well?
-      // include: { omics_subjects: true }
+    const results = await db.query.samplesInLaboratory.findMany({
+      where: eq(samplesInLaboratory.subject_id, subject_id),
+      // orderBy: (samples, { desc }) => [desc(samples.date_of_collection)],
+      orderBy: [desc(samplesInLaboratory.date_of_collection)], // Use array syntax
     });
     return results;
   } catch (error) {
-    console.error(`[Prisma] Error fetching omics results for subject ${subject_id}:`, error);
+    console.error(`[Drizzle] Error fetching samples for subject ${subject_id}:`, error);
     return []; // Return empty array on error
   }
 }
 
-/**
- * Fetches OmicsResult records filtered by assay type and other optional criteria.
- */
+// NOTE: getOmicsResultsByAssayType is complex due to dynamic field names.
+// This function assumed omics_results had columns like date_advia, qc_pass_advia, etc.
+// With the new structure (samples -> results_advia), this needs a complete rethink.
+// Option 1: Fetch samples and then filter/join specific results tables based on assay_type.
+// Option 2: If possible, create a DB view that unnests/joins the assay results back to samples.
+// Option 3: Perform separate queries for each assay type and combine.
+// For now, this function will be commented out as it requires significant changes.
+/*
 export async function getOmicsResultsByAssayType(
   assay_type: AssayType,
   options?: {
@@ -337,96 +386,73 @@ export async function getOmicsResultsByAssayType(
     end_date?: Date;
     qc_pass?: boolean; 
   }
-): Promise<omics_results[]> { 
-  try {
-    const dateField = `date_${assay_type.toLowerCase()}` as keyof omics_results;
-    const qcField = `qc_pass_${assay_type.toLowerCase()}` as keyof omics_results;
-    
-    const whereClause: Prisma.omics_resultsWhereInput = {};
-
-    // Apply filters
-    if (options?.subject_id) {
-      whereClause.subject_id = options.subject_id;
-    }
-    
-    // Date filtering - Apply if field exists in the model's scalar fields
-    if (dateField in Prisma.Omics_resultsScalarFieldEnum) {
-        const dateFilter: Prisma.DateTimeNullableFilter = {};
-        let applyDateFilter = false;
-        if (options?.start_date) {
-           dateFilter.gte = options.start_date;
-           applyDateFilter = true;
-        }
-        if (options?.end_date) {
-           dateFilter.lte = options.end_date;
-           applyDateFilter = true;
-        }
-        if (applyDateFilter) {
-            // Directly assign the filter assuming the field is DateTime?
-            whereClause[dateField] = dateFilter as any; // Use 'as any' to bypass complex dynamic type check
-        }
-    }
-    
-    // QC filtering - Apply if field exists
-    if (qcField in Prisma.Omics_resultsScalarFieldEnum) { 
-        if (options?.qc_pass !== undefined) {
-             whereClause[qcField] = options.qc_pass ? 'Yes' : 'No';
-        }
-    }
-    
-    // Order by date if field exists
-    const orderByClause: Prisma.omics_resultsOrderByWithRelationInput[] = [];
-    if (dateField in Prisma.Omics_resultsScalarFieldEnum) { 
-        orderByClause.push({ [dateField]: 'desc' });
-    }
-
-    const results = await prisma.omics_results.findMany({
-      where: whereClause,
-      orderBy: orderByClause,
-      // include: { omics_subjects: true }
-    });
-    
-    return results;
-
-  } catch (error) {
-    console.error(`[Prisma] Error fetching omics results by assay type ${assay_type}:`, error);
-    return []; 
-  }
+): Promise<SampleSelect[]> { 
+  console.warn("getOmicsResultsByAssayType needs refactoring for the new schema structure.");
+  return [];
+  // ... implementation needs significant changes ...
 }
+*/
+
+// Type for the complex nested patient data structure
+type PatientWithNestedSubjectsAndSamples = PatientSelect & {
+  subject_registrations: (SubjectRegistrationSelect & { // Using registration as the link
+      omics_subject: (OmicsSubjectSelect & {
+          samples: SampleSelect[];
+      }) | null; // Subject might be nullable depending on FK constraints
+  })[];
+};
+
+// Type alias for SubjectRegistration
+type SubjectRegistrationSelect = typeof subject_registrationInClinical.$inferSelect;
 
 /**
- * Fetches a Patient record by their MRN, including related omics subjects and their results.
+ * Fetches a Patient record by their MRN, including related subjects and their samples.
+ * Adapts to the new schema: Patient -> SubjectRegistration -> OmicsSubject -> Samples
  */
-export async function getPatientByMRN(patient_mrn: string): Promise<(patients & {
-  omics_subjects: (omics_subjects & {
-    omics_results: omics_results[];
-  })[];
-}) | null> {
+export async function getPatientByMRN(patient_mrn: string): Promise<PatientWithNestedSubjectsAndSamples | null> {
   try {
-    const patientData = await prisma.patients.findUnique({
-      where: { patient_mrn: patient_mrn },
-      include: {
-        omics_subjects: { // Include related subjects
-          include: {
-            omics_results: { // Include results for each subject
-              orderBy: {
-                date_of_collection: 'desc' // Order results within each subject
-              }
-            }
-          }
-        }
-      }
+    const patientData = await db.query.patientsInClinical.findFirst({
+      where: eq(patientsInClinical.patient_mrn, patient_mrn),
+      with: {
+        // Follow the link: Patient -> SubjectRegistration
+        subject_registrationInClinicals: {
+          with: {
+            // Follow the link: SubjectRegistration -> OmicsSubject
+            omics_subjectsInLaboratory: {
+              with: {
+                // Follow the link: OmicsSubject -> Samples
+                samplesInLaboratories: {
+                  // orderBy: (samples, { desc }) => [desc(samples.date_of_collection)],
+                   orderBy: [desc(samplesInLaboratory.date_of_collection)], // Use array syntax
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!patientData) {
-      console.warn(`[Prisma] Patient with MRN ${patient_mrn} not found.`);
+      console.warn(`[Drizzle] Patient with MRN ${patient_mrn} not found.`);
       return null;
     }
-    
-    return patientData;
+
+    // Add type annotation for reg parameter
+    const result: PatientWithNestedSubjectsAndSamples = {
+        ...patientData,
+        subject_registrations: patientData.subject_registrationInClinicals.map((reg: SubjectRegistrationSelect & { omics_subjectsInLaboratory?: OmicsSubjectSelect & { samplesInLaboratories: SampleSelect[] } }) => ({
+            ...reg,
+            omics_subject: reg.omics_subjectsInLaboratory ? { 
+                ...reg.omics_subjectsInLaboratory,
+                samples: reg.omics_subjectsInLaboratory.samplesInLaboratories
+            } : null
+        }))
+    };
+
+    return result;
 
   } catch (error) {
-    console.error(`[Prisma] Error fetching patient by MRN ${patient_mrn}:`, error);
+    console.error(`[Drizzle] Error fetching patient by MRN ${patient_mrn}:`, error);
     return null;
   }
 }
@@ -434,44 +460,35 @@ export async function getPatientByMRN(patient_mrn: string): Promise<(patients & 
 /**
  * Searches for OmicsSubjects based on a query matching subject_id or patient_mrn.
  */
-export async function searchSubjects(query: string): Promise<omics_subjects[]> { // Consider including patient data if needed by caller
+export async function searchSubjects(query: string): Promise<OmicsSubjectSelect[]> {
   if (!query || query.trim().length < 1) {
-    return []; // Return empty if query is empty
+    return [];
   }
-  
-  const searchTerm = `%${query}%`; // Prepare for case-insensitive search if using raw SQL or ensure mode:'insensitive'
+
+  const lowerQuery = query.toLowerCase(); // Prepare for case-insensitive-like search
 
   try {
-    const subjects = await prisma.omics_subjects.findMany({
-      where: {
-        OR: [
-          {
-            subject_id: {
-              contains: query, 
-              mode: 'insensitive' // Case-insensitive search for subject_id
-            }
-          },
-          {
-            patients: { // Search within the related patients record
-              patient_mrn: {
-                contains: query,
-                mode: 'insensitive' // Case-insensitive search for patient_mrn
-              }
-            }
-          }
-        ]
-      },
-      // Include patient data if the caller needs it
-      // include: {
-      //   patients: true
-      // }
+    // Simplified search: Use simple like, case sensitivity depends on DB collation
+    // TODO: Implement robust search across related patient MRN via registration if needed
+    const subjects = await db.query.omics_subjectsInLaboratory.findMany({
+        where: or(
+            like(omics_subjectsInLaboratory.subject_id, `%${query}%`), 
+            like(omics_subjectsInLaboratory.patient_mrn, `%${query}%`) // Assumes patient_mrn is directly on subject 
+        ),
+         orderBy: [sql`subject_id`] // Use sql helper for column name sorting
     });
-    return subjects;
+    
+    console.warn("searchSubjects currently uses simplified search logic (case-sensitivity may vary).");
+    return subjects; 
+
   } catch (error) {
-    console.error(`[Prisma] Error searching subjects with query "${query}":`, error);
+    console.error(`[Drizzle] Error searching subjects with query "${query}":`, error);
     return [];
   }
 }
+
+// If audit_log is in a specific schema (e.g., 'app'), use that schema object.
+// import { audit_log } from '../db/schema/schema'; // Import confirmed above
 
 /**
  * Logs an audit event to the audit_log table.
@@ -479,220 +496,226 @@ export async function searchSubjects(query: string): Promise<omics_subjects[]> {
 export async function logAuditEvent(
   table_name: string,
   action: string, // e.g., 'INSERT', 'UPDATE', 'DELETE'
-  old_data: Record<string, any> | null, // Use more general Record type
-  new_data: Record<string, any> | null, // Use more general Record type
+  old_data: Record<string, any> | null, 
+  new_data: Record<string, any> | null,
   changed_by: string // User ID or identifier
-): Promise<boolean> { // Return true on success, false on error
+): Promise<boolean> { 
   try {
-    await prisma.audit_log.create({
-      data: {
-        table_name: table_name,
-        action: action,
-        // Prisma expects specific JSON types, direct assignment should work if DB field is JSON/JSONB
-        old_data: old_data ?? Prisma.JsonNull, 
-        new_data: new_data ?? Prisma.JsonNull,
-        changed_by: changed_by,
-        // timestamp is likely handled by DB default (DEFAULT now())
-      },
-    });
-    return true;
+    // await db.insert(audit_log).values({ // This line uses audit_log
+    //   table_name: table_name,
+    //   action: action,
+    //   old_data: old_data,
+    //   new_data: new_data,
+    //   changed_by: changed_by,
+    // });
+    console.warn("logAuditEvent is disabled as audit_log table was not found in schema.");
+    return false; // Return false as the operation cannot be performed
   } catch (error) {
-    console.error('[Prisma] Error logging audit event:', error);
+    console.error('[Drizzle] Error logging audit event:', error);
     return false;
   }
 }
 
 /**
- * Gets the total count of OmicsResult records.
+ * Gets the total count of Sample records.
  */
 export async function getOmicsResultsCount(): Promise<number> {
   try {
-    const count = await prisma.omics_results.count();
-    return count;
+    const result = await db.select({ value: count() }).from(samplesInLaboratory);
+    return result[0]?.value ?? 0;
   } catch (error) {
-    console.error('[Prisma] Error getting omics results count:', error);
+    console.error('[Drizzle] Error getting samples count:', error);
     return 0; // Return 0 on error
   }
 }
 
+// NOTE: getAllVisits and getVisitDetailsByMrn operated on a 'unified_visits' table/view.
+// This likely needs significant adaptation based on the NEW schema.
+// Does a unified_visits view/table exist? If not, these functions need to be 
+// rewritten to query the base tables (e.g., clinical.visits, staging tables?) 
+// and potentially combine the data in the application layer or a new DB view.
+
+// Placeholder types assuming a similar structure might be derived
+// These need verification against the actual schema/replacement logic
+// import { visitsInClinical } from '../db/schema'; // Imported above
+type VisitSelect = typeof visitsInClinical.$inferSelect;
+
 /**
- * Fetches all Visit records from the unified_visits table, including related patient data.
+ * Fetches all Visit records (NEEDS REWRITING BASED ON NEW SCHEMA).
+ * Original used 'unified_visits'. How is visit data now represented?
  */
-export async function getAllVisits(): Promise<(unified_visits & { patient: patients | null })[]> { // Adjust relation name in return type
+export async function getAllVisits(): Promise<(VisitSelect & { patient: PatientSelect | null })[]> { 
+  console.warn("getAllVisits likely needs further adaptation based on actual schema relations.");
   try {
-    const visitsData = await prisma.unified_visits.findMany({
-      orderBy: {
-        start_date: 'desc' // Order by visit start date, descending
-      },
-      include: {
-        patient: true // Use singular 'patient' as suggested by linter
-      }
-    });
-    // Cast matches the structure with singular 'patient' relation
-    return visitsData as (unified_visits & { patient: patients | null })[];
+      const visitsData = await db.query.visitsInClinical.findMany({
+          orderBy: [desc(visitsInClinical.visit_start_datetime)], // Use correct date field
+          with: {
+              patientsInClinical: true // Assuming relation name is patientsInClinical
+          }
+      });
+      
+      return visitsData.map((v: typeof visitsInClinical.$inferSelect & { patientsInClinical: PatientSelect | null}) => ({
+          ...v,
+          patient: v.patientsInClinical 
+      }));
+
   } catch (error) {
-    console.error('[Prisma] Error fetching all unified visits:', error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
-       console.error(`[Prisma] The table 'unified_visits' might not exist. Check schema.prisma.`);
-    }
-    return []; // Return empty array on error
+      console.error('[Drizzle] Error fetching visits (refactored):', error);
+      return [];
   }
 }
 
-// Define structure for combined medication data
+// --- Types for getVisitDetailsByMrn (Marked for full refactor) ---
+
 interface CombinedMedication {
-  name: string;
+  name: string | null; 
   dosage?: string | null;
   unit?: string | null;
   frequency?: string | null;
-  // Fields specific to source
-  source: 'IP' | 'OP';
-  taken_time?: Date | null; // From ip_medications
-  order_dttm?: Date | null; // From op_medications
-  rx_status?: string | null; // From op_medications
+  source: 'IP_RAW' | 'OP_RAW'; // Reflect staging source
+  taken_time?: Date | string | null; 
+  order_dttm?: Date | string | null;
+  rx_status?: string | null;
 }
 
-// Define structure for detailed diagnosis data
 interface DetailedDiagnosis {
   code: string;
   description: string | null;
-  type: 'admission' | 'final';
-  sequence: number;
+  type: string; 
+  sequence: number | null;
 }
 
-// Define structure for lab results passed to viewer
 interface LabResultForViewer {
   name: string | null;
   value: string | null;
-  time?: Date | null; // Keep as Date for now, serialize in page component
-  test?: string | null;
+  time?: Date | string | null; 
+  units?: string | null; 
 }
+
+type VisitWithDetails = VisitSelect & { 
+    medications: CombinedMedication[];
+    detailed_diagnoses: DetailedDiagnosis[];
+    labs: LabResultForViewer[];
+    // Add relations used inside the mapping function if not part of VisitSelect
+    visit_diagnosesInClinicals?: (typeof visit_diagnosesInClinical.$inferSelect)[];
+    lab_ordersInClinicals?: (typeof lab_ordersInClinical.$inferSelect & {
+        lab_resultsInClinicals?: (typeof lab_resultsInClinical.$inferSelect)[];
+    })[];
+    medication_administrationsInClinicals?: (typeof medication_administrationsInClinical.$inferSelect)[];
+};
+type PatientWithVisitDetails = PatientSelect & { visits: VisitWithDetails[] };
 
 /**
- * Fetches a patient and their associated unified visits by Patient MRN,
- * including related medications, detailed diagnoses, and labs for each visit.
+ * Fetches detailed visit information for a patient (NEEDS COMPLETE REFACTORING).
+ * Original relied on 'unified_visits' and specific related tables from clinical schema.
+ * New implementation must query clinical.visits and join/map data from staging tables
+ * (raw_ip_meds, raw_op_avs, raw_ip_admissions) and clinical tables 
+ * (visit_diagnoses, lab_results via lab_orders).
+ * This requires a complex query or multiple queries + application-level merging.
  */
-export async function getVisitDetailsByMrn(patientMrn: string): Promise<(
-  patients & { 
-    unified_visits: (unified_visits & { 
-        medications: CombinedMedication[];
-        detailed_diagnoses?: DetailedDiagnosis[];
-        labs: LabResultForViewer[]; // Add labs array
-    })[] 
-  }
-) | null> { // Updated return type
+export async function getVisitDetailsByMrn(patientMrn: string): Promise<PatientWithVisitDetails | null> {
+  console.error("getVisitDetailsByMrn function requires a complete rewrite for the new schema using staging tables. Returning null.");
   if (!patientMrn) {
-    console.warn('[Prisma getVisitDetailsByMrn] No MRN provided.');
+    console.warn('[Drizzle getVisitDetailsByMrn] No MRN provided.');
     return null;
   }
+  
+  // TODO: Rewrite this function entirely.
+  // 1. Fetch patient and their clinical.visits (ordered).
+  // 2. Fetch relevant staging data for the patient (raw_ip_meds, raw_op_avs, raw_ip_admissions).
+  // 3. Fetch relevant clinical data for the patient (visit_diagnoses, lab_results).
+  // 4. Iterate through visits, correlating staging/clinical data to each visit based on timeframe/IDs.
+  // 5. Structure the combined data into the PatientWithVisitDetails format.
+  
+  return null; // Returning null until properly refactored.
 
+  /* --- Commenting out old attempt --- 
   try {
-    // Step 1: Fetch patient and their visits (as before)
-    const patientWithVisits = await prisma.patients.findUnique({
-      where: { patient_mrn: patientMrn },
-      include: {
-        unified_visits: {
-          orderBy: { start_date: 'desc' },
-        },
-      },
+    // Step 1: Fetch patient and their clinical visits
+    const patientData = await db.query.patientsInClinical.findFirst({
+      where: eq(patientsInClinical.patient_mrn, patientMrn),
+      with: {
+        visitsInClinicals: {
+          orderBy: [desc(visitsInClinical.visit_start_datetime)], // Use correct field
+          with: {
+              medication_administrationsInClinicals: true, 
+              visit_diagnosesInClinicals: true, 
+              lab_ordersInClinicals: { with: { lab_resultsInClinicals: true } } 
+          }
+        }
+      }
     });
 
-    if (!patientWithVisits) {
-      console.warn(`[Prisma getVisitDetailsByMrn] Patient not found for MRN: ${patientMrn}`);
+    if (!patientData) {
+      console.warn(`[Drizzle getVisitDetailsByMrn] Patient not found for MRN: ${patientMrn}`);
       return null;
     }
+    
+    // Step 2: Fetch other potentially related data IF NOT linked via visits
+     const [allIpMeds, allOpMeds] = await Promise.all([
+         db.query.raw_ip_medsInStaging.findMany({ where: eq(raw_ip_medsInStaging.PATIENT_MRN, patientMrn), orderBy: [sql`taken_time`] }), // Use raw table
+         db.query.raw_op_avsInStaging.findMany({ where: eq(raw_op_avsInStaging.PATIENT_MRN, patientMrn), orderBy: [sql`order_dttm`] }) // Use raw table
+      ]);
 
-    // Step 2: Fetch related data
-    const [allIpMeds, allOpMeds, allIpAdmissions, allLabs] = await Promise.all([
-        prisma.ip_medications.findMany({ where: { patient_mrn: patientMrn }, orderBy: { taken_time: 'asc' } }),
-        prisma.op_medications.findMany({ where: { patient_mrn: patientMrn }, orderBy: { order_dttm: 'asc' } }),
-        prisma.ip_admissions.findMany({ where: { patient_mrn: patientMrn } }),
-        prisma.labs.findMany({ where: { patient_mrn: patientMrn }, orderBy: { result_time: 'asc' } }) // Use lowercase labs
-    ]);
+    // Step 3: Map details to each visit (Complex logic dependent on schema links)
+    const visitsWithDetails = patientData.visitsInClinicals.map((visit: VisitWithDetails) => { 
+      const visitStart = visit.visit_start_datetime; // Use correct field
+      const visitEnd = visit.visit_end_datetime ?? new Date(visitStart?.getTime() ?? 0 + 24 * 60 * 60 * 1000); 
 
-    // Create map with explicit type
-    const ipAdmissionsMap = new Map<string, ip_admissions>(allIpAdmissions.map((adm: ip_admissions) => [adm.hsp_account_id, adm]));
+      // --- Medication Mapping (Needs adaptation for raw staging data structures) --- 
+      const relevantIpMeds: CombinedMedication[] = allIpMeds
+        .filter((med: typeof raw_ip_medsInStaging.$inferSelect) => med.TAKEN_TIME && visitStart && new Date(med.TAKEN_TIME) >= visitStart && new Date(med.TAKEN_TIME) <= visitEnd)
+        .map((med: typeof raw_ip_medsInStaging.$inferSelect) => ({ source: 'IP_RAW', name: med.MEDICATION, taken_time: med.TAKEN_TIME, dosage: med.DOSAGE, unit: med.UNIT, frequency: med.FREQUENCY }));
+      
+      const relevantOpMeds: CombinedMedication[] = allOpMeds
+         .filter((med: typeof raw_op_avsInStaging.$inferSelect) => med.ORDER_DTTM && visitStart && new Date(med.ORDER_DTTM) >= visitStart && new Date(med.ORDER_DTTM) <= visitEnd) 
+         .map((med: typeof raw_op_avsInStaging.$inferSelect) => ({ source: 'OP_RAW', name: med.GENERIC_DESCRIPTION, order_dttm: med.ORDER_DTTM, rx_status: med.RX_STATUS }));
+         
+      const combinedMeds = [...relevantIpMeds, ...relevantOpMeds].sort((a, b) => {
+          const dateA = a.taken_time || a.order_dttm;
+          const dateB = b.taken_time || b.order_dttm;
+          if (!dateA) return 1; if (!dateB) return -1;
+          return new Date(dateA).getTime() - new Date(dateB).getTime();
+      });
 
-    // Step 3: Map details to each visit
-    const visitsWithDetails = patientWithVisits.unified_visits.map(visit => {
-        const visitStart = visit.start_date;
-        const visitEnd = visit.end_date ?? new Date(visitStart.getTime() + 24 * 60 * 60 * 1000);
-        
-        // Add a buffer to the date range for labs (e.g., 1 day before/after)
-        const labStartDate = new Date(visitStart.getTime() - (24 * 60 * 60 * 1000));
-        const labEndDate = new Date(visitEnd.getTime() + (24 * 60 * 60 * 1000));
+      // --- Diagnosis Mapping --- 
+      const detailedDiagnoses: DetailedDiagnosis[] = visit.visit_diagnosesInClinicals?.map((diag: typeof visit_diagnosesInClinical.$inferSelect) => ({
+          code: diag.icd10_code ?? 'N/A',
+          description: diag.diagnosis_name,
+          type: diag.diagnosis_type ?? 'Unknown',
+          sequence: diag.sequence_num
+      })) ?? [];
 
-        // Medication mapping with explicit types
-        const relevantIpMeds: CombinedMedication[] = allIpMeds
-            .filter((med: ip_medications) => med.taken_time && med.taken_time >= visitStart && med.taken_time <= visitEnd)
-            .map((med: ip_medications) => ({
-                source: 'IP',
-                name: med.medication,
-                dosage: med.dosage,
-                unit: med.unit,
-                frequency: med.frequency,
-                taken_time: med.taken_time,
-            }));
-        const relevantOpMeds: CombinedMedication[] = allOpMeds
-            .filter((med: op_medications) => med.order_dttm && med.order_dttm >= visitStart && med.order_dttm <= visitEnd)
-            .map((med: op_medications) => ({
-                source: 'OP',
-                name: med.generic_description || 'Unknown', // Use generic_description
-                rx_status: med.rx_status,
-                order_dttm: med.order_dttm,
-                // Add other fields if needed
-            }));
-        const combinedMeds = [...relevantIpMeds, ...relevantOpMeds];
-        combinedMeds.sort((a, b) => {
-            const timeA = a.taken_time || a.order_dttm || new Date(0);
-            const timeB = b.taken_time || b.order_dttm || new Date(0);
-            return timeA.getTime() - timeB.getTime();
-        });
+      // --- Lab Mapping --- 
+      const relevantLabs: LabResultForViewer[] = visit.lab_ordersInClinicals?.flatMap((order: typeof lab_ordersInClinical.$inferSelect & { lab_resultsInClinicals?: (typeof lab_resultsInClinical.$inferSelect)[] }) => 
+          order.lab_resultsInClinicals?.map((lab: typeof lab_resultsInClinical.$inferSelect) => ({
+              name: lab.component_name,
+              value: lab.result_value,
+              time: lab.result_time, 
+              units: lab.units
+          })) ?? []
+      ) ?? [];
 
-        // Detailed diagnosis mapping with explicit type assertion for ipAdmission
-        let detailedDiagnoses: DetailedDiagnosis[] | undefined = undefined;
-        if (visit.visit_type === 'IP' && visit.source_id) {
-            const ipAdmission: ip_admissions | undefined = ipAdmissionsMap.get(visit.source_id);
-            if (ipAdmission) { // Check ensures ipAdmission is not undefined here
-                detailedDiagnoses = [];
-                if (ipAdmission.admit_dx_cd_1) detailedDiagnoses.push({ code: ipAdmission.admit_dx_cd_1, description: ipAdmission.admit_dx_description_1, type: 'admission', sequence: 1 });
-                if (ipAdmission.admit_dx_cd_2) detailedDiagnoses.push({ code: ipAdmission.admit_dx_cd_2, description: ipAdmission.admit_dx_description_2, type: 'admission', sequence: 2 });
-                if (ipAdmission.final_dx_cd_1) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_1, description: ipAdmission.final_dx_description_1, type: 'final', sequence: 1 });
-                if (ipAdmission.final_dx_cd_2) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_2, description: ipAdmission.final_dx_description_2, type: 'final', sequence: 2 });
-                if (ipAdmission.final_dx_cd_3) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_3, description: ipAdmission.final_dx_description_3, type: 'final', sequence: 3 });
-                if (ipAdmission.final_dx_cd_4) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_4, description: ipAdmission.final_dx_description_4, type: 'final', sequence: 4 });
-                if (ipAdmission.final_dx_cd_5) detailedDiagnoses.push({ code: ipAdmission.final_dx_cd_5, description: ipAdmission.final_dx_description_5, type: 'final', sequence: 5 });
-            }
-        }
-        
-        // Lab mapping with explicit type
-        const relevantLabs: LabResultForViewer[] = allLabs
-            .filter((lab: Labs) => lab.result_time && lab.result_time >= labStartDate && lab.result_time <= labEndDate)
-            .map((lab: Labs) => ({
-                name: lab.lab_component_description,
-                value: lab.lab_result_value,
-                time: lab.result_time,
-                test: lab.proc_name,
-            }));
-
-        return {
-            ...visit,
-            medications: combinedMeds,
-            detailed_diagnoses: detailedDiagnoses,
-            labs: relevantLabs, // Add the filtered labs
-        };
+      const detailedVisit: VisitWithDetails = {
+        ...visit,
+        medications: combinedMeds,
+        detailed_diagnoses: detailedDiagnoses,
+        labs: relevantLabs
+      };
+      return detailedVisit;
     });
 
-    // Step 4: Return combined data
-    return {
-        ...patientWithVisits,
-        unified_visits: visitsWithDetails,
+    const result: PatientWithVisitDetails = {
+      ...patientData,
+      visits: visitsWithDetails,
     };
+    return result;
 
   } catch (error) {
-    console.error(`[Prisma getVisitDetailsByMrn] Error fetching data for MRN ${patientMrn}:`, error);
+    console.error(`[Drizzle getVisitDetailsByMrn] Error fetching data for MRN ${patientMrn}:`, error);
     return null;
   }
+  */
 }
 
-// You can add other Prisma-based data operations here... 
+// You can add other Drizzle-based data operations here... 
