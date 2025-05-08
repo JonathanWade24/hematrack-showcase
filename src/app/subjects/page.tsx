@@ -2,47 +2,44 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import Link from 'next/link'
 // import { convertToNumber } from '@/lib/utils' // Removed incorrect import
 // import { getAllOmicsSubjects } from '@/lib/supabase/operations' // Old Supabase import
-import { getAllOmicsSubjects } from '@/lib/prisma/operations' // Import Prisma version
+// import { getAllOmicsSubjects } from '@/lib/prisma/operations' // Old Prisma import
+import { getAllOmicsSubjects, SubjectListItem } from '@/lib/db/queries' // Import Drizzle version & type
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-// Use Prisma's generated type if available, otherwise define necessary fields
-// Assuming a Prisma type `omics_subjects` exists
-import { omics_subjects } from '@prisma/client'; 
+// Use the imported SubjectListItem type directly
+// interface SubjectForTable extends Omit<omics_subjects, 'created_at' | 'updated_at'> { // Omit original Date fields
+//   sample_count: number; 
+//   latest_sample_date: string | null; // Expecting string from serialization
+//   created_at: string | null; // Expecting string from serialization
+//   updated_at: string | null; // Expecting string from serialization
+// }
 
-// Define structure needed for the table, now receiving serialized data
-interface SubjectForTable extends Omit<omics_subjects, 'created_at' | 'updated_at'> { // Omit original Date fields
-  sample_count: number; 
-  latest_sample_date: string | null; // Expecting string from serialization
-  created_at: string | null; // Expecting string from serialization
-  updated_at: string | null; // Expecting string from serialization
-}
-
-// Helper to format Date or null to 'YYYY-MM-DD' or null
-const formatDate = (date: Date | null): string | null => {
-  if (!date) return null;
-  // Simple ISO string date part
-  return date.toISOString().split('T')[0]; 
-};
+// Helper to format Date or null to 'YYYY-MM-DD' or null << REMOVED - Formatting happens in query function
+// const formatDate = (date: Date | null): string | null => {
+//   if (!date) return null;
+//   // Simple ISO string date part
+//   return date.toISOString().split('T')[0]; 
+// };
 
 export default async function SubjectsPage() {
-  console.log('Fetching all omics subjects with counts/dates using Prisma...');
-  const rawSubjectsData = await getAllOmicsSubjects(); // Fetch using updated Prisma function
-  console.log(`Fetched ${rawSubjectsData?.length || 0} subjects`);
+  console.log('Fetching all omics subjects with counts/dates using Drizzle...'); // Updated log
+  const subjects: SubjectListItem[] = await getAllOmicsSubjects(); // Fetch using Drizzle function
+  console.log(`Fetched ${subjects?.length || 0} subjects`);
 
-  // Map and serialize the data for the component
-  const subjects: SubjectForTable[] = (rawSubjectsData || []).map(subject => ({
-    ...subject, // Spread existing fields (like subject_id, project, etc.)
-    sample_count: subject._count.omics_results, // Get count from fetched data
-    // Serialize dates
-    latest_sample_date: formatDate(subject.latest_sample_date), 
-    created_at: formatDate(subject.created_at), 
-    updated_at: formatDate(subject.updated_at), 
-  }));
+  // No mapping needed here, as the query function returns the desired structure
+  // const subjects: SubjectForTable[] = (rawSubjectsData || []).map(subject => ({
+  //   ...subject, // Spread existing fields (like subject_id, project, etc.)
+  //   sample_count: subject._count.omics_results, // Get count from fetched data
+  //   // Serialize dates
+  //   latest_sample_date: formatDate(subject.latest_sample_date), 
+  //   created_at: formatDate(subject.created_at), 
+  //   updated_at: formatDate(subject.updated_at), 
+  // }));
 
   // Rest of the component using `subjects` array
-  // ... (table rendering logic remains the same)
+  // ... (table rendering logic remains the same, uses fields from SubjectListItem)
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

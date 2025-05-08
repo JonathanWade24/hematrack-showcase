@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '../ui/button'
+import { Input } from '../ui/input'
 import { BasicInfoSection } from './form-sections/BasicInfoSection'
 import { AdviaSection } from './form-sections/AdviaSection'
 import { DNASection } from './form-sections/DNASection'
@@ -15,14 +16,22 @@ import { FCellsSection } from './form-sections/FCellsSection'
 import { AdhesionSection } from './form-sections/AdhesionSection'
 import { HPLCSection } from './form-sections/HPLCSection'
 import { SampleData } from './form-sections/types'
+import { saveSampleInfoAction, BasicSampleState } from '@/app/data-entry/actions'
+import { useFormStatus } from 'react-dom'
 
-const defaultFormData: SampleData = {
+const defaultFormData: Omit<SampleData, 'sample_id'> & { lab_id: string | null } = {
   subject_id: '',
   sample_number: 1,
+  lab_id: null,
   date_of_collection: new Date().toISOString().split('T')[0],
   age_at_collection: null,
   sex: null,
   genotype: null,
+  therapies: null,
+  days_to_processing: null,
+  steady_state: null,
+  transfusion_status: null,
+  transfusion_confirmed: null,
   date_advia: null,
   rbc_advia: null,
   hb_advia: null,
@@ -107,218 +116,129 @@ const defaultFormData: SampleData = {
 }
 
 interface SampleEntryFormProps {
-  initialData?: SampleData;
+  initialData?: Omit<SampleData, 'sample_id'> & { lab_id?: string | null };
   isEditing?: boolean;
 }
 
 type FormSection = 'basic' | 'advia' | 'dna' | 'pbmc' | 'plasma' | 'lorrca' | 'viscosity' | 'hvr' | 'fcells' | 'adhesion' | 'hplc'
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? 'Saving Basic Info...' : 'Save Basic Info'}
+    </Button>
+  );
+}
+
 export function SampleEntryForm({ initialData, isEditing = false }: SampleEntryFormProps) {
   const router = useRouter()
-  const [formData, setFormData] = useState<SampleData>(initialData || defaultFormData)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [showNewSubjectConfirm, setShowNewSubjectConfirm] = useState(false)
-  const [showSubjectIdWarning, setShowSubjectIdWarning] = useState(false)
-  const [activeSection, setActiveSection] = useState<FormSection>('basic')
+  const [formData, setFormData] = useState<Omit<SampleData, 'sample_id'> & { lab_id: string | null }>( 
+    initialData 
+      ? { ...initialData, lab_id: initialData.lab_id ?? null }
+      : defaultFormData
+  )
+  const [sampleIdSaved, setSampleIdSaved] = useState<string | null>(initialData?.lab_id ?? null);
+  const [needsSubjectConfirmation, setNeedsSubjectConfirmation] = useState(false);
+  const [subjectIdToConfirm, setSubjectIdToConfirm] = useState<string | null>(null);
+  
+  const initialState: BasicSampleState = { message: null, errors: {} };
+  const [state, dispatch] = useActionState(saveSampleInfoAction, initialState);
 
-  const isEditMode = !!initialData
+  useEffect(() => {
+    if (state?.message && !state.errors && state.created_sample_id) {
+      setSampleIdSaved(state.created_sample_id);
+      setNeedsSubjectConfirmation(false);
+      setSubjectIdToConfirm(null);
+      console.log(`Basic info saved for sample: ${state.created_sample_id}`);
+      if (!isEditing) {
+         setFormData(prev => ({
+           ...defaultFormData,
+           subject_id: prev.subject_id,
+           sample_number: (prev.sample_number ?? 0) + 1,
+           lab_id: null,
+         }));
+      }
+    } else if (state?.requires_subject_confirmation && state.subject_id_to_confirm) {
+        setNeedsSubjectConfirmation(true);
+        setSubjectIdToConfirm(state.subject_id_to_confirm);
+    } else if (state?.errors) {
+        setNeedsSubjectConfirmation(false);
+        setSubjectIdToConfirm(null);
+    }
+  }, [state, isEditing]);
 
-  const handleInputChange = (field: keyof SampleData, value: string | number | boolean | null) => {
-    if (isEditMode && field === 'subject_id' && value !== initialData.subject_id) {
-      setShowSubjectIdWarning(true)
+  const handleInputChange = (field: keyof (Omit<SampleData, 'sample_id'> & { lab_id: string | null }), value: string | number | boolean | null) => {
+    if (field === 'subject_id' && needsSubjectConfirmation) {
+        setNeedsSubjectConfirmation(false);
+        setSubjectIdToConfirm(null);
     }
     setFormData(prev => ({ ...prev, [field]: value }))
-    setError(null)
-  }
-
-  const handleSubmit = async (forceCreateSubject: boolean = false) => {
-    try {
-      setIsSubmitting(true)
-      setError(null)
-      setSuccess(null)
-
-      // Validate required fields based on active section
-      if (activeSection === 'basic') {
-        if (!formData.subject_id || !formData.date_of_collection) {
-          setError('Subject ID and Collection Date are required')
-          return
-        }
-      }
-
-      const response = await fetch('/api/omics', {
-        method: isEditMode ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          force_create_subject: forceCreateSubject
-        })
-      })
-
-      const data = await response.json()
-
-      if (response.status === 409 && data.status === 'new_subject') {
-        setShowNewSubjectConfirm(true)
-        setError(data.message || 'New subject confirmation required')
-        return
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to save sample data')
-      }
-
-      setSuccess(data.message || `Sample data ${isEditMode ? 'updated' : 'saved'} successfully`)
-      
-      if (!isEditMode && activeSection === 'basic') {
-        // Keep the same subject_id but increment sample_number for new entries
-        setFormData(prev => ({
-          ...defaultFormData,
-          subject_id: prev.subject_id,
-          sample_number: prev.sample_number ? prev.sample_number + 1 : 1,
-          date_of_collection: new Date().toISOString().split('T')[0]
-        }))
-      } else if (isEditMode) {
-        // Redirect to sample view after successful update
-        router.push(`/samples/${formData.subject_id}-${formData.sample_number}`)
-      }
-
-    } catch (err: unknown) {
-      console.error('Error submitting form:', err)
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Render section tabs
-  const renderTabs = () => (
-    <div className="border-b border-gray-200 mb-6">
-      <nav className="-mb-px flex space-x-8">
-        {['basic', 'advia', 'dna', 'pbmc', 'plasma', 'lorrca', 'viscosity', 'hvr', 'fcells', 'adhesion', 'hplc'].map((section) => (
-          <button
-            key={section}
-            onClick={() => setActiveSection(section as FormSection)}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm
-              ${activeSection === section
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }
-            `}
-          >
-            {section.toUpperCase()}
-          </button>
-        ))}
-      </nav>
-    </div>
-  )
-
-  const renderActiveSection = () => {
-    const commonProps = {
-      formData,
-      isEditMode,
-      onInputChange: handleInputChange
-    }
-
-    // Wrap the active section in a div with form-section class
-    return (
-      <div className="relative form-section">
-        {(() => {
-          switch (activeSection) {
-            case 'basic':
-              return <BasicInfoSection {...commonProps} />
-            case 'advia':
-              return <AdviaSection {...commonProps} />
-            case 'dna':
-              return <DNASection {...commonProps} />
-            case 'pbmc':
-              return <PBMCSection {...commonProps} />
-            case 'plasma':
-              return <PlasmaSection {...commonProps} />
-            case 'lorrca':
-              return <LorrcaSection {...commonProps} />
-            case 'viscosity':
-              return <ViscositySection {...commonProps} />
-            case 'hvr':
-              return <HVRSection {...commonProps} />
-            case 'fcells':
-              return <FCellsSection {...commonProps} />
-            case 'adhesion':
-              return <AdhesionSection {...commonProps} />
-            case 'hplc':
-              return <HPLCSection {...commonProps} />
-            default:
-              return <div>Section under development</div>
-          }
-        })()}
-      </div>
-    )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      {showSubjectIdWarning && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
-          <p className="text-yellow-700">
-            Warning: Changing the Subject ID will create a new subject record. This should only be done if the original ID was entered incorrectly.
-          </p>
+    <form action={dispatch} className="space-y-6">
+      <BasicInfoSection 
+        formData={formData as SampleData & { lab_id: string | null }}
+        isEditMode={isEditing || !!sampleIdSaved}
+        onInputChange={handleInputChange as any}
+        disabled={!!sampleIdSaved || needsSubjectConfirmation}
+      />
+      
+      {(state?.message || state?.errors?._form) && (
+        <div aria-live="polite" className={`text-sm ${state?.errors?._form ? 'text-red-600' : 'text-green-600'}`}>
+          <p>{state.message || state?.errors?._form?.[0]}</p>
         </div>
       )}
-      
-      {renderTabs()}
-      
-      <div className="mb-16 pb-12">
-        {renderActiveSection()}
-        
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 mt-8 text-red-600">
-            {error}
+      {state?.errors?.subject_id && (
+          <div aria-live="polite" className="text-sm text-red-600 mt-1">
+              {state.errors.subject_id.map((error: string) => <p key={error}>{error}</p>)}
           </div>
-        )}
+      )} 
 
-        {success && (
-          <div className="bg-green-50 border border-green-200 rounded-md p-4 mt-8 text-green-600">
-            {success}
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-end space-x-4 mt-12 pt-6 border-t border-gray-200">
-        {showNewSubjectConfirm ? (
-          <>
-            <Button
-              onClick={() => handleSubmit(true)}
-              disabled={isSubmitting}
-            >
-              Confirm New Subject
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowNewSubjectConfirm(false)}
-              disabled={isSubmitting}
-            >
+      {needsSubjectConfirmation && subjectIdToConfirm && (
+        <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md space-y-3">
+          <p className="text-yellow-800 font-medium">Confirm New Subject</p>
+          <p className="text-sm text-yellow-700">
+            Subject ID "{subjectIdToConfirm}" was not found. 
+            Do you want to create this new subject along with saving the sample info?
+            {formData.patient_mrn && <span> Will be linked to MRN: {formData.patient_mrn}.</span>}
+            {!formData.patient_mrn && <span className="block text-xs text-yellow-600">No MRN was provided; a temporary one will be generated if you proceed. You can add an MRN via the main form if available.</span>}
+          </p>
+          {/* Hidden fields to re-submit original data along with confirmation */}
+          <Input type="hidden" name="subject_id" value={formData.subject_id || ''} />
+          <Input type="hidden" name="sample_number" value={formData.sample_number?.toString() || ''} />
+          <Input type="hidden" name="lab_id" value={formData.lab_id || ''} />
+          <Input type="hidden" name="date_of_collection" value={formData.date_of_collection || ''} />
+          <Input type="hidden" name="age_at_collection" value={formData.age_at_collection?.toString() || ''} />
+          <Input type="hidden" name="genotype" value={formData.genotype || ''} />
+          <Input type="hidden" name="steady_state" value={formData.steady_state || ''} />
+          <Input type="hidden" name="transfusion_status" value={formData.transfusion_status || ''} />
+          <Input type="hidden" name="transfusion_confirmed" value={formData.transfusion_confirmed || ''} />
+          <Input type="hidden" name="patient_mrn" value={formData.patient_mrn || ''} />
+          
+          <Input type="hidden" name="confirm_new_subject" value="true" />
+          <div className="flex space-x-3">
+            <SubmitButton /> 
+            <Button type="button" variant="outline" onClick={() => setNeedsSubjectConfirmation(false)}>
               Cancel
             </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              variant="outline"
-              onClick={() => router.push('/data-entry')}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => handleSubmit()}
-              disabled={!formData.subject_id || !formData.sample_number || !formData.date_of_collection || isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : 'Save Sample'}
-            </Button>
-          </>
-        )}
-      </div>
-    </div>
+          </div>
+        </div>
+      )}
+
+      {!needsSubjectConfirmation && !sampleIdSaved && (
+          <div>
+              <SubmitButton />
+          </div>
+      )}
+      
+      {sampleIdSaved && (
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <h2 className="text-xl font-semibold mb-4">Assay Data Entry (Sample: {sampleIdSaved})</h2>
+          <p className="text-gray-600 mb-6">Basic sample information saved. You can now enter data for specific assays below.</p>
+        </div>
+      )}
+    </form>
   )
 } 

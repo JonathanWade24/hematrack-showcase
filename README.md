@@ -24,6 +24,10 @@ This document contains development notes, key decisions, and reminders for the S
 *   **2024-07-26:** Migrated `searchSubjects` from Supabase to Prisma.
 *   **2024-07-26:** Migrated `logAuditEvent` from Supabase to Prisma.
 *   **2024-07-26:** Migrated `getOmicsResultsCount` from Supabase to Prisma. **All functions from `src/lib/supabase/operations.ts` are now migrated.**
+*   **YYYY-MM-DD:** Implemented database insertion logic for basic sample information in `src/app/data-entry/actions.ts` within the `saveSampleInfoAction`. This includes handling for subject and patient creation (if new and confirmed) using Drizzle. The action now attempts to insert into `laboratory.samples` table. Encountering a persistent TypeScript linter error on the `sample_id` field during insertion, despite schema alignment. Further investigation needed to resolve the type inference issue.
+*   **2023-10-27:** (Placeholder for older relevant entries based on summary - adjust date) Refactored `SampleViewer.tsx` to handle nested assay results from Drizzle queries (`SampleWithAllResults` type) and updated HVR data display.
+*   **2023-10-27:** (Placeholder) Resolved NextAuth.js v5 authentication issues on `/samples/[id]` page by using the exported `auth()` function from `src/app/api/auth/[...nextauth]/route.ts` instead of `getServerSession`.
+*   **2023-10-26:** (Placeholder) Began refactor of data entry (`/data-entry/individual`) from API routes to Next.js Server Actions. Created `saveSampleInfoAction` with auth and Zod validation.
 
 ## Configuration Points
 

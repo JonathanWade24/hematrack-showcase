@@ -1,28 +1,19 @@
+import 'dotenv/config';
 import { defineConfig } from 'drizzle-kit';
-// We are temporarily commenting out dotenv loading and hardcoding the URL
-// import * as dotenv from 'dotenv';
-
-// dotenv.config({ path: '.env' }); // Ensure .env variables are loaded
-
-// const databaseUrl = process.env.DATABASE_URL;
-
-// Hardcoded database URL for introspection
-const databaseUrl = "postgresql://jonathanwade@localhost:5432/scd_research_refactored";
-
-
-if (!databaseUrl) {
-  // This check is less relevant now but kept for structure
-  throw new Error('DATABASE_URL environment variable is not set or is empty');
-}
 
 export default defineConfig({
-  schema: './src/lib/db/schema/*', // Pointing to the schema directory
-  out: './drizzle', // Directory for migration files (can be adjusted)
-  dialect: 'postgresql', // Specify PostgreSQL dialect
-  schemaFilter: ['app', 'clinical', 'laboratory', 'staging'], // Added schema filter
+  dialect: 'postgresql',
+  schema: './src/lib/db/schema.ts', // Updated path
+  out: './drizzle', // Migrations will still go here
   dbCredentials: {
-    url: databaseUrl, // Use the DATABASE_URL from .env
+    url: process.env.DATABASE_URL!, // Use the DATABASE_URL from .env.local
   },
-  verbose: true, // Optional: for more detailed output
-  strict: true, // Optional: for stricter checks
+  // Correctly define introspection options
+  introspect: {
+    casing: 'preserve', // Example option, adjust if needed
+  },
+  // Define schemas at the top level
+  schemaFilter: ['app', 'clinical', 'laboratory', 'staging'],
+  verbose: true, // Optional: Enable verbose logging
+  strict: true, // Optional: Enable strict mode
 }); 

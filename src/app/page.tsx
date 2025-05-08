@@ -1,11 +1,23 @@
 import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth/next'
+// import { getServerSession } from 'next-auth/next' // Old import
+// import { getServerSession } from 'next-auth' // Named import was wrong
+import getServerSession from 'next-auth' // Default import as suggested
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { prisma } from '@/lib/prisma'
+// import { prisma } from '@/lib/prisma' // Remove Prisma import
 import DashboardClient from '@/components/dashboard/DashboardClient'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Suspense } from 'react'
-import { Decimal } from '@prisma/client/runtime/library'
+// import { Decimal } from '@prisma/client/runtime/library' // Remove Decimal import
+
+// Import Drizzle functions and types
+import { 
+    getTotalSubjectCount, 
+    getTotalSampleCount, 
+    getAllSamplesWithStatusFields, 
+    getRecentSamplesWithStatusFields, 
+    SampleWithStatusFields, 
+    formatDate // Import the helper function
+} from '@/lib/db/queries';
 
 export const metadata = {
   title: 'Home - SCD Dashboard',
@@ -14,54 +26,57 @@ export const metadata = {
 
 // --- Type Definitions ---
 // Type for data fetched for the main status calculations
-type AllSampleData = {
+// Adapt to match SampleWithStatusFields structure + ensure all needed fields are present
+type AllSampleData = SampleWithStatusFields & { // Extend the Drizzle type
+  sample_id: string; // Ensure sample_id is present if needed by helpers
   subject_id: string;
-  // Include all fields from ASSAY_DEFINITIONS
-  rbc_advia: Decimal | null;
-  hb_advia: Decimal | null;
-  hct_advia: Decimal | null;
-  mcv_advia: Decimal | null;
-  mch_advia: Decimal | null;
-  mchc_advia: Decimal | null;
-  rdw_advia: Decimal | null;
-  plt_advia: Decimal | null;
-  wbc_advia: Decimal | null;
-  concentration_1_dna: Decimal | null;
-  cell_number_1_pbmc: Decimal | null;
-  vol_plasma_1: Decimal | null;
-  ei_min_lorrca: Decimal | null;
-  ei_max_lorrca: Decimal | null;
-  // Fields for QC status
-  qc_pass_advia: string | null;
-  qc_pass_lorrca: string | null;
-  qc_pass_dna: string | null;
+  // Numeric fields are string | null
+  rbc_advia?: string | null;
+  hb_advia?: string | null;
+  hct_advia?: string | null;
+  mcv_advia?: string | null;
+  mch_advia?: string | null;
+  mchc_advia?: string | null;
+  rdw_advia?: string | null;
+  plt_advia?: string | null;
+  wbc_advia?: string | null;
+  concentration_1_dna?: string | null;
+  cell_number_1_pbmc?: string | null;
+  vol_plasma_1?: string | null;
+  ei_min_lorrca?: string | null;
+  ei_max_lorrca?: string | null;
+  // QC fields remain string | null
+  qc_pass_advia?: string | null;
+  qc_pass_lorrca?: string | null;
+  qc_pass_dna?: string | null;
 };
 
 // Type for data fetched for the recent samples list
-type RecentSampleData = {
+// Adapt to match SampleWithStatusFields structure
+type RecentSampleData = SampleWithStatusFields & { // Extend the Drizzle type
   sample_id: string;
   subject_id: string;
-  date_of_collection: Date | null;
-  genotype: string | null;
-  // Include all fields from ASSAY_DEFINITIONS
-  rbc_advia: Decimal | null;
-  hb_advia: Decimal | null;
-  hct_advia: Decimal | null;
-  mcv_advia: Decimal | null;
-  mch_advia: Decimal | null;
-  mchc_advia: Decimal | null;
-  rdw_advia: Decimal | null;
-  plt_advia: Decimal | null;
-  wbc_advia: Decimal | null;
-  concentration_1_dna: Decimal | null;
-  cell_number_1_pbmc: Decimal | null;
-  vol_plasma_1: Decimal | null;
-  ei_min_lorrca: Decimal | null;
-  ei_max_lorrca: Decimal | null;
-  // Fields for QC status
-  qc_pass_advia: string | null;
-  qc_pass_lorrca: string | null;
-  qc_pass_dna: string | null;
+  date_of_collection?: Date | string | null; // Drizzle might return Date or string
+  genotype?: string | null;
+  // Numeric fields are string | null
+  rbc_advia?: string | null;
+  hb_advia?: string | null;
+  hct_advia?: string | null;
+  mcv_advia?: string | null;
+  mch_advia?: string | null;
+  mchc_advia?: string | null;
+  rdw_advia?: string | null;
+  plt_advia?: string | null;
+  wbc_advia?: string | null;
+  concentration_1_dna?: string | null;
+  cell_number_1_pbmc?: string | null;
+  vol_plasma_1?: string | null;
+  ei_min_lorrca?: string | null;
+  ei_max_lorrca?: string | null;
+  // QC fields remain string | null
+  qc_pass_advia?: string | null;
+  qc_pass_lorrca?: string | null;
+  qc_pass_dna?: string | null;
 };
 
 // Type for the formatted recent sample passed to the client
@@ -117,13 +132,19 @@ const REQUIRED_ASSAYS_FOR_COMPLETION: (keyof typeof ASSAY_DEFINITIONS)[] = [
 // --- End Configuration ---
 
 // --- Helper Functions ---
-// Helper function to check if a value is non-zero (Same as samples page)
+// Helper function to check if a value is non-zero 
+// Updated to handle strings from Drizzle numeric types
 const isNonZero = (value: any): boolean => {
   if (value === null || value === undefined) return false;
-  if (typeof value === 'object' && value !== null && typeof value.isZero === 'function') {
-    try { return !value.isZero(); } catch (e) { return false; }
-  }
+  // Remove Decimal check
+  // if (typeof value === 'object' && value !== null && typeof value.isZero === 'function') { ... }
   if (typeof value === 'number') return value !== 0;
+  // Add check for string: try parsing, handle NaN, check if non-zero
+  if (typeof value === 'string') {
+    const num = parseFloat(value);
+    return !isNaN(num) && num !== 0;
+  }
+  // Default case for other types (booleans, objects not handled above)
   return false; 
 };
 
@@ -169,16 +190,18 @@ const getQCStatus = (sample: AllSampleData | RecentSampleData): 'Passed' | 'Fail
 // --- End Helper Functions ---
 
 export default async function Home() {
-  // Check if user is authenticated using NextAuth
+  // Check if user is authenticated using NextAuth v5
   const session = await getServerSession(authOptions)
   
-  if (!session || !session.user) {
+  // Updated check for v5 session
+  if (!session) {
     redirect('/login')
   }
   
-  // Initialize data variables with defaults or placeholders
-  let recentSamplesData: RecentSampleData[] = [];
-  let allSamplesData: AllSampleData[] = [];
+  // Initialize data variables
+  // Use SampleWithStatusFields for fetched data types
+  let recentSamplesData: SampleWithStatusFields[] = []; 
+  let allSamplesData: SampleWithStatusFields[] = []; 
   let totalSamplesCount = 0;
   let totalSubjectsCount = 0;
   let qcPassedSamples = 0;
@@ -188,64 +211,33 @@ export default async function Home() {
   let subjectCounts: { complete: number; partial: number; pending: number } = { complete: 0, partial: 0, pending: 0 };
 
   try {
-    // Define fields needed based on config
-    const requiredFields = Object.values(ASSAY_DEFINITIONS).flat();
+    // Fetch data using Drizzle functions
+    console.log("[Dashboard] Fetching data using Drizzle...");
+
+    // Fetch counts
+    totalSubjectsCount = await getTotalSubjectCount();
+    totalSamplesCount = await getTotalSampleCount();
     
-    // Base fields needed for QC status and subject identification
-    const baseSelectFields = {
-        subject_id: true,
-        qc_pass_advia: true, 
-        qc_pass_lorrca: true,
-        qc_pass_dna: true,
-    };
-
-    // Combine base fields with dynamically added assay fields
-    const selectFieldsForAllSamples = {
-        ...baseSelectFields,
-        ...(requiredFields.reduce((acc, field) => {
-            // Only add if not already in base fields (like subject_id)
-            if (!(field in baseSelectFields)) { 
-              acc[field] = true; 
-            }
-            return acc; 
-        }, {} as { [key: string]: boolean }))
-    };
+    // Fetch sample data
+    allSamplesData = await getAllSamplesWithStatusFields();
+    recentSamplesData = await getRecentSamplesWithStatusFields(10); // Fetch 10 recent
     
-    // Select for recent samples includes display fields + all calc fields
-    const selectFieldsForRecentSamples = {
-        sample_id: true,
-        // subject_id: true, // Already included via spread
-        date_of_collection: true,
-        genotype: true,
-        ...selectFieldsForAllSamples 
-    };
+    console.log(`[Dashboard] Fetched: ${totalSubjectsCount} subjects, ${totalSamplesCount} total samples, ${allSamplesData.length} samples for status calc, ${recentSamplesData.length} recent samples.`);
 
-    // Fetch recent samples using Prisma 
-    const recentSamplesData: RecentSampleData[] = await prisma.omics_results.findMany({
-      orderBy: { date_of_collection: 'desc' },
-      take: 10,
-      select: selectFieldsForRecentSamples as any 
-    });
-
-    // Fetch all samples for status calculation
-    const allSamplesData: AllSampleData[] = await prisma.omics_results.findMany({
-      select: selectFieldsForAllSamples as any 
-    });
-
-    // Get total counts
-    totalSamplesCount = await prisma.omics_results.count();
-    totalSubjectsCount = await prisma.omics_subjects.count();
-
-    // --- Recalculate Counts using NEW status logic --- 
+    // --- Recalculate Counts --- 
     fullyProcessedSamples = 0;
-    partiallyProcessedSamples = 0; // Represents any partial state
-    pendingSamples = 0; // Represents 'Not Started' count
+    partiallyProcessedSamples = 0; 
+    pendingSamples = 0; 
     qcPassedSamples = 0;
     subjectCounts = { complete: 0, partial: 0, pending: 0 }; // Reset
 
-    allSamplesData.forEach((sample: AllSampleData) => { 
-        const processingStatusString = calculateProcessingStatus(sample); // Get detailed status
-        const qcStatus = getQCStatus(sample);
+    // This loop should work if SampleWithStatusFields provides all needed fields
+    // and helpers handle the types correctly.
+    allSamplesData.forEach((sample) => { 
+        // Cast sample to the type expected by helpers if necessary,
+        // but SampleWithStatusFields should align with AllSampleData now.
+        const processingStatusString = calculateProcessingStatus(sample as AllSampleData);
+        const qcStatus = getQCStatus(sample as AllSampleData);
 
         // Map detailed status to simple categories for counts
         if (processingStatusString === 'Complete') fullyProcessedSamples++;
@@ -255,10 +247,10 @@ export default async function Home() {
         if (qcStatus === 'Passed') qcPassedSamples++;
     });
     
-    // Calculate subject processing status based on NEW logic
+    // Calculate subject processing status - should work with allSamplesData
     const subjectProcessingMap = new Map<string, { complete: boolean; partial: boolean; notStarted: boolean }>();
-    allSamplesData.forEach((sample: AllSampleData) => { 
-        const statusString = calculateProcessingStatus(sample); 
+    allSamplesData.forEach((sample) => { 
+        const statusString = calculateProcessingStatus(sample as AllSampleData); 
         const subjectStatus = subjectProcessingMap.get(sample.subject_id) || { complete: false, partial: false, notStarted: true };
         
         if (statusString === 'Complete') {
@@ -284,9 +276,9 @@ export default async function Home() {
     });
     // --- End Recalculation --- 
 
-    // Format recent samples for the client - Map status back to simple union type for Client
-    const formattedRecentSamples: FormattedRecentSample[] = recentSamplesData.map((sample: RecentSampleData) => {
-        const detailedStatus = calculateProcessingStatus(sample); // Get detailed status string
+    // Format recent samples for the client 
+    const formattedRecentSamples: FormattedRecentSample[] = recentSamplesData.map((sample: SampleWithStatusFields) => {
+        const detailedStatus = calculateProcessingStatus(sample as RecentSampleData); 
         let simpleStatus: 'Complete' | 'Partial' | 'Pending'; // Status for client overview
         
         if (detailedStatus === 'Complete') {
@@ -297,24 +289,28 @@ export default async function Home() {
           simpleStatus = 'Partial';
         }
 
+        // Use the imported formatDate helper
+        const collectionDateStr = formatDate(sample.date_of_collection); 
+
         return {
             sample_id: sample.sample_id,
             subject_id: sample.subject_id,
-            date_of_collection: sample.date_of_collection ? sample.date_of_collection.toISOString().split('T')[0] : null,
+            date_of_collection: collectionDateStr, 
             genotype: sample.genotype ?? 'N/A',
-            processing_status: simpleStatus, // Use the simple status for the client table
-            qc_status: getQCStatus(sample),
+            processing_status: simpleStatus, 
+            qc_status: getQCStatus(sample as RecentSampleData),
         };
     });
 
     // Prepare final data object for the client component
-    const initialDataForClient = {
+    const initialDataForClient: DashboardData = { // Explicitly type this
       recentSamples: formattedRecentSamples, 
       qcPassedSamples: qcPassedSamples,
       fullyProcessedSamples: fullyProcessedSamples,
       partiallyProcessedSamples: partiallyProcessedSamples, 
       pendingSamples: pendingSamples, 
       totalSamples: totalSamplesCount, 
+      totalSubjects: totalSubjectsCount, // Add missing property
       subjectCounts: subjectCounts, 
     };
 
@@ -332,7 +328,7 @@ export default async function Home() {
     );
 
   } catch (error) {
-    console.error('Error fetching dashboard data:', error);
+    console.error('Error fetching dashboard data with Drizzle:', error); // Update log message
     // Render with placeholder data or an error message
     return (
       <DashboardLayout>

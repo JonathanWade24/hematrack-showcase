@@ -1,9 +1,14 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { notFound, redirect } from 'next/navigation'
 import { SampleViewer } from '@/components/samples/SampleViewer'
-import { prisma } from '@/lib/prisma' // Use Prisma client
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+// import { prisma } from '@/lib/prisma' // Remove Prisma client
+// import { getServerSession } from 'next-auth/next' // Old import
+import { auth } from '@/app/api/auth/[...nextauth]/route'
+// Remove DefaultSession and DefaultUser imports as we'll use a minimal local type
+// import type { Session as DefaultSession, User as DefaultUser } from 'next-auth'; 
+
+// Import Drizzle function and types
+import { getSampleByIdWithResults, SampleWithAllResults, formatDate } from '@/lib/db/queries';
 
 // Define allowed roles for accessing sample details
 const ALLOWED_ROLES = ['admin', 'clinician', 'editor', 'viewer', 'clinical_researcher_full', 'clinical_researcher_masked'] // Adjust as needed
@@ -17,98 +22,85 @@ type SamplePageProps = {
   params: Promise<PageParams> | undefined;
 };
 
-async function getSampleData(sampleId: string) {
-  try {
-    // Fetch the sample data with related subject and potentially patient
-    const sampleWithRelations = await prisma.omics_results.findUnique({
-      where: {
-        sample_id: sampleId,
-      },
-      include: {
-        omics_subjects: { // Include the related subject
-          include: {
-            patients: { // Include the related patient from the subject
-              select: { // Select only necessary non-sensitive fields initially if needed
-                patient_mrn: true, // Keep MRN for potential linking/display
-                first_name: true,
-                last_name: true,
-                birth_date: true,
-                sex: true,
-                race: true,
-                ethnicity: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!sampleWithRelations) {
-      console.log(`[getSampleData] No sample found with ID: ${sampleId}`)
-      return null;
-    }
-    
-    // Structure the data similar to the original output if needed by SampleViewer
-    // The structure returned by Prisma with includes is already nested.
-    return sampleWithRelations;
-
-  } catch (error) {
-    console.error(`[getSampleData] Error fetching data for sample ${sampleId}:`, error)
-    return null;
-  }
+// Minimal local type definition for casting - this should align with your actual session structure 
+// from next-auth.d.ts and callbacks
+interface ExpectedSessionShape {
+  user?: {
+    id?: string;
+    name?: string; 
+    email?: string; 
+    role?: string;
+  };
+  expires?: string; // NextAuth sessions typically have an expires string
 }
+
+// Remove Prisma specific helper function
+// async function getSampleData(sampleId: string) { ... }
+
+// Reusable recursive date serializer (same as in subject page)
+const serializeDates = (obj: any): any => {
+  if (!obj || typeof obj !== 'object') return obj; // Return non-objects as is
+  if (Array.isArray(obj)) {
+    return obj.map(item => serializeDates(item));
+  }
+  const newObj = { ...obj };
+  for (const key in newObj) {
+    if (newObj[key] instanceof Date) {
+      newObj[key] = newObj[key].toISOString();
+    } else if (typeof newObj[key] === 'object') {
+        newObj[key] = serializeDates(newObj[key]); 
+    }
+  }
+  return newObj;
+};
 
 export default async function SamplePage({ params }: SamplePageProps) {
   // --- Authentication & Authorization ---
-  const session = await getServerSession(authOptions);
-  if (!session?.user || !session.user.role || !ALLOWED_ROLES.includes(session.user.role)) {
-    const reason = !session ? 'No session' : !session.user ? 'No user' : 'Insufficient role';
-    console.warn(`[Sample Page] Unauthorized access attempt: ${reason}`);
-    // Decide whether to redirect to login or show a generic notFound/forbidden page
-    // Redirecting to login is common if the user isn't authenticated at all
-    if (!session) redirect('/login'); 
-    // Otherwise, show not found to avoid revealing the page exists
-    notFound(); 
+  const session = await auth() as ExpectedSessionShape | null;
+  
+  console.log("[Sample Page] Raw session object from auth():", JSON.stringify(session, null, 2));
+
+  let authorized = false;
+  let reason = "Unknown";
+
+  // Access role via session?.user?.role, which should now be type-safe with ExpectedSessionShape
+  if (session && session.user && typeof session.user.role === 'string' && ALLOWED_ROLES.includes(session.user.role)) {
+    authorized = true;
+  } else {
+    if (!session || !session.user) {
+      reason = "No session or user object (checked after logging)";
+    } else if (!session.user.role) {
+      reason = "No role on session.user (checked after logging)";
+    } else {
+      reason = "Insufficient role (checked after logging)";
+    }
   }
 
-  // Handle params correctly, checking for undefined
+  if (!authorized) {
+    console.warn(`[Sample Page] Unauthorized access attempt: ${reason}`);
+    if (!session) redirect('/login'); // Redirect to login if no session at all
+    notFound(); // For other auth issues (e.g. insufficient role), show notFound
+  }
+
   if (!params) {
     throw new Error('Missing page parameters');
   }
   
-  // Resolve params if it's a Promise
   const parameters = await params;
-  const id = parameters.id;
+  const sampleId = parameters.id;
   
-  const sample = await getSampleData(id);
+  // Fetch data using Drizzle function
+  const sampleData = await getSampleByIdWithResults(sampleId);
   
-  if (!sample) {
-    notFound(); // Show 404 if sample data is null (not found or fetch error)
+  if (!sampleData) {
+    notFound(); 
   }
 
-  // Need to explicitly type `sample` before passing to client component
-  // to avoid serialization issues with Date objects etc.
-  // Select/transform the fields needed by SampleViewer here
-  const sampleForViewer = {
-    ...sample,
-    // Convert Date objects to strings or numbers for serialization
-    date_of_collection: sample.date_of_collection?.toISOString() ?? null,
-    omics_subjects: sample.omics_subjects ? {
-        ...sample.omics_subjects,
-        patients: sample.omics_subjects.patients ? {
-            ...sample.omics_subjects.patients,
-            birth_date: sample.omics_subjects.patients.birth_date?.toISOString() ?? null,
-        } : null,
-         // Convert other dates if they exist on omics_subjects
-        created_at: sample.omics_subjects.created_at?.toISOString() ?? null,
-        updated_at: sample.omics_subjects.updated_at?.toISOString() ?? null,
-    } : null,
-     // Convert other dates if they exist on omics_results
-    created_at: sample.created_at?.toISOString() ?? null,
-    updated_at: sample.updated_at?.toISOString() ?? null,
-    qc_run_date: sample.qc_run_date?.toISOString() ?? null, // Example
-    date_of_processing: sample.date_of_processing?.toISOString() ?? null, // Example
-  };
+  // Serialize dates deeply
+  const sampleForViewer = serializeDates(sampleData);
+
+  // SampleViewer component will need updating separately 
+  // to handle the new structure (nested results)
 
   return (
     <DashboardLayout>
