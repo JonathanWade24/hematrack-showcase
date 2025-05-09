@@ -9,6 +9,23 @@ This document contains development notes, key decisions, and reminders for the S
 
 ## Development Notes (Add as we go)
 
+*   **YYYY-MM-DD:** (Placeholder, use today's date) Fixed build errors due to module resolution and NextAuth.js migration:
+    *   Created `src/lib/db/column-queries.ts` to replace missing `@/lib/prisma/column-queries` module, implementing Drizzle ORM-based column query functionality.
+    *   Created a placeholder `src/lib/prisma/operations.ts` module to satisfy lazy imports in the omics route, enabling future migration.
+    *   Updated API routes to use the NextAuth.js v5 syntax: Replaced `getServerSession` from 'next-auth/next' with the `auth` function exported from `@/app/api/auth/[...nextauth]/route`.
+    *   These changes enable a successful build while maintaining functionality, setting the stage for further migration to Drizzle.
+*   **YYYY-MM-DD:** (Placeholder, use today's date) Refined role-based access control for `noPHI_viewer` and `noPHI_editor` roles:
+    *   `src/app/patients/page.tsx`: Access restricted. Users with `noPHI_viewer` or `noPHI_editor` roles will be denied access.
+    *   `src/app/visits/[id]/page.tsx`: Access remains restricted to 'admin' and 'viewer' roles, effectively blocking `noPHI_viewer` and `noPHI_editor`.
+    *   `src/app/samples/[id]/page.tsx`: Ensured accessibility for `noPHI_viewer` and `noPHI_editor` roles by adding them to the `ALLOWED_ROLES` list.
+    *   `src/app/subjects/[id]/page.tsx`: Page remains accessible to `noPHI_viewer` and `noPHI_editor`, but the clinical timeline section within the page continues to be hidden for these roles (visible only to 'admin' and 'viewer').
+*   **YYYY-MM-DD:** (Placeholder, use today's date) Implemented role-based access control for the patient visit timeline page (`src/app/visits/[id]/page.tsx`). Access is restricted to users with 'admin' or 'viewer' roles. Users without these roles will see an "Access Denied" message. This aligns the page's access control with the clinical timeline visibility on the subject detail page.
+*   **YYYY-MM-DD:** (Placeholder, use today's date) Refactored the main samples listing page (`src/app/samples/page.tsx`) to use Drizzle ORM for data fetching. This involved:
+    *   Replacing the Prisma-based `getSamplesData` function with a Drizzle equivalent.
+    *   Updating the data fetching logic to query the `samplesInLaboratory` table and `LEFT JOIN` relevant assay-specific tables (`results_adviaInLaboratory`, `results_dnaInLaboratory`, `results_pbmcInLaboratory`, `results_plasmaInLaboratory`, `results_lorrcaInLaboratory`) to gather all necessary data for display and status calculation.
+    *   Modifying the `SampleFromDb` type to match the structure of data returned by the new Drizzle query (a flat object containing fields from all joined tables).
+    *   Ensuring the existing `calculateProcessingStatus` function works correctly with the Drizzle-fetched data.
+    *   Updating imports and utility functions (`isNonZero`, `SQL` type import) as needed.
 *   **YYYY-MM-DD:** Migrated `logAuditEvent` from Supabase to Prisma.
 *   **YYYY-MM-DD:** Migrated `searchSubjects` from Supabase to Prisma.
 *   **YYYY-MM-DD:** Migrated `getPatientByMRN` from Supabase to Prisma.
@@ -28,6 +45,7 @@ This document contains development notes, key decisions, and reminders for the S
 *   **2023-10-27:** (Placeholder for older relevant entries based on summary - adjust date) Refactored `SampleViewer.tsx` to handle nested assay results from Drizzle queries (`SampleWithAllResults` type) and updated HVR data display.
 *   **2023-10-27:** (Placeholder) Resolved NextAuth.js v5 authentication issues on `/samples/[id]` page by using the exported `auth()` function from `src/app/api/auth/[...nextauth]/route.ts` instead of `getServerSession`.
 *   **2023-10-26:** (Placeholder) Began refactor of data entry (`/data-entry/individual`) from API routes to Next.js Server Actions. Created `saveSampleInfoAction` with auth and Zod validation.
+*   **2024-07-30:** Fixed a data saving issue in the data entry form (`src/components/data-entry/SampleEntryForm.tsx`) where assays other than Advia were not saving correctly. The root cause was missing `name` attributes on the `<Input>` and `<Select>` components within the individual assay section files (e.g., `src/components/data-entry/form-sections/DNASection.tsx`, `PBMCSection.tsx`, etc.). Added the appropriate `name` attributes to all relevant fields, ensuring `FormData` correctly captures their values for the server actions.
 
 ## Configuration Points
 

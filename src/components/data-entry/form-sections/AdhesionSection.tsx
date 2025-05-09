@@ -22,6 +22,7 @@ export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="date"
+            name="date_adhesion"
             value={formData.date_adhesion || ''}
             onChange={(e) => onInputChange('date_adhesion', e.target.value)}
           />
@@ -33,6 +34,7 @@ export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
           <label className="block text-sm font-medium text-gray-700">Total Cells Adhered</label>
           <Input
             type="number"
+            name="cells_adhered_adhesion"
             value={formData.cells_adhered_adhesion || ''}
             onChange={(e) => onInputChange('cells_adhered_adhesion', e.target.value ? parseFloat(e.target.value) : null)}
             step="1"
@@ -44,6 +46,7 @@ export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
         <div>
           <label className="block text-sm font-medium text-gray-700">QC Pass</label>
           <Select
+            name="qc_pass_adhesion"
             value={formData.qc_pass_adhesion || ''}
             onValueChange={(value) => onInputChange('qc_pass_adhesion', value)}
           >
@@ -51,7 +54,6 @@ export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Select...</SelectItem>
               <SelectItem value="Yes">Yes</SelectItem>
               <SelectItem value="No">No</SelectItem>
               <SelectItem value="Review">Review</SelectItem>
@@ -62,6 +64,7 @@ export function AdhesionSection({ formData, onInputChange }: FormSectionProps) {
           <label className="block text-sm font-medium text-gray-700">QC Notes</label>
           <Input
             type="text"
+            name="qc_notes_adhesion"
             value={formData.qc_notes_adhesion || ''}
             onChange={(e) => onInputChange('qc_notes_adhesion', e.target.value)}
             placeholder="Enter any QC notes"

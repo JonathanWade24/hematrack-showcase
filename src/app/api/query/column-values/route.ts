@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 import { 
   QueryRequestSchema, 
   ColumnQueryExecutor, 
   isAllowedQuery, 
   TableNames
-} from '@/lib/prisma/column-queries';
+} from '@/lib/db/column-queries';
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     // Create query executor and run the query
-    const queryExecutor = new ColumnQueryExecutor(prisma);
+    const queryExecutor = new ColumnQueryExecutor(db);
     
     // Use the factory method to create a dynamic query
     const queryMethod = ColumnQueryExecutor.createQueryMethod(

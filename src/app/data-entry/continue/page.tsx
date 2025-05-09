@@ -1,122 +1,128 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { createClient } from '@/lib/supabase/server'
 import { SampleSearch } from '@/components/data-entry/SampleSearch'
+import { getRecentSamplesWithStatusFields, type SampleWithStatusFields } from '@/lib/db/queries' 
 
-type Sample = {
-  sample_id: string
-  subject_id: string
-  date_of_collection: string | null
-  genotype: string | null
-  processing_status: 'Complete' | 'Partial' | 'Pending'
-  qc_status: 'Passed' | 'Failed' | 'Review'
-}
+// --- Status Calculation Configuration (copied from src/app/samples/page.tsx for now) ---
+const ASSAY_DEFINITIONS = {
+  Advia: [
+    'rbc_advia', 'hb_advia', 'hct_advia', 'mcv_advia', 'mch_advia', 
+    'mchc_advia', 'rdw_advia', 'plt_advia', 'wbc_advia'
+  ],
+  DNA: ['concentration_1_dna'],
+  PBMC: ['cell_number_1_pbmc'],
+  Plasma: ['vol_plasma_1'],
+  Lorrca: ['ei_min_lorrca', 'ei_max_lorrca'],
+  // Add other assays if they contribute to "Recent Samples" status or are needed by SampleSearch
+};
 
-type OmicsResult = {
-  sample_id: string
-  subject_id: string
-  date_of_collection: string | null
-  rbc_advia: number | null
-  hb_advia: number | null
-  hct_advia: number | null
-  mcv_advia: number | null
-  mch_advia: number | null
-  mchc_advia: number | null
-  rdw_advia: number | null
-  plt_advia: number | null
-  wbc_advia: number | null
-  concentration_1_dna: number | null
-  cell_number_1_pbmc: number | null
-  vol_plasma_1: number | null
-  qc_pass_advia: string | null
-  qc_pass_lorrca: string | null
-  qc_pass_dna: string | null
-  omics_subject: {
-    genotype: string | null
-  } | null
-}
+const REQUIRED_ASSAYS_FOR_COMPLETION: (keyof typeof ASSAY_DEFINITIONS)[] = [
+  'Advia', 'DNA', 'Lorrca' // Example, adjust as needed for this page's context
+];
 
-async function getRecentSamples(): Promise<Sample[]> {
-  // Get Supabase client
-  const supabase = await createClient()
-  
-  // Handle missing client
-  if (!supabase) {
-      console.warn('[getRecentSamples] Supabase client not available. Returning empty array.');
-      return [];
+const isNonZero = (value: string | number | null | undefined): boolean => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') {
+    const num = parseFloat(value);
+    return !isNaN(num) && num !== 0;
   }
-  
-  try {
-    // Get samples without joining to omics_subjects
-    const { data: samples, error } = await supabase
-      .from('omics_results')
-      .select('*')
-      .order('date_of_collection', { ascending: false })
-      .limit(10)
-    
-    if (error) {
-      console.error('Error fetching recent samples:', error)
-      return []
+  if (typeof value === 'number') return value !== 0;
+  return false;
+};
+
+const calculateProcessingStatus = (sample: SampleWithStatusFields): string => {
+  const assayCompletion: { [key in keyof typeof ASSAY_DEFINITIONS]?: boolean } = {};
+  let anyAssayDone = false;
+
+  for (const assayName in ASSAY_DEFINITIONS) {
+    const fields = ASSAY_DEFINITIONS[assayName as keyof typeof ASSAY_DEFINITIONS];
+    // @ts-ignore - Dynamically access fields, ensure sample has them
+    const done = fields.some(field => isNonZero(sample[field as keyof SampleWithStatusFields]));
+    assayCompletion[assayName as keyof typeof ASSAY_DEFINITIONS] = done;
+    if (done) {
+      anyAssayDone = true;
     }
-    
-    // Process samples to include processing and QC status
-    const processedSamples = (samples || []).map((sample: any) => {
-      // Check if ADVIA has any non-zero values
-      const hasValidAdvia = [
-        sample.rbc_advia,
-        sample.hb_advia,
-        sample.hct_advia,
-        sample.mcv_advia,
-        sample.mch_advia,
-        sample.mchc_advia,
-        sample.rdw_advia,
-        sample.plt_advia,
-        sample.wbc_advia
-      ].some(value => value !== null && Number(value) !== 0)
-
-      // Check other components
-      const hasValidDNA = sample.concentration_1_dna !== null && Number(sample.concentration_1_dna) !== 0
-      const hasValidPBMC = sample.cell_number_1_pbmc !== null && Number(sample.cell_number_1_pbmc) !== 0
-      const hasValidPlasma = sample.vol_plasma_1 !== null && Number(sample.vol_plasma_1) !== 0
-
-      // Determine processing status
-      let processing_status: 'Complete' | 'Partial' | 'Pending'
-      if (!hasValidAdvia) {
-        processing_status = 'Pending'
-      } else if (hasValidDNA && hasValidPBMC && hasValidPlasma) {
-        processing_status = 'Complete'
-      } else {
-        processing_status = 'Partial'
-      }
-
-      // Determine QC status
-      let qc_status: 'Passed' | 'Failed' | 'Review'
-      if (sample.qc_pass_advia === 'No' || sample.qc_pass_lorrca === 'No' || sample.qc_pass_dna === 'No') {
-        qc_status = 'Failed'
-      } else if (sample.qc_pass_advia === 'Review' || sample.qc_pass_lorrca === 'Review' || sample.qc_pass_dna === 'Review') {
-        qc_status = 'Review'
-      } else {
-        qc_status = 'Passed'
-      }
-
-      return {
-        sample_id: sample.sample_id,
-        subject_id: sample.subject_id,
-        date_of_collection: sample.date_of_collection,
-        genotype: null, // Since we're not retrieving genotype from omics_subjects
-        processing_status,
-        qc_status
-      } as Sample
-    })
-
-    return processedSamples;
-  } catch (error) {
-    console.error('Error in getRecentSamples:', error)
-    return []
   }
+
+  if (!anyAssayDone) {
+    return 'Not Started'; // Or 'Pending' as per original logic
+  }
+
+  const requiredAssaysComplete = REQUIRED_ASSAYS_FOR_COMPLETION.every(
+    assayName => assayCompletion[assayName]
+  );
+
+  if (requiredAssaysComplete) {
+    return 'Complete';
+  }
+  
+  const missingAssays = Object.entries(assayCompletion)
+    .filter(([_, done]) => !done)
+    .map(([name]) => name);
+    
+  const relevantMissing = missingAssays.filter(name => name in ASSAY_DEFINITIONS);
+
+  if (relevantMissing.length === 0 && anyAssayDone) { // All defined assays are done, but not enough for 'Complete'
+    return 'Partial'; // Generic partial if no specific missing ones based on a limited ASSAY_DEFINITION here
+  }
+  return `Partial: Missing ${relevantMissing.join(', ')}`;
+};
+
+// Simplified QC Status for this page - adjust as needed
+const getSimpleQCStatus = (sample: SampleWithStatusFields): 'Passed' | 'Failed' | 'Review' => {
+  if (sample.qc_pass_advia === 'No' || sample.qc_pass_lorrca === 'No' || sample.qc_pass_dna === 'No') {
+    return 'Failed';
+  } else if (sample.qc_pass_advia === 'Review' || sample.qc_pass_lorrca === 'Review' || sample.qc_pass_dna === 'Review') {
+    return 'Review';
+  } else if (isNonZero(sample.rbc_advia) || isNonZero(sample.concentration_1_dna) || isNonZero(sample.ei_min_lorrca)) { // Only if some data exists
+    return 'Passed'; // Default to passed if some data exists and no fails/reviews
+  }
+  return 'Review'; // Default if no data or indeterminate
+};
+
+// This is the type SampleSearch component expects
+interface SampleForContinuePage {
+  sample_id: string;
+  subject_id: string;
+  date_of_collection: string | null;
+  genotype: string | null;
+  processing_status: 'Complete' | 'Partial' | 'Pending'; // Adjusted to match SampleSearch
+  qc_status: 'Passed' | 'Failed' | 'Review';
 }
 
 export default async function UpdateSamplePage() {
-  const recentSamples = await getRecentSamples()
+  const rawRecentSamples = await getRecentSamplesWithStatusFields(10); // Fetch 10 recent samples
+
+  const processedRecentSamples: SampleForContinuePage[] = rawRecentSamples.map(sample => {
+    const detailedProcessingStatus = calculateProcessingStatus(sample);
+    let simpleProcessingStatus: 'Complete' | 'Partial' | 'Pending';
+    if (detailedProcessingStatus === 'Complete') {
+      simpleProcessingStatus = 'Complete';
+    } else if (detailedProcessingStatus === 'Not Started') {
+      simpleProcessingStatus = 'Pending'; 
+    } else { 
+      simpleProcessingStatus = 'Partial';
+    }
+
+    const qcStatus = getSimpleQCStatus(sample);
+    
+    let collectionDateStr: string | null = null;
+    const collDate = sample.date_of_collection;
+    // Option 1: Assume string or null from Drizzle query result
+    if (typeof collDate === 'string') {
+        collectionDateStr = collDate; 
+    }
+    // If collDate is null or a Date object (which we are ignoring for now),
+    // collectionDateStr remains null.
+
+    return {
+      sample_id: sample.sample_id,
+      subject_id: sample.subject_id,
+      date_of_collection: collectionDateStr,
+      genotype: sample.genotype || 'N/A',
+      processing_status: simpleProcessingStatus, // Use the simplified status
+      qc_status: qcStatus,
+    };
+  });
 
   return (
     <DashboardLayout>
@@ -129,7 +135,7 @@ export default async function UpdateSamplePage() {
         </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
           <div className="py-4">
-            <SampleSearch recentSamples={recentSamples} />
+            <SampleSearch recentSamples={processedRecentSamples} />
           </div>
         </div>
       </div>

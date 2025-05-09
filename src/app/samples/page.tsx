@@ -3,16 +3,25 @@ import SamplesTable from '@/components/samples/SamplesTable'
 import Link from 'next/link'
 import PageSizeSelector from '@/components/samples/PageSizeSelector'
 import { SamplesSearchBar } from '@/components/samples/SamplesSearchBar'
-import { prisma } from '@/lib/prisma'
-import { Decimal } from '@prisma/client/runtime/library'
 import Pagination from '@/components/samples/Pagination'
 import { ProcessedSample } from '@/types/samples'
-import { omics_results } from '@prisma/client'
+import { db } from '@/lib/db'
+// Import the main samples table and all relevant results tables from the schema
+import { 
+  samplesInLaboratory,
+  results_adviaInLaboratory,
+  results_dnaInLaboratory,
+  results_pbmcInLaboratory,
+  results_plasmaInLaboratory,
+  results_lorrcaInLaboratory 
+} from '@/lib/db/schema'
+import { sql, eq, count, or, and, like, asc, desc, SQL } from 'drizzle-orm'
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 const DEFAULT_PAGE_SIZE = 20
 
 // --- Status Calculation Configuration ---
+// These field names must match the selected column names from the Drizzle query
 const ASSAY_DEFINITIONS = {
   Advia: [
     'rbc_advia', 'hb_advia', 'hct_advia', 'mcv_advia', 'mch_advia', 
@@ -22,58 +31,61 @@ const ASSAY_DEFINITIONS = {
   PBMC: ['cell_number_1_pbmc'],
   Plasma: ['vol_plasma_1'],
   Lorrca: ['ei_min_lorrca', 'ei_max_lorrca'],
-  // Add other assays here, e.g.:
-  // HPLC: ['hbf_percent_grady_hplc', 'hba_percent_grady_hplc', ...]
 };
 
-// Define which assays are REQUIRED for the sample to be marked 'Complete'
 const REQUIRED_ASSAYS_FOR_COMPLETION: (keyof typeof ASSAY_DEFINITIONS)[] = [
-  'Advia', 'DNA', 'Lorrca' // Currently requires Advia, DNA, Lorrca
-  // To require PBMC and Plasma as well, add them: 'Advia', 'DNA', 'PBMC', 'Plasma', 'Lorrca'
+  'Advia', 'DNA', 'Lorrca'
 ];
 // --- End Configuration ---
 
-// Helper function to check if a value is non-zero (handles Decimal)
-const isNonZero = (value: Decimal | number | null | undefined): boolean => {
+const isNonZero = (value: string | number | null | undefined): boolean => {
   if (value === null || value === undefined) return false;
-  if (value instanceof Decimal) return !value.isZero();
+  if (typeof value === 'string') {
+    const num = parseFloat(value);
+    return !isNaN(num) && num !== 0;
+  }
   if (typeof value === 'number') return value !== 0;
   return false;
 };
 
-// Type for the structure returned by the Prisma select
+// Type for the structure returned by Drizzle query after joins
+// It includes fields from samplesInLaboratory and all joined results tables
 type SampleFromDb = {
+  // Fields from samplesInLaboratory
   sample_id: string;
   subject_id: string;
-  date_of_collection: Date | null;
-  created_at: Date | null;
-  updated_at: Date | null;
-  // Include all fields mentioned in ASSAY_DEFINITIONS
-  rbc_advia: Decimal | null;
-  hb_advia: Decimal | null;
-  hct_advia: Decimal | null;
-  mcv_advia: Decimal | null;
-  mch_advia: Decimal | null;
-  mchc_advia: Decimal | null;
-  rdw_advia: Decimal | null;
-  plt_advia: Decimal | null;
-  wbc_advia: Decimal | null;
-  concentration_1_dna: Decimal | null;
-  cell_number_1_pbmc: Decimal | null;
-  vol_plasma_1: Decimal | null;
-  ei_min_lorrca: Decimal | null;
-  ei_max_lorrca: Decimal | null;
+  date_of_collection: Date | string | null;
+  created_at: Date | string | null;
+  updated_at: Date | string | null;
+  // Fields from results_adviaInLaboratory (example)
+  rbc_advia: string | null;
+  hb_advia: string | null;
+  hct_advia: string | null;
+  mcv_advia: string | null;
+  mch_advia: string | null;
+  mchc_advia: string | null;
+  rdw_advia: string | null;
+  plt_advia: string | null;
+  wbc_advia: string | null;
+  // Fields from results_dnaInLaboratory
+  concentration_1_dna: string | null;
+  // Fields from results_pbmcInLaboratory
+  cell_number_1_pbmc: string | null;
+  // Fields from results_plasmaInLaboratory
+  vol_plasma_1: string | null;
+  // Fields from results_lorrcaInLaboratory
+  ei_min_lorrca: string | null;
+  ei_max_lorrca: string | null;
+  // Allow dynamic access for other fields potentially selected or for flexibility
+  [key: string]: any; 
 };
 
-// Refactored Status Calculation using Configuration
 const calculateProcessingStatus = (sample: SampleFromDb): string => {
   const assayCompletion: { [key in keyof typeof ASSAY_DEFINITIONS]?: boolean } = {};
   let anyAssayDone = false;
 
-  // Determine completion status for each defined assay
   for (const assayName in ASSAY_DEFINITIONS) {
     const fields = ASSAY_DEFINITIONS[assayName as keyof typeof ASSAY_DEFINITIONS];
-    // @ts-ignore - Dynamically access fields based on config
     const done = fields.some(field => isNonZero(sample[field]));
     assayCompletion[assayName as keyof typeof ASSAY_DEFINITIONS] = done;
     if (done) {
@@ -81,7 +93,6 @@ const calculateProcessingStatus = (sample: SampleFromDb): string => {
     }
   }
 
-  // Determine overall status based on configuration
   if (!anyAssayDone) {
     return 'Not Started';
   }
@@ -91,15 +102,13 @@ const calculateProcessingStatus = (sample: SampleFromDb): string => {
   );
 
   if (requiredAssaysComplete) {
-    return 'Complete'; // Only if all REQUIRED assays are done
+    return 'Complete';
   }
   
-  // If not Not Started and not Complete, it's Partial
   const missingAssays = Object.entries(assayCompletion)
     .filter(([_, done]) => !done)
     .map(([name]) => name);
     
-  // Optional: Only list missing assays that are part of the definition
   const relevantMissing = missingAssays.filter(name => name in ASSAY_DEFINITIONS);
 
   return `Partial: Missing ${relevantMissing.join(', ')}`;
@@ -109,72 +118,111 @@ async function getSamplesData(
   page = 1,
   pageSize = DEFAULT_PAGE_SIZE,
   search?: string,
-  sort = 'dateOfCollection',
+  sort = 'date_of_collection', 
   order: 'asc' | 'desc' = 'desc'
 ): Promise<{ samples: ProcessedSample[], totalCount: number, totalPages: number }> {
   const skip = (page - 1) * pageSize;
   const defaultReturn = { samples: [], totalCount: 0, totalPages: 0 };
 
   try {
-    const sortFieldMapping: Record<string, string> = {
-      id: 'sample_id',
-      patientId: 'subject_id',
-      dateOfCollection: 'date_of_collection',
-      status: 'sample_id',
-      createdAt: 'created_at',
-      updatedAt: 'updated_at'
+    // Sort field mapping now refers to columns in samplesInLaboratory
+    const sortFieldMapping: Record<string, any> = {
+      id: samplesInLaboratory.sample_id,
+      patientId: samplesInLaboratory.subject_id,
+      dateOfCollection: samplesInLaboratory.date_of_collection,
+      // Status is calculated, default sort to date_of_collection
+      status: samplesInLaboratory.date_of_collection, 
+      createdAt: samplesInLaboratory.created_at,
+      updatedAt: samplesInLaboratory.updated_at
     };
-    const dbSortField = sortFieldMapping[sort] || 'date_of_collection';
+    const dbSortField = sortFieldMapping[sort] || samplesInLaboratory.date_of_collection;
 
-    let whereClause = {};
+    // Build WHERE conditions for search (on samplesInLaboratory)
+    let whereConditionsArray: SQL[] = [];
     if (search) {
-      whereClause = {
-        OR: [
-          { sample_id: { contains: search, mode: 'insensitive' } },
-          { subject_id: { contains: search, mode: 'insensitive' } },
-        ]
-      };
+      const searchLower = search.toLowerCase();
+      whereConditionsArray.push(
+        or(
+          sql`lower(${samplesInLaboratory.sample_id}) like ${'%' + searchLower + '%'}`,
+          sql`lower(${samplesInLaboratory.subject_id}) like ${'%' + searchLower + '%'} `
+        )! // Add non-null assertion if or can return undefined
+      );
     }
+    const finalWhereCondition = whereConditionsArray.length > 0 ? and(...whereConditionsArray) : undefined;
 
-    const totalCount = await prisma.omics_results.count({ where: whereClause });
+    // Get total count
+    const totalCountQuery = db
+      .select({ value: count() })
+      .from(samplesInLaboratory)
+      .where(finalWhereCondition);
+    
+    const totalCountResult = await totalCountQuery;
+    const totalCount = totalCountResult[0]?.value || 0;
 
-    const orderByClause = { [dbSortField]: order };
+    if (totalCount === 0) {
+        return defaultReturn;
+    }
+    
+    // Fetch paginated data with joins
+    const query = db
+      .select({
+        // Select fields from samplesInLaboratory
+        sample_id: samplesInLaboratory.sample_id,
+        subject_id: samplesInLaboratory.subject_id,
+        date_of_collection: samplesInLaboratory.date_of_collection,
+        created_at: samplesInLaboratory.created_at,
+        updated_at: samplesInLaboratory.updated_at,
+        // Select fields from results_adviaInLaboratory
+        rbc_advia: results_adviaInLaboratory.rbc_advia,
+        hb_advia: results_adviaInLaboratory.hb_advia,
+        hct_advia: results_adviaInLaboratory.hct_advia,
+        mcv_advia: results_adviaInLaboratory.mcv_advia,
+        mch_advia: results_adviaInLaboratory.mch_advia,
+        mchc_advia: results_adviaInLaboratory.mchc_advia,
+        rdw_advia: results_adviaInLaboratory.rdw_advia,
+        plt_advia: results_adviaInLaboratory.plt_advia,
+        wbc_advia: results_adviaInLaboratory.wbc_advia,
+        // Select fields from results_dnaInLaboratory
+        concentration_1_dna: results_dnaInLaboratory.concentration_1_dna,
+        // Select fields from results_pbmcInLaboratory
+        cell_number_1_pbmc: results_pbmcInLaboratory.cell_number_1_pbmc,
+        // Select fields from results_plasmaInLaboratory
+        vol_plasma_1: results_plasmaInLaboratory.vol_plasma_1,
+        // Select fields from results_lorrcaInLaboratory
+        ei_min_lorrca: results_lorrcaInLaboratory.ei_min_lorrca,
+        ei_max_lorrca: results_lorrcaInLaboratory.ei_max_lorrca,
+      })
+      .from(samplesInLaboratory)
+      .leftJoin(results_adviaInLaboratory, eq(samplesInLaboratory.sample_id, results_adviaInLaboratory.sample_id))
+      .leftJoin(results_dnaInLaboratory, eq(samplesInLaboratory.sample_id, results_dnaInLaboratory.sample_id))
+      .leftJoin(results_pbmcInLaboratory, eq(samplesInLaboratory.sample_id, results_pbmcInLaboratory.sample_id))
+      .leftJoin(results_plasmaInLaboratory, eq(samplesInLaboratory.sample_id, results_plasmaInLaboratory.sample_id))
+      .leftJoin(results_lorrcaInLaboratory, eq(samplesInLaboratory.sample_id, results_lorrcaInLaboratory.sample_id))
+      .where(finalWhereCondition)
+      .orderBy(order === 'asc' ? asc(dbSortField) : desc(dbSortField))
+      .limit(pageSize)
+      .offset(skip);
 
-    // Fetch fields needed for ProcessedSample + all fields in ASSAY_DEFINITIONS
-    const fieldsToSelect = {
-        // Fields needed for ProcessedSample type
-        sample_id: true,
-        subject_id: true,
-        date_of_collection: true,
-        created_at: true,
-        updated_at: true,
-        // Dynamically add all fields from ASSAY_DEFINITIONS
-        ...(Object.values(ASSAY_DEFINITIONS).flat().reduce((acc, field) => {
-            acc[field] = true;
-            return acc;
-        }, {} as { [key: string]: boolean }))
-    };
-
-    const samplesFromDb = await prisma.omics_results.findMany({
-      where: whereClause,
-      orderBy: orderByClause,
-      skip,
-      take: pageSize,
-      select: fieldsToSelect as any // Use the dynamically generated select object
-    });
+    const samplesFromDb = await query;
 
     // Map and Serialize the data
-    const processedSamples: ProcessedSample[] = samplesFromDb.map((sample: SampleFromDb) => { 
-      const calculated_status = calculateProcessingStatus(sample); // Use refactored function
+    const processedSamples: ProcessedSample[] = samplesFromDb.map((sample) => { 
+      // sample is now SampleFromDb due to explicit select and joins
+      const calculated_status = calculateProcessingStatus(sample as SampleFromDb);
 
-      // Construct the final object 
+      const toISOStringOrEmpty = (dateValue: Date | string | null | undefined): string => {
+        if (!dateValue) return '';
+        if (dateValue instanceof Date) return dateValue.toISOString();
+        return String(dateValue); 
+      };
+      
       const serializedSample: ProcessedSample = {
         id: sample.sample_id,
         patientId: sample.subject_id,
-        dateOfCollection: sample.date_of_collection?.toISOString() ?? '', 
+        dateOfCollection: toISOStringOrEmpty(sample.date_of_collection), 
         status: calculated_status, 
-        createdAt: sample.created_at?.toISOString() ?? '',
-        updatedAt: sample.updated_at?.toISOString() ?? '',
+        createdAt: toISOStringOrEmpty(sample.created_at),
+        updatedAt: toISOStringOrEmpty(sample.updated_at),
       };
       return serializedSample;
     });
@@ -186,6 +234,12 @@ async function getSamplesData(
     };
   } catch (error) {
     console.error('Error in getSamplesData:', error);
+    if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+    } else {
+        console.error('Unknown error:', error);
+    }
     return defaultReturn;
   }
 }
@@ -199,26 +253,21 @@ type SearchParamsType = {
   order?: 'asc' | 'desc'
 };
 
-// Correct PageProps type to expect resolved SearchParamsType
 type PageProps = {
-  searchParams: SearchParamsType; // Expect resolved params, not Promise
+  searchParams: SearchParamsType;
 };
 
-
-// The page component itself is async (Server Component)
 export default async function SamplesPage({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  // Parse search params with proper type safety
   const page = Number(searchParams?.page) || 1
-  const pageSize = Number(searchParams?.pageSize) || 10
-  const sort = (searchParams?.sort as string) || 'date_of_collection'
+  const pageSize = Number(searchParams?.pageSize) || DEFAULT_PAGE_SIZE
+  const sort = (searchParams?.sort as string) || 'dateOfCollection' // Default sort field
   const order = (searchParams?.order as 'asc' | 'desc') || 'desc'
   const search = searchParams?.search as string | undefined
 
-  // Fetch the data
   const { samples, totalCount, totalPages } = await getSamplesData(
     page,
     pageSize,

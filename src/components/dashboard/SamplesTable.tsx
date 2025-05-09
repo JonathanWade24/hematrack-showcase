@@ -140,14 +140,16 @@ export default function SamplesTable({
                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div className="flex space-x-4">
                     <Link
-                      href={`/data-entry/individual/${sample.sample_id}`}
+                      href={`/data-entry/edit/${sample.sample_id}`}
                       className="text-indigo-600 hover:text-indigo-900"
+                      aria-label={`Edit sample ${sample.sample_id}`}
                     >
                       <FontAwesomeIcon icon={faEdit} className="h-5 w-5" />
                     </Link>
                     <Link
                       href={`/samples/${sample.sample_id}`}
                       className="text-gray-600 hover:text-gray-900"
+                      aria-label={`View sample ${sample.sample_id}`}
                     >
                       <FontAwesomeIcon icon={faEye} className="h-5 w-5" />
                     </Link>

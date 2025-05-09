@@ -15,6 +15,20 @@
       "when": 1746473947919,
       "tag": "0001_stale_luke_cage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746800797441,
+      "tag": "0002_glossy_hercules",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1746801101023,
+      "tag": "0003_black_cardiac",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="date"
+            name="date_lorrca"
             value={formData.date_lorrca || ''}
             onChange={(e) => onInputChange('date_lorrca', e.target.value)}
           />
@@ -34,6 +35,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="number"
+            name="ei_min_lorrca"
             value={formData.ei_min_lorrca || ''}
             onChange={(e) => onInputChange('ei_min_lorrca', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.001"
@@ -45,6 +47,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="number"
+            name="ei_max_lorrca"
             value={formData.ei_max_lorrca || ''}
             onChange={(e) => onInputChange('ei_max_lorrca', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.001"
@@ -56,6 +59,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="number"
+            name="ei_delta_lorrca"
             value={formData.ei_delta_lorrca || ''}
             onChange={(e) => onInputChange('ei_delta_lorrca', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.001"
@@ -70,6 +74,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="number"
+            name="pos_lorrca"
             value={formData.pos_lorrca || ''}
             onChange={(e) => onInputChange('pos_lorrca', e.target.value ? parseFloat(e.target.value) : null)}
             step="1"
@@ -81,6 +86,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="text"
+            name="instrument_lorrca"
             value={formData.instrument_lorrca || ''}
             onChange={(e) => onInputChange('instrument_lorrca', e.target.value)}
           />
@@ -90,7 +96,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">QC Pass</label>
-          <Select value={formData.qc_pass_lorrca || ''} onValueChange={(value) => onInputChange('qc_pass_lorrca', value)}>
+          <Select name="qc_pass_lorrca" value={formData.qc_pass_lorrca || ''} onValueChange={(value) => onInputChange('qc_pass_lorrca', value)}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select QC status..." />
             </SelectTrigger>
@@ -105,6 +111,7 @@ export function LorrcaSection({ formData, onInputChange }: FormSectionProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">QC Notes</label>
           <Input
             type="text"
+            name="qc_notes_lorrca"
             value={formData.qc_notes_lorrca || ''}
             onChange={(e) => onInputChange('qc_notes_lorrca', e.target.value)}
             placeholder="Enter any QC notes"

@@ -1,126 +1,93 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import Link from 'next/link'
-// Remove old/deprecated imports
-// import { createClinicalClient, createPhiClient } from '@/lib/supabase/server' 
-// import { ITEMS_PER_PAGE as DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import { getAllVisits } from '@/lib/prisma/operations' // Import new Prisma function
-import { unified_visits, patients } from '@prisma/client' // Import relevant Prisma types
-import Pagination from '@/components/samples/Pagination' // Use default import for Pagination
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFilter, faTimesCircle, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons' // Added chevrons
+import { getAllVisitsForListView, type VisitForListView } from '@/lib/db/queries' // Drizzle query
+import { Button } from '@/components/ui/button' // Import Button for pagination
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
+// Explicitly force dynamic rendering because we use searchParams
+export const dynamic = 'force-dynamic';
 
-// Define structure needed for the table, based on Prisma return type
-// Use Omit to exclude the actual relation object if needed, or just select fields
-type VisitForTable = unified_visits & { 
-  patient: patients | null; // Expecting patient relation 
-  // We will serialize dates before rendering
-};
+const VISITS_PER_PAGE = 15;
 
-// Helper to format Date for display
-const formatDate = (date: Date | null | undefined): string => {
-  return date ? new Date(date).toLocaleDateString() : 'N/A';
-};
-
-// Define Page Props, including searchParams for pagination/filtering
 interface VisitsPageProps {
   searchParams?: { 
     page?: string;
-    pageSize?: string;
-    type?: string; // Keep type filter if needed
+    type?: string; 
   };
 }
 
-// Remove the old local getVisits function
-// async function getVisits(...) { ... }
-
 export default async function VisitsPage({ searchParams }: VisitsPageProps) {
   const currentPage = Number(searchParams?.page) || 1;
-  const pageSize = Number(searchParams?.pageSize) || 20; // Default page size
-  const type = searchParams?.type;
+  const visitTypeFilter = searchParams?.type || ''; 
 
-  console.log('Fetching all unified visits using Prisma...');
-  const allVisitsData: (unified_visits & { patient: patients | null })[] = await getAllVisits(); 
-  console.log(`Fetched ${allVisitsData?.length || 0} visits`);
-
-  // --- Client-side Pagination/Filtering (Apply AFTER fetching all) ---
-  const filteredVisits: (unified_visits & { patient: patients | null })[] = type 
-    ? allVisitsData.filter(visit => visit.visit_type?.toLowerCase() === type.toLowerCase())
-    : allVisitsData;
-
-  const totalVisits = filteredVisits.length;
-  const totalPages = Math.ceil(totalVisits / pageSize);
-  
-  // Explicitly type the result of slice
-  const paginatedVisits: (unified_visits & { patient: patients | null })[] = filteredVisits.slice(
-      (currentPage - 1) * pageSize, 
-      currentPage * pageSize
+  const { visits: fetchedVisits, totalVisits } = await getAllVisitsForListView(
+    VISITS_PER_PAGE,
+    (currentPage - 1) * VISITS_PER_PAGE,
+    visitTypeFilter || undefined 
   );
-  // --- End Pagination/Filtering ---
 
-  const visitsToDisplay = paginatedVisits;
+  const totalPages = Math.ceil(totalVisits / VISITS_PER_PAGE);
 
-  const handlePageChange = (newPage: number) => {
-    // This function won't work directly in Server Component
-    // Pagination needs URL updates handled by Link or router push in Client Component
-    // For now, pagination links update the URL search params
-    console.log("Page change requires URL update, handled by Pagination component links");
+  // Helper function to create pagination links
+  const createPageUrl = (page: number) => {
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    if (visitTypeFilter) {
+      params.set('type', visitTypeFilter);
+    }
+    return `/visits?${params.toString()}`;
   };
 
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">All Visits</h1>
-              <p className="mt-2 text-sm text-gray-600">
-                Showing {paginatedVisits.length} of {totalVisits} total visits {type ? `(Type: ${type})` : ''}
-              </p>
-            </div>
-            {/* Add Filter controls here if needed */}
+          <header className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold leading-tight text-gray-900">All Visits</h1>
+          </header>
+
+          {/* Filters */} 
+          <div className="flex space-x-4 mb-4 items-center">
+            <span className="text-sm font-medium text-gray-700">Filter by Type:</span>
+             {/* Links now construct URLs without relying on internal state of Pagination component */}
+            <Link href={createPageUrl(1) + (visitTypeFilter === 'IP' ? '' : '&type=IP')} passHref>
+              <Button variant={visitTypeFilter === 'IP' ? 'default' : 'outline'} size="sm">
+                 Inpatient (IP)
+              </Button>
+            </Link>
+            <Link href={createPageUrl(1) + (visitTypeFilter === 'OP' ? '' : '&type=OP')} passHref>
+              <Button variant={visitTypeFilter === 'OP' ? 'default' : 'outline'} size="sm">
+                 Outpatient (OP)
+               </Button>
+            </Link>
+            {visitTypeFilter && (
+              <Link href={createPageUrl(1)} passHref>
+                 <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700">
+                   <FontAwesomeIcon icon={faTimesCircle} className="mr-1" /> Clear Type Filter
+                 </Button>
+              </Link>
+            )}
           </div>
 
-          {/* Visits Table */}
-          {/* Allow horizontal scrolling on smaller screens */}
-          <div className="bg-white shadow overflow-x-auto rounded-lg">
+          <div className="overflow-x-auto bg-white shadow sm:rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
+               {/* Table Head */}
               <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Visit ID
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Patient MRN
-                  </th>
-                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Patient Name
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Start Date
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    End Date
-                  </th>
-                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Department
-                  </th>
-                  {/* Add Actions Header */}
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                 <tr>
+                   {['Visit ID', 'Patient MRN', 'Patient Name', 'Type', 'Start Date', 'End Date', 'Department', 'Actions'].map((header) => (
+                    <th key={header} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {header}
+                    </th>
+                  ))}
                 </tr>
               </thead>
+              {/* Table Body */} 
               <tbody className="bg-white divide-y divide-gray-200">
-                {visitsToDisplay.map((visit: unified_visits & { patient: patients | null }) => (
-                  <tr key={visit.id} className="hover:bg-gray-50">
+                 {fetchedVisits.map((visit: VisitForListView) => (
+                  <tr key={visit.visit_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                       {/* Link to specific visit page if it exists */}
-                      {/* <Link href={`/visits/${visit.visit_id}`}> */}
                         {visit.visit_id}
-                      {/* </Link> */}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <Link href={`/patients/${visit.patient_mrn}`} className="text-indigo-600 hover:text-indigo-900">
@@ -128,21 +95,20 @@ export default async function VisitsPage({ searchParams }: VisitsPageProps) {
                       </Link>
                     </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                       {visit.patient ? `${visit.patient.first_name || ''} ${visit.patient.last_name || ''}`.trim() : 'N/A'}
+                       {`${visit.patient_first_name || ''} ${visit.patient_last_name || ''}`.trim() || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {visit.visit_type} {visit.specific_visit_type ? `(${visit.specific_visit_type})` : ''} 
+                      {visit.visit_type} 
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(visit.start_date)}
+                      {visit.start_date ? new Date(visit.start_date).toLocaleDateString() : 'N/A'} 
                     </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(visit.end_date)}
+                      {visit.end_date ? new Date(visit.end_date).toLocaleDateString() : 'N/A'} 
                     </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {visit.department || 'N/A'}
+                      {visit.department_name || 'N/A'}
                     </td>
-                    {/* Add Actions Cell */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <Link 
                         href={`/visits/${visit.patient_mrn}`}
@@ -150,17 +116,14 @@ export default async function VisitsPage({ searchParams }: VisitsPageProps) {
                       >
                         View Timeline
                       </Link>
-                       {/* Add link to specific visit page? (if it exists) */}
-                      {/* <Link href={`/visit-details/${visit.visit_id}`} className="ml-4 text-gray-600 hover:text-gray-900">Details</Link> */}
                     </td>
                   </tr>
                 ))}
                 
-                {visitsToDisplay.length === 0 && (
+                {fetchedVisits.length === 0 && (
                   <tr>
-                    {/* Adjust colspan */}
                     <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500"> 
-                      No visits found {type ? `for type ${type}` : ''}
+                      No visits found {visitTypeFilter ? `for type ${visitTypeFilter}` : ''}
                     </td>
                   </tr>
                 )}
@@ -168,18 +131,24 @@ export default async function VisitsPage({ searchParams }: VisitsPageProps) {
             </table>
           </div>
 
-           {/* Pagination Controls */}
-          <div className="mt-6 flex justify-center">
-             <Pagination 
-               currentPage={currentPage} 
-               totalPages={totalPages} 
-               // Pass the base path and any existing query params except 'page'
-               // Note: The Pagination component needs to handle constructing the links
-               // For server components, it might render Links directly.
-               // We remove the onPageChange prop as it cannot be used directly here.
-             />
-           </div>
-
+          {/* Simple Server-Side Pagination Links */} 
+          {totalPages > 1 && (
+             <div className="mt-6 flex justify-center items-center space-x-2">
+              <Link href={createPageUrl(currentPage - 1)} passHref legacyBehavior={currentPage === 1} aria-disabled={currentPage === 1}>
+                 <Button variant="outline" size="sm" disabled={currentPage === 1}>
+                    <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4 mr-1" /> Previous
+                 </Button>
+               </Link>
+               <span className="text-sm text-gray-700">
+                 Page {currentPage} of {totalPages}
+              </span>
+              <Link href={createPageUrl(currentPage + 1)} passHref legacyBehavior={currentPage === totalPages} aria-disabled={currentPage === totalPages}>
+                <Button variant="outline" size="sm" disabled={currentPage === totalPages}>
+                   Next <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4 ml-1" />
+                 </Button>
+               </Link>
+             </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

@@ -13,6 +13,7 @@ export function PlasmaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="date"
+            name="date_plasma"
             value={formData.date_plasma || ''}
             onChange={(e) => onInputChange('date_plasma', e.target.value)}
           />
@@ -26,6 +27,7 @@ export function PlasmaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="number"
+            name="vol_plasma_1"
             value={formData.vol_plasma_1 || ''}
             onChange={(e) => onInputChange('vol_plasma_1', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.1"
@@ -37,6 +39,7 @@ export function PlasmaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="number"
+            name="vol_plasma_2"
             value={formData.vol_plasma_2 || ''}
             onChange={(e) => onInputChange('vol_plasma_2', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.1"
@@ -48,6 +51,7 @@ export function PlasmaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="number"
+            name="vol_plasma_3"
             value={formData.vol_plasma_3 || ''}
             onChange={(e) => onInputChange('vol_plasma_3', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.1"
@@ -62,6 +66,7 @@ export function PlasmaSection({ formData, onInputChange }: FormSectionProps) {
           </label>
           <Input
             type="text"
+            name="qc_notes_plasma"
             value={formData.qc_notes_plasma || ''}
             onChange={(e) => onInputChange('qc_notes_plasma', e.target.value)}
             placeholder="Enter any QC notes"

@@ -3,43 +3,11 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faFileUpload, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faFileUpload, faDownload, faEdit, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { generateCSV } from '@/lib/utils/csvParser'
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-
-interface RecentEntry {
-  id: string;
-  subject_id: string;
-  sample_number: number;
-  date_of_collection: string | null;
-  genotype: string | null;
-  created_at: string;
-}
+import { Button } from '@/components/ui/button'
 
 export default function DataEntryPage() {
-  const [recentEntries, setRecentEntries] = useState<RecentEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
-
-  useEffect(() => {
-    async function fetchRecentEntries() {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('omics_results')
-        .select('id, subject_id, sample_number, date_of_collection, genotype, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      if (!error && data) {
-        setRecentEntries(data)
-      }
-      setLoading(false)
-    }
-
-    fetchRecentEntries()
-  }, [supabase])
-
   const downloadTemplate = () => {
     // Template headers based on actual database structure
     const headers = [
@@ -264,139 +232,105 @@ export default function DataEntryPage() {
     URL.revokeObjectURL(url)
   }
 
-  // Format date for display
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString()
-  }
-
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Data Entry</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Enter new sample data or upload data in bulk
+      <div className="py-10">
+        <header className="mb-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">Data Entry Options</h1>
+            <p className="mt-2 text-lg text-gray-600">
+              Choose how you want to enter or manage sample data.
             </p>
           </div>
-
-          {/* Entry Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Individual Entry */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900">Individual Sample Entry</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Enter data for a single sample. You can save partially completed entries
-                and return to add more data later.
-              </p>
-              <div className="mt-6 space-y-4">
-                <Link
-                  href="/data-entry/individual"
-                  className="flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                  New Sample
-                </Link>
-                <Link
-                  href="/data-entry/continue"
-                  className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Update Existing Entry
-                </Link>
-              </div>
-            </div>
-
-            {/* Bulk Upload */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900">Bulk Data Upload</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Upload multiple samples at once using our template format.
-                Download the template below.
-              </p>
-              <div className="mt-6 space-y-4">
-                <Link
-                  href="/data-entry/bulk-upload"
-                  className="flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
-                  Upload Data
-                </Link>
-                <button
-                  onClick={() => downloadTemplate()}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  <FontAwesomeIcon icon={faDownload} className="mr-2" />
-                  Download Template
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Entries */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-800">Recent Entries</h3>
-            </div>
-            <div className="px-6 py-4">
-              {loading ? (
-                <p className="text-sm text-gray-600">Loading recent entries...</p>
-              ) : recentEntries.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Subject ID
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Sample #
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Collection Date
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Genotype
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Added
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {recentEntries.map((entry) => (
-                        <tr key={entry.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                            <Link href={`/data-entry/individual/${entry.id}`}>
-                              {entry.subject_id}
-                            </Link>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {entry.sample_number}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(entry.date_of_collection)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {entry.genotype || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(entry.created_at).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+        </header>
+        <main>
+          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Card 1: New Individual Sample */}
+              <div className="overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 rounded-md bg-indigo-500 p-3">
+                      <FontAwesomeIcon icon={faPlus} className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900">New Individual Sample</h3>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-gray-600">
+                    Enter data for a single sample using a step-by-step form.
+                  </p>
+                  <div className="mt-6">
+                    <Link
+                      href="/data-entry/individual"
+                      className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                      Start New Entry
+                    </Link>
+                  </div>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-600">
-                  No recent entries found. Start by adding a new sample or uploading data.
-                </p>
-              )}
+              </div>
+
+              {/* Card 2: Continue / Search Sample */}
+              <div className="overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 rounded-md bg-sky-500 p-3">
+                      <FontAwesomeIcon icon={faSearch} className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Continue / Search</h3>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-gray-600">
+                    Find an existing sample by ID to continue data entry or view its details.
+                  </p>
+                  <div className="mt-6">
+                    <Link
+                      href="/data-entry/continue"
+                      className="inline-flex items-center rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                    >
+                      Find Sample
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Bulk Upload */}
+              <div className="overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 rounded-md bg-emerald-500 p-3">
+                      <FontAwesomeIcon icon={faFileUpload} className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Bulk Upload from CSV</h3>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-gray-600">
+                    Upload multiple sample records at once using a CSV file.
+                  </p>
+                  <div className="mt-6 flex space-x-3">
+                    <Link
+                      href="/data-entry/bulk-upload" // Assuming this is the target page
+                      className="inline-flex items-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    >
+                      Upload CSV
+                    </Link>
+                    <Button 
+                      variant="outline"
+                      onClick={downloadTemplate}
+                      className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                      <FontAwesomeIcon icon={faDownload} className="mr-2 h-4 w-4" />
+                      Download Template
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </DashboardLayout>
   )

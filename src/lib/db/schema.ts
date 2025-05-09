@@ -543,6 +543,7 @@ export const UserInApp = app.table("User", {
 	image: text(),
 	password: text(),
 	role: text(),
+	isActive: boolean("is_active").default(true).notNull(),
 	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 });
@@ -563,7 +564,7 @@ export const AccountInApp = app.table("Account", {
 	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
-	pk: primaryKey({ columns: [table.provider, table.providerAccountId]}),
+	uniqueProviderAccount: unique("Account_provider_providerAccountId_key").on(table.provider, table.providerAccountId),
 	userIdx: index("idx_account_userid").on(table.userId),
 }));
 

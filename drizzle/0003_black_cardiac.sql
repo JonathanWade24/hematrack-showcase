@@ -1,0 +1,2 @@
+ALTER TABLE "app"."Account" DROP CONSTRAINT "Account_provider_providerAccountId_pk";--> statement-breakpoint
+ALTER TABLE "app"."Account" ADD CONSTRAINT "Account_provider_providerAccountId_key" UNIQUE("provider","providerAccountId");

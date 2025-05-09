@@ -277,7 +277,7 @@ export function SampleViewer({ sample }: SampleViewerProps) {
           {/* Lorrca Card */}
           {lorcaResults && (
           <AssayCard
-              title="LORRCA Oxychip"
+              title="LORRCA Oxygenscan"
               date={lorcaResults.date_lorrca ? new Date(lorcaResults.date_lorrca) : null}
               icon={faFlask}
               qcStatus={lorcaResults.qc_pass_lorrca}

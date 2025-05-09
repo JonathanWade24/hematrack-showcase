@@ -1,34 +1,40 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import Link from 'next/link'
-// import { getAllPatients } from '@/lib/supabase/operations' // Old Supabase import
-import { getAllPatients } from '@/lib/prisma/operations' // New Prisma import
-import { patients } from '@prisma/client'; // Import Prisma type
+import { getAllPatientsData, type PatientWithSubjectId } from '@/lib/db/queries' // Use updated query & type
+import type { patientsInClinical } from '@/lib/db/schema'; // Keep for base type if needed, maybe remove
+import { Button } from '@/components/ui/button'; // Import Button
+import { auth } from '@/app/api/auth/[...nextauth]/route' // Added
+import type { UserRole } from '@/lib/definitions' // Added
 
-// Define the structure expected by the client/table component
-// Ensure all complex types (Date, Decimal) are handled/serialized if passed to client
-interface PatientForTable extends patients {
-  // Add any calculated or specifically formatted fields if needed
-  // Example: serialized_birth_date?: string;
-}
+// Use the specific type from the query
+type PatientForTable = PatientWithSubjectId;
 
-// Helper function (define or import from utils if it exists)
-// function serializePatientData(patient: patients): PatientForTable {
-//   return {
-//     ...patient,
-//     // Explicitly serialize fields
-//     created_at: patient.created_at?.toISOString() ?? null,
-//     updated_at: patient.updated_at?.toISOString() ?? null,
-//     birth_date: patient.birth_date?.toISOString() ?? null,
-//     // Add serialization for any Decimal fields if they exist on patients
-//   };
-// }
+// Explicitly make the page dynamic to handle searchParams correctly
+export const dynamic = 'force-dynamic';
 
-export default async function PatientsPage() {
-  const patientsData = await getAllPatients(); // Use Prisma version
+export default async function PatientsPage({ 
+  searchParams 
+}: { 
+  searchParams?: { [key: string]: string | string[] | undefined } 
+}) {
+  const session = await auth(); // Added
+  const userRole = session?.user?.role as UserRole | undefined; // Added
 
-  // *** Important: Serialize data if passing to a Client Component ***
-  // const serializedPatients = patientsData.map(serializePatientData);
-  // For now, assume this page/table is server-rendered or serialization happens in child
+  // Added role check
+  if (userRole === 'noPHI_viewer' || userRole === 'noPHI_editor') {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-full">
+          <h1 className="text-2xl font-semibold text-gray-700 dark:text-gray-200">Access Denied</h1>
+          <p className="text-gray-500 dark:text-gray-400">You do not have permission to view this page.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const filter = searchParams?.filter === 'hasSubject'; // Read filter state
+  const patientsData = await getAllPatientsData(filter); // Pass filter to query
+
   const patientsForTable: PatientForTable[] = patientsData; 
 
   return (
@@ -36,14 +42,26 @@ export default async function PatientsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {/* Header */}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">All Patients</h1>
               <p className="mt-2 text-sm text-gray-600">
-                Showing {patientsForTable.length} total patients
+                Showing {patientsForTable.length} {filter ? 'linked' : 'total'} patients
               </p>
             </div>
-            {/* Add New Patient Button ? */}
+            {/* Filter Buttons */} 
+            <div className="flex space-x-2">
+              <Link href="/patients" passHref>
+                <Button variant={!filter ? 'default' : 'outline'}>
+                  Show All
+                </Button>
+              </Link>
+              <Link href="/patients?filter=hasSubject" passHref>
+                 <Button variant={filter ? 'default' : 'outline'}>
+                   Show Linked Only
+                 </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Patients Table */}
@@ -52,7 +70,8 @@ export default async function PatientsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MRN</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  {/* Removed Name Column Header */}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sex</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Race</th>
@@ -61,17 +80,17 @@ export default async function PatientsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {patientsForTable.map((patient) => (
-                  <tr key={patient.patient_mrn} className="hover:bg-gray-50">
+                {patientsForTable.map((patient, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                      {/* Link to patient detail page? */}
                       {patient.patient_mrn}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {`${patient.last_name || ''}, ${patient.first_name || ''} ${patient.middle_name || ''}`.trim()}
+                    {/* Removed Name Cell */}
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {patient.subject_id || 'N/A'} {/* Display Subject ID */} 
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {patient.birth_date ? new Date(patient.birth_date).toLocaleDateString() : 'N/A'}
+                      {patient.birth_date ? new Date(patient.birth_date + 'T00:00:00').toLocaleDateString() : 'N/A'}
                     </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {patient.sex || 'N/A'}
@@ -95,8 +114,9 @@ export default async function PatientsPage() {
                 
                 {patientsForTable.length === 0 && (
                   <tr>
+                    {/* Adjusted colSpan */} 
                     <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500"> 
-                      No patients found
+                      No patients found {filter ? 'with linked subjects' : ''}
                     </td>
                   </tr>
                 )}

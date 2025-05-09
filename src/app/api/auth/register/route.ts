@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+// import { prisma } from '@/lib/prisma'; // Commented out Prisma import
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
@@ -32,8 +32,10 @@ export async function POST(request: Request) {
 
     const { email, password /*, name */ } = validationResult.data;
 
-    console.log(`[API /auth/register] Attempting to register user: ${email}`);
+    console.log(`[API /auth/register] Attempting to register user: ${email} - REGISTRATION CURRENTLY DISABLED PENDING DRIZZLE MIGRATION`);
 
+    // --- Prisma logic temporarily commented out ---
+    /*
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: email },
@@ -63,20 +65,17 @@ export async function POST(request: Request) {
     });
 
     console.log(`[API /auth/register] User registered successfully: ${newUser.email}`);
+    */
+    // --- End of commented out Prisma logic ---
 
-    // TODO: Implement email verification flow if required.
-    // - Generate a verification token.
-    // - Store the token (e.g., in VerificationToken model from NextAuth adapter).
-    // - Send an email with a verification link containing the token.
-    // - Create another API endpoint to handle link clicks, verify the token, and mark the user as verified.
-
+    // Return a placeholder response indicating the functionality is temporarily disabled
     return NextResponse.json(
       { 
-          success: true, 
-          message: "Registration successful!", 
-          user: newUser 
+          success: false, 
+          message: "Registration functionality is temporarily disabled pending migration to Drizzle ORM.",
+          user: null 
       }, 
-      { status: 201 } // Created
+      { status: 503 } // Service Unavailable
     );
 
   } catch (error) {

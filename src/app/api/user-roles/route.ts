@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/app/api/auth/[...nextauth]/route'
 
 export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
 
@@ -22,7 +21,7 @@ const VALID_ROLES = [
 // GET: List all users and their roles (Admin only)
 export async function GET() {
   // --- Authentication & Authorization ---
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user || session.user.role !== 'admin') {
     console.warn(`[API /user-roles GET] Unauthorized access attempt by user: ${session?.user?.email ?? 'No Session'}`);
     return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
@@ -55,7 +54,7 @@ export async function GET() {
 // POST: Update a specific user's role (Admin only)
 export async function POST(request: Request) {
   // --- Authentication & Authorization ---
-  const session = await getServerSession(authOptions);
+  const session = await auth();
    if (!session?.user || session.user.role !== 'admin') {
     console.warn(`[API /user-roles POST] Unauthorized role update attempt by user: ${session?.user?.email ?? 'No Session'}`);
     return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });

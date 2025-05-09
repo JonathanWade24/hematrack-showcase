@@ -116,8 +116,16 @@ export default function SamplesTable({
                     <Link
                       href={`/samples/${sample.id}`}
                       className="text-indigo-600 hover:text-indigo-900"
+                      aria-label={`View sample ${sample.id}`}
                     >
                       <FontAwesomeIcon icon={faEye} className="h-5 w-5" />
+                    </Link>
+                    <Link
+                      href={`/data-entry/edit/${sample.id}`}
+                      className="text-gray-600 hover:text-gray-900"
+                      aria-label={`Edit sample ${sample.id}`}
+                    >
+                      <FontAwesomeIcon icon={faEdit} className="h-5 w-5" />
                     </Link>
                   </div>
                 </td>

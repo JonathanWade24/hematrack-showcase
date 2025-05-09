@@ -9,9 +9,11 @@ import { auth } from '@/app/api/auth/[...nextauth]/route'
 
 // Import Drizzle function and types
 import { getSampleByIdWithResults, SampleWithAllResults, formatDate } from '@/lib/db/queries';
+import Link from 'next/link'; // Import Link
+import { Button } from '@/components/ui/button'; // Import Button
 
 // Define allowed roles for accessing sample details
-const ALLOWED_ROLES = ['admin', 'clinician', 'editor', 'viewer', 'clinical_researcher_full', 'clinical_researcher_masked'] // Adjust as needed
+const ALLOWED_ROLES = ['admin', 'clinician', 'editor', 'viewer', 'clinical_researcher_full', 'clinical_researcher_masked', 'noPHI_viewer', 'noPHI_editor'] // Adjust as needed
 
 // Updated page props for Next.js 15
 type PageParams = {
@@ -104,6 +106,11 @@ export default async function SamplePage({ params }: SamplePageProps) {
 
   return (
     <DashboardLayout>
+      <div className="mb-4 flex justify-end">
+        <Link href={`/data-entry/edit/${sampleId}`} passHref>
+          <Button variant="outline">Edit Sample</Button>
+        </Link>
+      </div>
       {/* Pass the correctly typed/serialized data */} 
       <SampleViewer sample={sampleForViewer} /> 
     </DashboardLayout>

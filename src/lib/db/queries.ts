@@ -14,12 +14,41 @@ import {
   results_lorrcaInLaboratory as results_lorrca_table,
   results_viscosityInLaboratory as results_viscosity_table,
   // Other tables
-  patientsInClinical as patients_table, 
+  patientsInClinical as patients_table,
   subject_registrationInClinical as subject_registration_table,
   samplesInLaboratory as samples_table, // Needed for linking results
+  visitsInClinical,
+  lab_ordersInClinical, // Corrected: Assuming this is the table for lab results linked to visits
+  medication_ordersInClinical, 
+  visit_diagnosesInClinical, // Corrected: from diagnosesInClinical
+  lab_resultsInClinical, // Assuming this is the correct table name
 } from './schema'; 
 // Import Drizzle utility functions
-import { eq, desc, inArray, sql, asc, count, max, SQL } from 'drizzle-orm'; 
+import { eq, desc, inArray, sql, asc, count, max, SQL, isNotNull, AnyColumn } from 'drizzle-orm'; 
+import * as schema from './schema'; // Import all schema objects
+import { SampleData, FormSectionProps } from '@/components/data-entry/form-sections/types'; // Import the form data type
+
+// Helper function to parse numeric strings to number | null
+const parseNumericStringToNullableNumber = (value: string | number | null | undefined): number | null => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  const num = Number(value); // Use Number() as it handles numeric inputs directly too
+  return isNaN(num) ? null : num;
+};
+
+// Define the type for QC status in the form
+type QcStatusForm = 'Yes' | 'No' | 'Review' | null;
+
+// Helper function to map database QC string to form QC status type
+const mapDbQcToFormQc = (dbValue: string | null | undefined): QcStatusForm => {
+  if (dbValue === 'Yes' || dbValue === 'No' || dbValue === 'Review') {
+    return dbValue;
+  }
+  // Consider logging an unexpected dbValue if it's not null/undefined and not one of the expected strings
+  // console.warn(`Unexpected QC value from DB: ${dbValue}`);
+  return null; // Default to null if an unexpected string is encountered
+};
 
 // --- Reusable Types --- 
 export type Patient = typeof patients_table.$inferSelect;
@@ -126,6 +155,58 @@ export type NewOmicsSubject = typeof omics_subjects_table.$inferInsert;
 // This should match the structure received from the SampleEntryForm
 // We might need to refine this based on the exact form data keys
 export type SampleFormData = Record<string, any>; // Use a more specific type if available
+
+// Type for the query result including optional subject_id
+export type PatientWithSubjectId = typeof patients_table.$inferSelect & { 
+    subject_id: string | null 
+};
+
+// Updated type for nested lab results within lab orders
+export type LabOrderWithResults = typeof lab_ordersInClinical.$inferSelect & {
+  lab_results?: Array<typeof lab_resultsInClinical.$inferSelect>; // Assuming relation name is lab_results
+};
+
+// Updated type for PatientTimelineData with nested lab results
+export type PatientTimelineData = {
+  patient: (typeof patients_table.$inferSelect) | null;
+  visits: Array<typeof visitsInClinical.$inferSelect & {
+    lab_ordersInClinicals?: Array<typeof lab_ordersInClinical.$inferSelect>; // Keep relation name
+    medication_ordersInClinicals?: Array<typeof medication_ordersInClinical.$inferSelect>; 
+    visit_diagnosesInClinicals?: Array<typeof visit_diagnosesInClinical.$inferSelect>; 
+  }>;
+  samples: Array<typeof samples_table.$inferSelect>; 
+};
+
+// Type for the result of getAllVisitsForListView
+// Explicitly list necessary fields from visitsInClinical plus joined patient fields
+export type VisitForListView = {
+  visit_id: string;
+  patient_mrn: string;
+  visit_type: string | null;
+  start_date: Date | null; // Drizzle might return string, ensure conversion on client
+  end_date: Date | null;   // Drizzle might return string, ensure conversion on client
+  department_name: string | null;
+  // Patient fields
+  patient_first_name: string | null;
+  patient_last_name: string | null;
+  // Add other fields from visitsInClinical if needed for the list view
+  // e.g., icu_admission, etc.
+};
+
+export type PaginatedVisitsResponse = {
+  visits: VisitForListView[];
+  totalVisits: number;
+};
+
+// --- Type for Subject Detail Page ---
+export type SubjectSampleListItem = typeof samples_table.$inferSelect & {
+  // Add any specific fields from sample if needed beyond the base, but base should be fine.
+};
+
+export type SubjectDetailsPageData = OmicsSubject & {
+  patient: Patient | null; // From patientsInClinical relation
+  samples: SubjectSampleListItem[]; // From samplesInLaboratories relation, ordered by date
+};
 
 // --- Query Functions Implementation --- 
 
@@ -814,3 +895,492 @@ export async function createSampleWithResults(formData: SampleFormData): Promise
 
 // --- Placeholder for updateSampleWithResults --- 
 // export async function updateSampleWithResults(...) { ... }
+
+// Type definition for the result of the complex relational query
+// Use PLURAL names as defined in relations.ts for the 'many' (but effectively one-to-one/zero) relations
+type SampleWithAllResultsFromDB = typeof schema.samplesInLaboratory.$inferSelect & {
+    results_adviaInLaboratories?: (typeof schema.results_adviaInLaboratory.$inferSelect)[];
+    results_dnaInLaboratories?: (typeof schema.results_dnaInLaboratory.$inferSelect)[];
+    results_pbmcInLaboratories?: (typeof schema.results_pbmcInLaboratory.$inferSelect)[];
+    results_plasmaInLaboratories?: (typeof schema.results_plasmaInLaboratory.$inferSelect)[];
+    results_lorrcaInLaboratories?: (typeof schema.results_lorrcaInLaboratory.$inferSelect)[];
+    results_viscosityInLaboratories?: (typeof schema.results_viscosityInLaboratory.$inferSelect)[];
+    results_fcellsInLaboratories?: (typeof schema.results_fcellsInLaboratory.$inferSelect)[];
+    results_adhesionInLaboratories?: (typeof schema.results_adhesionInLaboratory.$inferSelect)[];
+    omics_subjectsInLaboratory?: typeof schema.omics_subjectsInLaboratory.$inferSelect & {
+         patientsInClinical?: typeof schema.patientsInClinical.$inferSelect | null;
+    } | null;
+};
+
+/**
+ * Fetches a sample by its ID along with all its related assay results 
+ * and formats it for use in the SampleEntryForm.
+ * @param sampleId The unique sample ID (lab_id from form)
+ * @returns A Promise resolving to SampleData or null if not found.
+ */
+export async function getSampleForEditing(sampleId: string): Promise<Partial<SampleData> | null> {
+    console.log(`[Queries] getSampleForEditing called for sampleId: ${sampleId}`);
+    try {
+        const result = await db.query.samplesInLaboratory.findFirst({
+            where: eq(schema.samplesInLaboratory.sample_id, sampleId),
+            with: {
+                results_adviaInLaboratories: true,
+                results_dnaInLaboratories: true,
+                results_pbmcInLaboratories: true,
+                results_plasmaInLaboratories: true,
+                results_lorrcaInLaboratories: true,
+                results_viscosityInLaboratories: true, 
+                results_fcellsInLaboratories: true,
+                results_adhesionInLaboratories: true,
+                omics_subjectsInLaboratory: { 
+                    with: {
+                        patientsInClinical: true,
+                    }
+                }
+            }
+        }) as SampleWithAllResultsFromDB | undefined;
+
+        if (!result) {
+            console.log(`[Queries] Sample not found for editing: ${sampleId}`);
+            return null;
+        }
+
+        console.log(`[Queries] Found sample data for editing:`, result);
+
+        // Helper to safely access the first element of the potentially plural relations
+        const adviaResult = result.results_adviaInLaboratories?.[0];
+        const dnaResult = result.results_dnaInLaboratories?.[0];
+        const pbmcResult = result.results_pbmcInLaboratories?.[0];
+        const plasmaResult = result.results_plasmaInLaboratories?.[0];
+        const lorrcaResult = result.results_lorrcaInLaboratories?.[0];
+        const viscosityResult = result.results_viscosityInLaboratories?.[0];
+        const fcellsResult = result.results_fcellsInLaboratories?.[0];
+        const adhesionResult = result.results_adhesionInLaboratories?.[0];
+        const subjectResult = result.omics_subjectsInLaboratory;
+
+        // Flatten the structure and map/convert types for the form
+        const formData: Partial<SampleData> = {
+            // Basic Info
+            lab_id: result.sample_id,
+            subject_id: result.subject_id,
+            sample_number: result.sample_number,
+            date_of_collection: formatDate(result.date_of_collection),
+            age_at_collection: parseNumericStringToNullableNumber(result.age_at_collection),
+            genotype: result.genotype,
+            therapies: result.therapies,
+            days_to_processing: parseNumericStringToNullableNumber(result.days_to_processing),
+            steady_state: result.steady_state,
+            transfusion_status: result.transfusion_status,
+            transfusion_confirmed: result.transfusion_confirmed,
+            patient_mrn: subjectResult?.patientsInClinical?.patient_mrn ?? null,
+            sex: subjectResult?.patientsInClinical?.sex ?? null,
+            
+            // Flattened Assay Results (Use helper vars)
+            // Advia
+            ...(adviaResult ? {
+                date_advia: formatDate(adviaResult.date_advia),
+                rbc_advia: parseNumericStringToNullableNumber(adviaResult.rbc_advia),
+                hb_advia: parseNumericStringToNullableNumber(adviaResult.hb_advia),
+                hct_advia: parseNumericStringToNullableNumber(adviaResult.hct_advia),
+                mcv_advia: parseNumericStringToNullableNumber(adviaResult.mcv_advia),
+                mch_advia: parseNumericStringToNullableNumber(adviaResult.mch_advia),
+                mchc_advia: parseNumericStringToNullableNumber(adviaResult.mchc_advia),
+                rdw_advia: parseNumericStringToNullableNumber(adviaResult.rdw_advia),
+                hdw_advia: parseNumericStringToNullableNumber(adviaResult.hdw_advia),
+                plt_advia: parseNumericStringToNullableNumber(adviaResult.plt_advia),
+                mpv_advia: parseNumericStringToNullableNumber(adviaResult.mpv_advia),
+                wbc_advia: parseNumericStringToNullableNumber(adviaResult.wbc_advia),
+                neut_advia: parseNumericStringToNullableNumber(adviaResult.neut_advia),
+                retic_advia: parseNumericStringToNullableNumber(adviaResult.retic_advia),
+                chr_advia: parseNumericStringToNullableNumber(adviaResult.chr_advia),
+                hc41_v120_advia: parseNumericStringToNullableNumber(adviaResult.hc41_v120_advia),
+                hc41_v60_120_advia: parseNumericStringToNullableNumber(adviaResult.hc41_v60_120_advia),
+                hc41_v60_advia: parseNumericStringToNullableNumber(adviaResult.hc41_v60_advia),
+                drbc_advia: parseNumericStringToNullableNumber(adviaResult.drbc_advia),
+                hyper_advia: parseNumericStringToNullableNumber(adviaResult.hyper_advia),
+                nrbc_advia: parseNumericStringToNullableNumber(adviaResult.nrbc_advia),
+                qc_pass_advia: mapDbQcToFormQc(adviaResult.qc_pass_advia) as SampleData['qc_pass_advia'],
+                qc_notes_advia: adviaResult.qc_notes_advia,
+            } : {}),
+
+            // DNA
+            ...(dnaResult ? {
+                date_dna: formatDate(dnaResult.date_dna),
+                concentration_1_dna: parseNumericStringToNullableNumber(dnaResult.concentration_1_dna),
+                purity_1_dna: parseNumericStringToNullableNumber(dnaResult.purity_1_dna),
+                concentration_2_dna: parseNumericStringToNullableNumber(dnaResult.concentration_2_dna),
+                purity_2_dna: parseNumericStringToNullableNumber(dnaResult.purity_2_dna),
+                qc_pass_dna: mapDbQcToFormQc(dnaResult.qc_pass_dna) as SampleData['qc_pass_dna'],
+                qc_notes_dna: dnaResult.qc_notes_dna,
+            } : {}),
+            
+            // PBMC
+            ...(pbmcResult ? {
+                date_pmbc: formatDate(pbmcResult.date_pbmc), // date_pbmc in schema
+                cell_number_1_pbmc: parseNumericStringToNullableNumber(pbmcResult.cell_number_1_pbmc),
+                cell_number_2_pbmc: parseNumericStringToNullableNumber(pbmcResult.cell_number_2_pbmc),
+                sent_to_gt_pbmc: pbmcResult.sent_to_gt_pbmc === '1' ? 'Yes' : (pbmcResult.sent_to_gt_pbmc === '0' ? 'No' : null),
+                qc_notes_pbmc: pbmcResult.qc_notes_pbmc,
+            } : {}),
+            
+             // Plasma
+            ...(plasmaResult ? {
+                date_plasma: formatDate(plasmaResult.date_plasma),
+                vol_plasma_1: parseNumericStringToNullableNumber(plasmaResult.vol_plasma_1),
+                vol_plasma_2: parseNumericStringToNullableNumber(plasmaResult.vol_plasma_2),
+                vol_plasma_3: parseNumericStringToNullableNumber(plasmaResult.vol_plasma_3),
+                qc_notes_plasma: plasmaResult.qc_notes_plasma,
+            } : {}),
+
+            // Lorrca
+            ...(lorrcaResult ? {
+                date_lorrca: formatDate(lorrcaResult.date_lorrca),
+                ei_min_lorrca: parseNumericStringToNullableNumber(lorrcaResult.ei_min_lorrca),
+                ei_max_lorrca: parseNumericStringToNullableNumber(lorrcaResult.ei_max_lorrca),
+                ei_delta_lorrca: parseNumericStringToNullableNumber(lorrcaResult.ei_delta_lorrca),
+                pos_lorrca: parseNumericStringToNullableNumber(lorrcaResult.pos_lorrca), // Convert varchar string to number
+                instrument_lorrca: lorrcaResult.instrument_lorrca,
+                qc_pass_lorrca: mapDbQcToFormQc(lorrcaResult.qc_pass_lorrca) as SampleData['qc_pass_lorrca'],
+                qc_notes_lorrca: lorrcaResult.qc_notes_lorrca,
+            } : {}),
+
+             // Viscosity
+            ...(viscosityResult ? {
+                date_visc: formatDate(viscosityResult.date_analysis), // date_analysis in schema
+                visc_45: parseNumericStringToNullableNumber(viscosityResult.visc_45),
+                visc_225: parseNumericStringToNullableNumber(viscosityResult.visc_225),
+                hvr_45: parseNumericStringToNullableNumber(viscosityResult.hvr_45),
+                hvr_225: parseNumericStringToNullableNumber(viscosityResult.hvr_225),
+                qc_pass_viscosity: mapDbQcToFormQc(viscosityResult.qc_pass) as SampleData['qc_pass_viscosity'],
+                qc_notes_viscosity: viscosityResult.qc_notes,
+                // Map HVR fields assuming they are in the same table
+                date_hvr: formatDate(viscosityResult.date_analysis), 
+                qc_pass_hvr: mapDbQcToFormQc(viscosityResult.qc_pass) as SampleData['qc_pass_hvr'],
+                qc_notes_hvr: viscosityResult.qc_notes,
+            } : {}),
+            
+            // FCells
+             ...(fcellsResult ? {
+                date_f_cells: formatDate(fcellsResult.date_f_cells),
+                percent_f_cells: parseNumericStringToNullableNumber(fcellsResult.percent_f_cells),
+                stain_f_cells: fcellsResult.stain_f_cells,
+                cytometer_f_cells: fcellsResult.cytometer_f_cells,
+                qc_pass_f_cells: mapDbQcToFormQc(fcellsResult.qc_pass_f_cells) as SampleData['qc_pass_f_cells'],
+                qc_notes_f_cells: fcellsResult.qc_notes_f_cells,
+            } : {}),
+
+            // Adhesion
+             ...(adhesionResult ? {
+                date_adhesion: formatDate(adhesionResult.date_adhesion),
+                cells_adhered_adhesion: parseNumericStringToNullableNumber(adhesionResult.cells_adhered_adhesion),
+                qc_pass_adhesion: mapDbQcToFormQc(adhesionResult.qc_pass_adhesion) as SampleData['qc_pass_adhesion'],
+                qc_notes_adhesion: adhesionResult.qc_notes_adhesion,
+            } : {}),
+            
+            // HPLC (Removed)
+        };
+
+        return formData;
+
+    } catch (error: any) {
+        console.error(`[Queries] Error fetching sample ${sampleId} for editing:`, error);
+        if (error.message) {
+            console.error("Error message:", error.message);
+        }
+        if (error.stack) {
+             console.error("Error stack:", error.stack);
+        }
+        return null; // Indicate failure
+    }
+}
+
+/**
+ * Fetches patients from the clinical schema, optionally filtering 
+ * for those linked to an omics subject.
+ * @param onlyWithSubject If true, only returns patients with a linked subject_id.
+ */
+export async function getAllPatientsData(onlyWithSubject?: boolean): Promise<PatientWithSubjectId[]> {
+    console.log(`[Queries] getAllPatientsData called. Filter onlyWithSubject: ${onlyWithSubject}`);
+    try {
+        const query = db
+            .select({
+                // Explicitly list fields from patients_table
+                patient_mrn: patients_table.patient_mrn,
+                first_name: patients_table.first_name,
+                last_name: patients_table.last_name,
+                middle_name: patients_table.middle_name,
+                birth_date: patients_table.birth_date,
+                sex: patients_table.sex,
+                race: patients_table.race,
+                ethnicity: patients_table.ethnicity,
+                is_tobacco_user: patients_table.is_tobacco_user,
+                alcohol_user: patients_table.alcohol_user,
+                ill_drug_user: patients_table.ill_drug_user,
+                created_at: patients_table.created_at,
+                updated_at: patients_table.updated_at,
+                // Select subject_id from omics_subjects table
+                subject_id: omics_subjects_table.subject_id
+            })
+            .from(patients_table)
+            .leftJoin(omics_subjects_table, eq(patients_table.patient_mrn, omics_subjects_table.patient_mrn));
+
+        if (onlyWithSubject) {
+            query.where(isNotNull(omics_subjects_table.subject_id));
+        }
+
+        const results = await query;
+
+        console.log(`[Queries] Found ${results.length} patients.`);
+        // The result structure now includes subject_id which might be null
+        return results;
+
+    } catch (error: any) {
+        console.error(`[Queries] Error fetching patients:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches all visits for a specific patient MRN.
+ * @param patient_mrn The patient's Medical Record Number.
+ * @returns An array of visit records for the patient.
+ */
+export async function getVisitsByMrn(patient_mrn: string): Promise<Array<typeof visitsInClinical.$inferSelect>> {
+    console.log(`[Queries] getVisitsByMrn called for MRN: ${patient_mrn}`);
+    if (!patient_mrn) {
+        console.warn("[Queries] getVisitsByMrn called with empty MRN.");
+        return [];
+    }
+    try {
+        const results = await db
+            .select()
+            .from(visitsInClinical)
+            .where(eq(visitsInClinical.patient_mrn, patient_mrn))
+            .orderBy(desc(visitsInClinical.visit_start_datetime)); // Order by start date descending
+        
+        console.log(`[Queries] Found ${results.length} visits for MRN ${patient_mrn}.`);
+        return results;
+
+    } catch (error: any) {
+        console.error(`[Queries] Error fetching visits for MRN ${patient_mrn}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches patient details, their associated visits (with labs, meds, diagnoses),
+ * and their lab samples for the timeline view.
+ * @param patient_mrn The patient's Medical Record Number.
+ * @returns An object containing patient details, a list of their visits with nested data,
+ *          and a list of their samples, or null if patient not found.
+ */
+export async function getPatientTimelineData(patient_mrn: string): Promise<PatientTimelineData | null> {
+    console.log(`[Queries] getPatientTimelineData (reverted) called for MRN: ${patient_mrn}`); // Reverted log msg slightly
+    if (!patient_mrn) {
+        console.warn("[Queries] getPatientTimelineData called with empty MRN.");
+        return null;
+    }
+    try {
+        const patientResult = await db.query.patientsInClinical.findFirst({
+            where: eq(patients_table.patient_mrn, patient_mrn),
+        });
+        
+        const patient = patientResult ?? null;
+
+        if (!patient) {
+            console.warn(`[Queries] Patient not found for MRN ${patient_mrn} in getPatientTimelineData.`);
+            return null;
+        }
+
+        // Reverted: Fetch visits without nested lab results for now
+        const visitsWithDetails = await db.query.visitsInClinical.findMany({
+            where: eq(visitsInClinical.patient_mrn, patient_mrn),
+            with: {
+                lab_ordersInClinicals: true, // Fetch lab orders directly
+                medication_ordersInClinicals: true, 
+                visit_diagnosesInClinicals: true, 
+            },
+            orderBy: [desc(visitsInClinical.visit_start_datetime)]
+        });
+        
+        console.log(`[Queries] Found ${visitsWithDetails.length} visits with details for MRN ${patient_mrn}.`);
+
+        const omicsSubject = await db.query.omics_subjectsInLaboratory.findFirst({
+            where: eq(omics_subjects_table.patient_mrn, patient_mrn),
+            columns: { subject_id: true } 
+        });
+
+        let samples: Array<typeof samples_table.$inferSelect> = [];
+        if (omicsSubject && omicsSubject.subject_id) {
+            samples = await db.query.samplesInLaboratory.findMany({
+                where: eq(samples_table.subject_id, omicsSubject.subject_id),
+                orderBy: [desc(samples_table.date_of_collection)] 
+            });
+            console.log(`[Queries] Found ${samples.length} samples for subject ${omicsSubject.subject_id} (patient MRN ${patient_mrn}).`);
+        } else {
+            console.log(`[Queries] No omics subject found for MRN ${patient_mrn}, or subject has no ID. No samples fetched.`);
+        }
+
+        return {
+            patient: patient,
+            visits: visitsWithDetails, 
+            samples: samples
+        };
+
+    } catch (error: any) {
+        console.error(`[Queries] Error fetching enhanced patient timeline data for MRN ${patient_mrn}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches a paginated list of all visits, including basic patient information.
+ * @param limit Number of visits per page.
+ * @param offset Number of visits to skip.
+ * @param visitType Optional filter by visit_type.
+ * @returns An object containing the list of visits for the current page and the total number of visits.
+ */
+export async function getAllVisitsForListView(
+    limit: number, 
+    offset: number,
+    visitType?: string
+): Promise<PaginatedVisitsResponse> {
+    console.log(`[Queries] getAllVisitsForListView called. Limit: ${limit}, Offset: ${offset}, Type: ${visitType}`);
+    
+    try {
+        const selectFields = {
+            visit_id: visitsInClinical.visit_id,
+            patient_mrn: visitsInClinical.patient_mrn,
+            visit_type: visitsInClinical.visit_type,
+            start_date: visitsInClinical.visit_start_datetime,
+            end_date: visitsInClinical.visit_end_datetime,
+            department_name: visitsInClinical.department_name,
+            patient_first_name: patients_table.first_name,
+            patient_last_name: patients_table.last_name,
+        };
+
+        let visitsQuery = db
+            .select(selectFields)
+            .from(visitsInClinical)
+            .leftJoin(patients_table, eq(visitsInClinical.patient_mrn, patients_table.patient_mrn))
+            .orderBy(desc(visitsInClinical.visit_start_datetime))
+            .limit(limit)
+            .offset(offset);
+
+        if (visitType) {
+            visitsQuery = visitsQuery.where(eq(visitsInClinical.visit_type, visitType)) as typeof visitsQuery;
+        }
+        
+        const resultRows = await visitsQuery;
+
+        let countWhereCondition;
+        if (visitType) {
+            countWhereCondition = eq(visitsInClinical.visit_type, visitType);
+        }
+
+        const countResult = await db
+            .select({ total: count(visitsInClinical.visit_id) })
+            .from(visitsInClinical)
+            .where(countWhereCondition);
+            
+        const totalVisits = countResult[0]?.total ?? 0;
+
+        console.log(`[Queries] Found ${resultRows.length} visits for page, Total visits: ${totalVisits}`);
+        
+        const visits: VisitForListView[] = resultRows.map(row => ({
+            ...row,
+            start_date: row.start_date ? (typeof row.start_date === 'string' ? new Date(row.start_date) : row.start_date) : null,
+            end_date: row.end_date ? (typeof row.end_date === 'string' ? new Date(row.end_date) : row.end_date) : null,
+        }));
+
+        return {
+            visits: visits,
+            totalVisits: totalVisits,
+        };
+
+    } catch (error: any) {
+        console.error(`[Queries] Error fetching all visits for list view:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches lab results for a given list of lab order IDs.
+ * @param orderIds An array of lab order IDs (strings).
+ * @returns A promise resolving to an array of lab result records.
+ */
+export async function getLabResultsForOrders(orderIds: string[]): Promise<Array<typeof lab_resultsInClinical.$inferSelect>> {
+    console.log(`[Queries] getLabResultsForOrders called for ${orderIds.length} order IDs.`);
+    if (!orderIds || orderIds.length === 0) {
+        return []; // Return empty if no IDs are provided
+    }
+
+    try {
+        const results = await db
+            .select()
+            .from(lab_resultsInClinical)
+            .where(inArray(lab_resultsInClinical.order_id, orderIds));
+            
+        console.log(`[Queries] Found ${results.length} lab results for the provided order IDs.`);
+        return results;
+    } catch (error: any) {
+        console.error(`[Queries] Error fetching lab results for orders:`, orderIds, error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches details for a specific OMICS subject, including linked patient information
+ * and a list of all their collected samples.
+ * 
+ * @param subject_id The ID of the OMICS subject.
+ * @returns Subject details with patient and samples, or null if not found.
+ */
+export async function getSubjectDetailsWithSamples(subject_id: string): Promise<SubjectDetailsPageData | null> {
+  console.log(`[Queries] getSubjectDetailsWithSamples called for ID: ${subject_id}`);
+  if (!subject_id) {
+    console.warn('[Queries] getSubjectDetailsWithSamples: subject_id is null or undefined.');
+    return null;
+  }
+
+  try {
+    const subjectData = await db.query.omics_subjectsInLaboratory.findFirst({
+      where: eq(omics_subjects_table.subject_id, subject_id),
+      with: {
+        patientsInClinical: true, // Get the linked patient
+        samplesInLaboratories: { // Get all linked samples
+          orderBy: [desc(samples_table.date_of_collection)], // Order samples, most recent first
+          // Select specific columns if needed, otherwise all columns from samples_table are fetched
+          // columns: {
+          //   sample_id: true,
+          //   date_of_collection: true,
+          //   age_at_collection: true,
+          //   genotype: true,
+          //   steady_state: true,
+          //   transfusion_status: true,
+          // }
+        }
+      }
+    });
+
+    if (!subjectData) {
+      console.warn(`[Queries] No subject found with ID ${subject_id} in getSubjectDetailsWithSamples.`);
+      return null;
+    }
+
+    // Drizzle returns relations as properties on the main object.
+    // The types are inferred correctly if relations are defined in schema.
+    // Ensure that `subjectData.samplesInLaboratories` is an array, even if empty.
+    const samples = subjectData.samplesInLaboratories || [];
+
+    return {
+      ...subjectData,
+      patient: subjectData.patientsInClinical ?? null,
+      samples: samples as SubjectSampleListItem[] // Cast as Drizzle might type it as the base table type array
+    };
+
+  } catch (error) {
+    console.error(`[Queries] Error fetching subject details for ${subject_id}:`, error);
+    return null;
+  }
+}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Fragment, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendar, faStethoscope, faPills, faChartLine } from '@fortawesome/free-solid-svg-icons'
 import { format } from 'date-fns'
@@ -69,6 +69,7 @@ export interface Visit {
   labs: {
     name: string
     value: string
+    groupName?: string
     time?: string
     test?: string
   }[]
@@ -86,7 +87,7 @@ export interface Visit {
   }[]
 }
 
-interface Patient {
+export interface Patient {
   first_name: string | null
   last_name: string | null
   birth_date: Date | null
@@ -120,6 +121,38 @@ export function VisitsViewer({ patientMrn, data }: VisitsViewerProps) {
   }, [data.patient])
 
   const currentVisit = activeVisit || (visits.length > 0 ? visits[0] : null)
+
+  // Memoize groupedLabs at the component scope
+  const groupedLabs = useMemo(() => {
+    if (!currentVisit || !currentVisit.labs) return {}
+    return currentVisit.labs.reduce((acc, lab) => {
+      const group = lab.groupName || 'Miscellaneous'
+      if (!acc[group]) {
+        acc[group] = []
+      }
+      acc[group].push(lab)
+      return acc
+    }, {} as Record<string, typeof currentVisit.labs>)
+  }, [currentVisit])
+
+  // State for managing open/closed accordion sections
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Initialize all groups to be open by default when groupedLabs changes
+    const initialOpenState = Object.keys(groupedLabs).reduce((acc, groupName) => {
+      acc[groupName] = true; // Default to open
+      return acc;
+    }, {} as Record<string, boolean>);
+    setOpenGroups(initialOpenState);
+  }, [groupedLabs]);
+
+  const handleToggleGroup = (groupName: string) => {
+    setOpenGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
+  };
 
   // Collect all lab results across visits
   const allLabResults = useMemo(() => {
@@ -420,31 +453,48 @@ export function VisitsViewer({ patientMrn, data }: VisitsViewerProps) {
                     <h4 className="text-lg font-medium">Laboratory Results</h4>
                   </div>
                   <div className="overflow-x-auto">
-                    {currentVisit.labs && currentVisit.labs.length > 0 ? (
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                          <tr>
-                            <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Test Name
-                            </th>
-                            <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Result
-                            </th>
-                            <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Date/Time
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {currentVisit.labs.map((lab, index) => (
-                            <tr key={index}>
-                              <td className="px-3 py-2 text-sm text-gray-900">{lab.name}</td>
-                              <td className="px-3 py-2 text-sm text-gray-900">{lab.value}</td>
-                              <td className="px-3 py-2 text-sm text-gray-500">{lab.time || 'Unknown'}</td>
+                    {currentVisit && currentVisit.labs && currentVisit.labs.length > 0 ? (
+                      // Check if groupedLabs has any entries before rendering table
+                      Object.keys(groupedLabs).length > 0 ? (
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead>
+                            <tr>
+                              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Test Name
+                              </th>
+                              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Result
+                              </th>
+                              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date/Time
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {Object.entries(groupedLabs).map(([groupName, labsInGroup]) => (
+                              <Fragment key={groupName}>
+                                <tr onClick={() => handleToggleGroup(groupName)} className="cursor-pointer hover:bg-gray-50">
+                                  <th colSpan={3} className="px-3 py-2 bg-gray-100 text-left text-sm font-semibold text-gray-700 select-none">
+                                    <span className="mr-2">{openGroups[groupName] ? '▼' : '►'}</span>
+                                    {groupName}
+                                  </th>
+                                </tr>
+                                {openGroups[groupName] && labsInGroup.map((lab, index) => (
+                                  <tr key={`${groupName}-${lab.name}-${index}`}>
+                                    <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">{lab.name}</td>
+                                    <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">{lab.value}</td>
+                                    <td className="px-3 py-2 text-sm text-gray-500 whitespace-nowrap">{lab.time || 'Unknown'}</td>
+                                  </tr>
+                                ))}
+                              </Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500 bg-white rounded-lg shadow">
+                          No lab results processed for grouping.
+                        </div>
+                      )
                     ) : (
                       <div className="text-center py-4 text-gray-500 bg-white rounded-lg shadow">
                         No lab results recorded

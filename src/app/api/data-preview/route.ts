@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/app/api/auth/[...nextauth]/route'
 import type { FilterCriteria } from '@/components/data/DataDownload'
 import type { omics_results, omics_subjects, Labs, op_medications } from '@/generated/prisma'
 import { Decimal } from '@prisma/client/runtime/library'
@@ -15,7 +14,7 @@ type OmicsResultWithSubject = omics_results & { omics_subjects: omics_subjects |
 
 export async function POST(request: Request) {
   // --- Authentication & Authorization ---
-  const session = await getServerSession(authOptions)
+  const session = await auth()
   if (!session || !session.user || !session.user.role || !ALLOWED_ROLES.includes(session.user.role)) {
     const reason = !session ? 'No session' : !session.user ? 'No user' : 'Insufficient role';
     console.warn(`[API /data-preview] Unauthorized access attempt: ${reason}`);

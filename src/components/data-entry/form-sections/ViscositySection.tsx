@@ -20,6 +20,7 @@ export function ViscositySection({ formData, onInputChange }: FormSectionProps) 
           </label>
           <Input
             type="date"
+            name="date_visc"
             value={formData.date_visc || ''}
             onChange={(e) => onInputChange('date_visc', e.target.value)}
           />
@@ -33,6 +34,7 @@ export function ViscositySection({ formData, onInputChange }: FormSectionProps) 
           </label>
           <Input
             type="number"
+            name="visc_45"
             value={formData.visc_45 || ''}
             onChange={(e) => onInputChange('visc_45', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.001"
@@ -44,6 +46,7 @@ export function ViscositySection({ formData, onInputChange }: FormSectionProps) 
           </label>
           <Input
             type="number"
+            name="visc_225"
             value={formData.visc_225 || ''}
             onChange={(e) => onInputChange('visc_225', e.target.value ? parseFloat(e.target.value) : null)}
             step="0.001"
@@ -54,7 +57,7 @@ export function ViscositySection({ formData, onInputChange }: FormSectionProps) 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">QC Pass</label>
-          <Select value={formData.qc_pass_viscosity || ''} onValueChange={(value) => onInputChange('qc_pass_viscosity', value)}>
+          <Select name="qc_pass_viscosity" value={formData.qc_pass_viscosity || ''} onValueChange={(value) => onInputChange('qc_pass_viscosity', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select QC status..." />
             </SelectTrigger>
@@ -69,6 +72,7 @@ export function ViscositySection({ formData, onInputChange }: FormSectionProps) 
           <label className="block text-sm font-medium text-gray-700">QC Notes</label>
           <Input
             type="text"
+            name="qc_notes_viscosity"
             value={formData.qc_notes_viscosity || ''}
             onChange={(e) => onInputChange('qc_notes_viscosity', e.target.value)}
             placeholder="Enter any QC notes"
