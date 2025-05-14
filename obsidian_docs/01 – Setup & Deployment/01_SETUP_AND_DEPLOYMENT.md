@@ -17,7 +17,7 @@ This document provides instructions for setting up the local development environ
 
 ### 1.2. Clone Repository
 ```bash
-git clone [YOUR_REPOSITORY_URL]
+git clone https://github.com/JonathanWade24/hematrack.git
 cd [PROJECT_DIRECTORY]
 ```
 
