@@ -57,7 +57,11 @@ Labs_Lam_20241004.csv
 *.tar
 
 # Large data files
+*.dump
 scd_research_refactored_20250513.dump
-etl/Baseline Data Jan2011-Jun2024/IN495734_SCD_IP_Meds_Baseline.txt
+etl/Baseline\ Data\ Jan2011-Jun2024/IN495734_SCD_IP_Meds_Baseline.txt
 etl/backups/dump-scd_research_secure-202504081600.sql
 local_data.dump
+
+# Consider using Git LFS for large files
+# https://git-lfs.github.com/
