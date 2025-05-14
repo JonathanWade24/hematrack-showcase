@@ -24,6 +24,17 @@ const nextConfig = {
     // Only use this in situations where deployment must succeed despite linting errors
     ignoreDuringBuilds: true,
   },
+
+  async redirects() {
+    return [
+      {
+        source: '/data-download',
+        destination: 'http://10.224.106.69:3002',
+        permanent: false, // Set to true if this is a permanent redirect (SEO implications)
+      },
+      // You can add more redirect rules here
+    ];
+  },
 };
 
 export default nextConfig; 

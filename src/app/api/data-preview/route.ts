@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+// import { prisma } from '@/lib/prisma' // Commented out
 import { auth } from '@/app/api/auth/[...nextauth]/route'
-import type { FilterCriteria } from '@/components/data/DataDownload'
-import type { omics_results, omics_subjects, Labs, op_medications } from '@/generated/prisma'
-import { Decimal } from '@prisma/client/runtime/library'
+// import type { FilterCriteria } from '@/components/data/DataDownload' // Commented out if not used elsewhere
+// import type { omics_results, omics_subjects, Labs, op_medications } from '@/generated/prisma' // Commented out
+// import { Decimal } from '@prisma/client/runtime/library' // Commented out
 
 export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
 
 // Define allowed roles for accessing this sensitive route
 const ALLOWED_ROLES = ['admin', 'clinician', 'editor'] // Adjust roles as needed
 
-type OmicsResultWithSubject = omics_results & { omics_subjects: omics_subjects | null };
+// type OmicsResultWithSubject = omics_results & { omics_subjects: omics_subjects | null }; // Commented out
 
 export async function POST(request: Request) {
   // --- Authentication & Authorization ---
@@ -22,13 +22,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    const filters = await request.json() as FilterCriteria
-    const sampleSize = 10 // Limit for preview
+    // const filters = await request.json() as FilterCriteria; // Keep for logging if needed
+    console.log("[API /data-preview] Request received. Functionality temporarily disabled pending Drizzle migration.");
 
-    // --- Fetch Initial Omics Data ---
+    // --- Prisma logic temporarily commented out ---
+    /*
+    const sampleSize = 10
+
     const omicsResults: OmicsResultWithSubject[] = await prisma.omics_results.findMany({
       include: {
-        omics_subjects: true, // Include related subject data
+        omics_subjects: true, 
       },
       orderBy: {
         date_of_collection: 'desc',
@@ -40,24 +43,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ headers: ['No Data'], rows: [['No matching data found for preview']] })
     }
 
-    // --- Process Results and Fetch Related Data ---
     const processedResults: Record<string, unknown>[] = [];
 
     for (const result of omicsResults) {
       const processedRow: Record<string, unknown> = {
-        // Start with basic omics info
         sample_id: result.sample_id,
         subject_id: result.subject_id,
         date_of_collection: result.date_of_collection?.toISOString().split('T')[0] ?? null,
         genotype: result.genotype,
       }
 
-      // Add requested omics variables
       Object.entries(filters.variables.omics).forEach(([, variables]) => {
         variables.forEach(varName => {
           if (varName in result) {
             const value = result[varName as keyof omics_results];
-            // Convert Decimal to string, Date to ISO string, otherwise assign directly
             if (value instanceof Decimal) {
               processedRow[varName] = value.toString();
             } else if (value instanceof Date) {
@@ -69,17 +68,14 @@ export async function POST(request: Request) {
         })
       })
 
-      // Add requested demographics variables (assuming they are on omics_results or omics_subjects)
       filters.variables.demographics.forEach(varName => {
          let value: unknown = null;
          if (varName in result) {
             value = result[varName as keyof omics_results];
          } else if (result.omics_subjects && varName in result.omics_subjects) {
-            // @ts-ignore - Accessing subject property dynamically
+            // @ts-ignore 
             value = result.omics_subjects[varName];
          }
-
-         // Convert Decimal/Date from demographics as well
          if (value instanceof Decimal) {
            processedRow[varName] = value.toString();
          } else if (value instanceof Date) {
@@ -89,64 +85,50 @@ export async function POST(request: Request) {
          }
       })
 
-      // --- Fetch Related Clinical Data (if needed) ---
       const patientMrn = result.omics_subjects?.patient_mrn;
       if (patientMrn) {
-        // Fetch Labs if requested
         if (filters.variables.clinical.labs.length > 0) {
           try {
             const labComponentIds = filters.variables.clinical.labs.map(lab => lab.component_id);
-            // Find the latest lab result for *any* of the requested components for this patient
-            // Note: This slightly differs from original, which fetched latest for *each* component separately.
-            // Getting the absolute latest single result matching the filter criteria.
             const latestLabResult = await prisma.labs.findFirst({
               where: {
                 patient_mrn: patientMrn,
                 lab_component_description: {
                   in: labComponentIds,
-                  mode: 'insensitive', // Match case-insensitively
+                  mode: 'insensitive', 
                 }
               },
               orderBy: {
                 result_time: 'desc'
               },
-              select: { // Select only needed fields
+              select: { 
                  lab_component_description: true,
                  lab_result_value: true
               }
             });
-
-            // Map results to the requested lab names
             filters.variables.clinical.labs.forEach(labFilter => {
-               // Check if the *single* latest result we found matches this specific filter
               if (latestLabResult?.lab_component_description?.toLowerCase() === labFilter.component_id.toLowerCase()) {
                  processedRow[labFilter.name] = latestLabResult.lab_result_value ?? null;
               } else {
-                 processedRow[labFilter.name] = null; // No matching latest result found for this specific component
+                 processedRow[labFilter.name] = null; 
               }
             });
-
           } catch (error) {
             console.error(`[API /data-preview] Error fetching lab data for MRN ${patientMrn}:`, error)
-            // Assign null to all requested lab columns on error for this row
              filters.variables.clinical.labs.forEach(labFilter => {
                 processedRow[labFilter.name] = null;
              });
           }
         }
 
-        // Fetch Medications if requested
         if (filters.variables.clinical.medications.length > 0) {
             try {
-               // Fetch recent medications for the patient
                const recentMedications: { generic_description: string | null }[] = await prisma.op_medications.findMany({
                  where: { patient_mrn: patientMrn },
                  orderBy: { visit_date: 'desc' },
                  take: 20,
                  select: { generic_description: true }
                });
-
-               // Check presence for each requested medication filter
                filters.variables.clinical.medications.forEach(medFilter => {
                  const hasMed = recentMedications.some((dbMed: { generic_description: string | null }) =>
                    dbMed.generic_description &&
@@ -156,10 +138,8 @@ export async function POST(request: Request) {
                  );
                  processedRow[medFilter.name] = hasMed ? 'Yes' : 'No';
                });
-
             } catch (error) {
                  console.error(`[API /data-preview] Error fetching medication data for MRN ${patientMrn}:`, error)
-                 // Assign 'Error' or null to all requested med columns on error
                  filters.variables.clinical.medications.forEach(medFilter => {
                     processedRow[medFilter.name] = 'Error';
                  });
@@ -169,26 +149,27 @@ export async function POST(request: Request) {
       processedResults.push(processedRow);
     }
 
-    // --- Format Output ---
-    // Get all unique headers from the processed results
     const allHeaders = Array.from(new Set(processedResults.flatMap(Object.keys)));
-
-    // Ensure consistent order (optional but good practice)
-    // Define a preferred order or sort alphabetically if needed
-    // Example: allHeaders.sort();
-
-    // Convert objects to arrays based on header order
     const rowsAsArrays = processedResults.map(result =>
-      allHeaders.map(header => result[header] ?? null) // Use null for missing values
+      allHeaders.map(header => result[header] ?? null) 
+    );
+    return NextResponse.json({ headers: allHeaders, rows: rowsAsArrays });
+    */
+    // --- End of commented out Prisma logic ---
+
+    return NextResponse.json(
+      { 
+        headers: ['Status'], 
+        rows: [['Data Preview POST functionality is temporarily disabled pending migration to Drizzle ORM.']] 
+      },
+      { status: 503 } // Service Unavailable
     );
 
-    return NextResponse.json({ headers: allHeaders, rows: rowsAsArrays });
-
   } catch (error) {
-    console.error('[API /data-preview] Error generating preview:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('[API /data-preview] Error (handler disabled):', error)
+    // const errorMessage = error instanceof Error ? error.message : 'Unknown error' // Keep original error message structure if preferred
     return NextResponse.json(
-        { headers: ['Error'], rows: [[`Failed to generate preview: ${errorMessage}`]] },
+        { headers: ['Error'], rows: [[`Failed to generate preview (handler disabled): ${error instanceof Error ? error.message : 'Unknown error'}`]] },
         { status: 500 }
     )
   }

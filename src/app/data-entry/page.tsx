@@ -271,6 +271,24 @@ export default function DataEntryPage() {
                 </div>
               </div>
 
+              {/* Card for Bulk Assay Data Entry */}
+              <div className="overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div className="p-6">
+                  <div className="flex items-center justify-center mb-4">
+                    <FontAwesomeIcon icon={faEdit} className="h-12 w-12 text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">Bulk Assay Entry</h3>
+                  <p className="text-sm text-gray-600 text-center mb-4">
+                    Enter data for a single assay across multiple existing samples.
+                  </p>
+                  <Link href="/data-entry/bulk-assay-entry" legacyBehavior passHref>
+                    <a className="block w-full text-center rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                      Go to Bulk Assay Entry
+                    </a>
+                  </Link>
+                </div>
+              </div>
+
               {/* Card 2: Continue / Search Sample */}
               <div className="overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <div className="p-6">
@@ -296,7 +314,7 @@ export default function DataEntryPage() {
                 </div>
               </div>
 
-              {/* Card 3: Bulk Upload */}
+              {/* Card 3: Bulk Upload -  REMOVED AS PER USER REQUEST 
               <div className="overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <div className="p-6">
                   <div className="flex items-center">
@@ -328,6 +346,7 @@ export default function DataEntryPage() {
                   </div>
                 </div>
               </div>
+              */}
             </div>
           </div>
         </main>

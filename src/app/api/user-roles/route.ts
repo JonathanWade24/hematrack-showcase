@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+// import { prisma } from '@/lib/prisma' // Commented out
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 
 export const dynamic = "force-dynamic"; // Ensure this route is handled dynamically
@@ -28,7 +28,9 @@ export async function GET() {
   }
 
   try {
-    console.log('[API /user-roles GET] Fetching all users...');
+    console.log('[API /user-roles GET] Request received. Functionality temporarily disabled pending Drizzle migration.');
+    // --- Prisma logic temporarily commented out ---
+    /*
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -44,10 +46,20 @@ export async function GET() {
     });
     console.log(`[API /user-roles GET] Found ${users.length} users.`);
     return NextResponse.json({ users });
+    */
+    // --- End of commented out Prisma logic ---
+    return NextResponse.json(
+        { 
+            success: false, 
+            message: "User roles GET functionality is temporarily disabled pending migration to Drizzle ORM.",
+            users: [] 
+        }, 
+        { status: 503 }
+    );
 
   } catch (error) {
-    console.error('[API /user-roles GET] Error fetching users:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('[API /user-roles GET] Error (handler disabled):', error);
+    return NextResponse.json({ error: 'Internal Server Error (handler disabled)' }, { status: 500 });
   }
 }
 
@@ -61,15 +73,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { userId, role } = await request.json();
-    console.log(`[API /user-roles POST] Request to update user ${userId} to role ${role}`);
+    // const { userId, role } = await request.json(); // Keep for logging if needed
+    console.log(`[API /user-roles POST] Request received. Functionality temporarily disabled pending Drizzle migration.`);
 
-    // --- Input Validation ---
+    // --- Prisma logic temporarily commented out ---
+    /*
     if (!userId || !role) {
       console.error('[API /user-roles POST] Validation Error: Missing userId or role');
       return NextResponse.json({ error: 'Missing required fields: userId and role' }, { status: 400 });
     }
-
     if (typeof userId !== 'string' || typeof role !== 'string') {
        console.error('[API /user-roles POST] Validation Error: Invalid data types');
        return NextResponse.json({ error: 'Invalid data types for userId or role' }, { status: 400 });
@@ -80,8 +92,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Invalid role specified. Valid roles are: ${VALID_ROLES.join(', ')}` }, { status: 400 });
     }
 
-    // --- Database Update ---
-    console.log(`[API /user-roles POST] Attempting to update role for user ${userId}...`);
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { role: role },
@@ -98,16 +108,22 @@ export async function POST(request: Request) {
         message: `User ${updatedUser.email} role updated to ${updatedUser.role}`,
         user: updatedUser
     });
+    */
+    // --- End of commented out Prisma logic ---
+    return NextResponse.json(
+        { 
+            success: false, 
+            message: "User roles POST functionality is temporarily disabled pending migration to Drizzle ORM.",
+            user: null 
+        }, 
+        { status: 503 }
+    );
 
   } catch (error: any) {
-    console.error('[API /user-roles POST] Error updating user role:', error);
-    
-    // Handle specific Prisma error for record not found
-    if (error.code === 'P2025') { // Prisma error code for Record to update not found.
-        console.error(`[API /user-roles POST] Error: User with ID ${error.meta?.cause?.id ?? 'unknown'} not found.`);
-        return NextResponse.json({ error: `User not found.` }, { status: 404 });
-    }
-
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('[API /user-roles POST] Error (handler disabled):', error);
+    // if (error.code === 'P2025') { // Commented out Prisma-specific error handling
+    //     console.error(`[API /user-roles POST] Error: User with ID ${error.meta?.cause?.id ?? 'unknown'} not found.`);
+    // }
+    return NextResponse.json({ error: 'Internal Server Error (handler disabled)' }, { status: 500 });
   }
 } 

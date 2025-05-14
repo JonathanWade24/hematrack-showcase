@@ -1,10 +1,10 @@
 'use client' // Start as client component for interactivity, will fetch data in useEffect or similar
 
-import { useEffect, useState, useActionState } from 'react';
+import { useEffect, useState, useActionState, useRef } from 'react';
 import { useSession } from 'next-auth/react'; // Import useSession for client-side session
-import { getAllUsersAction, addUserAction, updateUserRoleAction, toggleUserActiveStateAction } from './actions';
+import { getAllUsersAction, addUserAction, updateUserRoleAction, toggleUserActiveStateAction, purgeSubjectDataAction, searchOmicsSubjectsAction } from './actions';
 // Import types from actions.ts, and UserRole/PERMITTED_ROLES from definitions.ts
-import type { UserForAdminClient, AddUserFormState, UpdateUserRoleFormState, ToggleUserActiveStateFormState } from './actions';
+import type { UserForAdminClient, AddUserFormState, UpdateUserRoleFormState, ToggleUserActiveStateFormState, PurgeSubjectDataFormState, SearchSubjectsFormState, OmicsSubjectSearchResult } from './actions';
 import { type UserRole, PERMITTED_ROLES } from '@/lib/definitions';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -35,7 +35,18 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast"; // Corrected import path
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faEdit, faToggleOn, faToggleOff, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faEdit, faToggleOn, faToggleOff, faSpinner, faTrashAlt, faExclamationTriangle, faSearch } from '@fortawesome/free-solid-svg-icons';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 // Helper component for managing a single user row
@@ -143,6 +154,15 @@ export default function AdminPage() {
     const [addUserFormState, handleAddUserAction] = useActionState<AddUserFormState | null, FormData>(addUserAction, null);
     const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
     
+    // Purge Subject Data State
+    const [purgeDataFormState, handlePurgeDataAction] = useActionState<PurgeSubjectDataFormState | null, FormData>(purgeSubjectDataAction, null);
+    const [isPurgeLoading, setIsPurgeLoading] = useState(false); // Separate loading state for purge
+    const [isPurgeConfirmOpen, setIsPurgeConfirmOpen] = useState(false);
+    const [selectedSubjectForPurge, setSelectedSubjectForPurge] = useState<OmicsSubjectSearchResult | null>(null);
+    const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
+    const [subjectSearchState, handleSubjectSearchAction] = useActionState<SearchSubjectsFormState | null, FormData>(searchOmicsSubjectsAction, null);
+    const [isSearchingSubjects, setIsSearchingSubjects] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     // Check admin status and fetch users
     useEffect(() => {
@@ -185,19 +205,35 @@ export default function AdminPage() {
             if (addUserFormState.success) {
                 toast({ title: "Success", description: addUserFormState.message });
                 setIsAddUserDialogOpen(false); // Close dialog on success
-                // Refresh user list
-                setIsLoadingInitial(true); // Show loading while refreshing
-                getAllUsersAction().then(res => { 
-                    if (!res.error) setUsers(res.users);
-                    else setError(res.error);
-                    setIsLoadingInitial(false);
-                });
+                refreshUsers(); // Refresh user list
             } else {
                 toast({ title: "Error adding user", description: addUserFormState.message, variant: "destructive" });
             }
         }
     }, [addUserFormState, toast]);
 
+    // Effect for Purge Data Action result
+    useEffect(() => {
+        if (purgeDataFormState?.message) {
+            if (purgeDataFormState.success) {
+                toast({ title: "Success", description: purgeDataFormState.message });
+                setSelectedSubjectForPurge(null); // Clear selection on successful purge
+                setSubjectSearchQuery(""); // Clear search query
+                if (searchInputRef.current) searchInputRef.current.value = ""; // Clear search input
+                // Potentially clear search results as well: handleSubjectSearchAction(new FormData()); or set a clear state
+            } else {
+                toast({ title: "Error Purging Data", description: purgeDataFormState.message, variant: "destructive" });
+            }
+            setIsPurgeLoading(false); // Stop loading indicator
+        }
+    }, [purgeDataFormState, toast]);
+
+    useEffect(() => {
+        setIsSearchingSubjects(false); // Reset loading state when results/message comes back
+        if (subjectSearchState?.message && !subjectSearchState.results?.length) {
+             toast({ title: "Subject Search", description: subjectSearchState.message, variant: subjectSearchState.error ? "destructive" : "default" });
+        }
+    }, [subjectSearchState, toast]);
 
     const refreshUsers = async () => {
         setIsLoadingInitial(true);
@@ -231,6 +267,13 @@ export default function AdminPage() {
         return result;
     };
 
+    const handleSelectSubjectForPurge = (subject: OmicsSubjectSearchResult) => {
+        setSelectedSubjectForPurge(subject);
+        setSubjectSearchQuery(subject.subject_id); // Pre-fill search for visual confirmation
+        // The search results will hide automatically due to the condition: 
+        // {subjectSearchState?.results && subjectSearchState.results.length > 0 && !selectedSubjectForPurge && (...)}
+    };
+
     if (sessionStatus === 'loading' || isLoadingInitial) { 
         return (
             <DashboardLayout>
@@ -262,7 +305,7 @@ export default function AdminPage() {
     // Admin view (session authenticated and user is admin)
     return (
         <DashboardLayout>
-            <div className="container mx-auto p-4 space-y-6">
+            <div className="container mx-auto p-4 space-y-8">
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold">User Management</h1>
                     <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
@@ -281,21 +324,21 @@ export default function AdminPage() {
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="name" className="text-right">Name</Label>
-                                        <Input id="name" name="name" className="col-span-3" required />
+                                        <Label htmlFor="name-add" className="text-right">Name</Label>
+                                        <Input id="name-add" name="name" className="col-span-3" required />
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="email" className="text-right">Email</Label>
-                                        <Input id="email" name="email" type="email" className="col-span-3" required />
+                                        <Label htmlFor="email-add" className="text-right">Email</Label>
+                                        <Input id="email-add" name="email" type="email" className="col-span-3" required />
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="password" className="text-right">Password</Label>
-                                        <Input id="password" name="password" type="password" className="col-span-3" required minLength={8}/>
+                                        <Label htmlFor="password-add" className="text-right">Password</Label>
+                                        <Input id="password-add" name="password" type="password" className="col-span-3" required minLength={8}/>
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="role" className="text-right">Role</Label>
+                                        <Label htmlFor="role-add" className="text-right">Role</Label>
                                         <Select name="role" required>
-                                            <SelectTrigger className="col-span-3">
+                                            <SelectTrigger className="col-span-3" id="role-add">
                                                 <SelectValue placeholder="Select a role" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -350,6 +393,147 @@ export default function AdminPage() {
                             </TableBody>
                         </Table>
                          {error && <p className="text-red-500 mt-4">Error loading users: {error}</p>}
+                    </CardContent>
+                </Card>
+
+                {/* Purge Subject Data Card */}
+                <Card className="mt-8">
+                    <CardHeader>
+                        <CardTitle className="text-red-600 flex items-center">
+                            <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
+                            Danger Zone: Purge Subject Data
+                        </CardTitle>
+                        <CardDescription>
+                            Search for a subject, then permanently delete them and all associated laboratory data. This action is irreversible.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {/* Subject Search Form */}
+                        <form 
+                            action={async (formData) => {
+                                setIsSearchingSubjects(true);
+                                await handleSubjectSearchAction(formData);
+                            }}
+                            className="space-y-3"
+                        >
+                            <div>
+                                <Label htmlFor="subject_search_query">Search Subject ID</Label>
+                                <div className="flex items-center space-x-2 mt-1">
+                                    <Input 
+                                        id="subject_search_query"
+                                        name="searchQuery" // Must match what searchOmicsSubjectsAction expects
+                                        ref={searchInputRef}
+                                        defaultValue={subjectSearchQuery} // Controlled by state for clearing, but use defaultValue for form
+                                        onChange={(e) => setSubjectSearchQuery(e.target.value)}
+                                        placeholder="Enter Subject ID to search (e.g., OMI-XXX)"
+                                        className="flex-grow"
+                                    />
+                                    <Button type="submit" variant="outline" disabled={isSearchingSubjects || subjectSearchQuery.length < 2}>
+                                        {isSearchingSubjects ? <FontAwesomeIcon icon={faSpinner} spin className="mr-2" /> : <FontAwesomeIcon icon={faSearch} className="mr-2"/>}
+                                        Search
+                                    </Button>
+                                </div>
+                            </div>
+                        </form>
+
+                        {/* Search Results */}
+                        {subjectSearchState?.results && subjectSearchState.results.length > 0 && !selectedSubjectForPurge && (
+                            <div className="mt-4 border rounded-md p-2 bg-gray-50 max-h-60 overflow-y-auto">
+                                <p className="text-sm font-medium text-gray-700 mb-2">Select a subject to purge:</p>
+                                <ul className="space-y-1">
+                                    {subjectSearchState.results.map((subject) => (
+                                        <li key={subject.subject_id}>
+                                            <Button 
+                                                variant="ghost" 
+                                                className="w-full justify-start text-left h-auto py-2 px-3"
+                                                onClick={() => handleSelectSubjectForPurge(subject)}
+                                            >
+                                                <span className="font-semibold">{subject.subject_id}</span>
+                                                {subject.project && <span className="ml-2 text-xs text-gray-500">({subject.project})</span>}
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        
+                        {/* Selected Subject and Purge Button */}
+                        {selectedSubjectForPurge && (
+                            <div className="mt-4 p-3 border border-blue-300 bg-blue-50 rounded-md">
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <p className="text-sm font-medium">Selected Subject for Purge:</p>
+                                    <p className="text-lg font-semibold text-blue-700">{selectedSubjectForPurge.subject_id}</p>
+                                    {selectedSubjectForPurge.project && <p className="text-xs text-gray-600">Project: {selectedSubjectForPurge.project}</p>}
+                                  </div>
+                                  <Button variant="link" onClick={() => {
+                                      setSelectedSubjectForPurge(null);
+                                      setSubjectSearchQuery("");
+                                      if (searchInputRef.current) searchInputRef.current.value = "";
+                                      // Cleared selected subject, user can search again if needed.
+                                      // No need to manually clear subjectSearchState here, new search will override.
+                                    }} 
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                  >
+                                      Clear Selection / Search Again
+                                  </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-6">
+                             <AlertDialog open={isPurgeConfirmOpen} onOpenChange={setIsPurgeConfirmOpen}>
+                                <AlertDialogTrigger asChild>
+                                    <Button 
+                                        type="button" 
+                                        variant="destructive" 
+                                        className="w-full sm:w-auto"
+                                        disabled={!selectedSubjectForPurge || isPurgeLoading}
+                                    >
+                                        <FontAwesomeIcon icon={faTrashAlt} className="mr-2" />
+                                        Initiate Purge for {selectedSubjectForPurge?.subject_id || "..."}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently delete all data for subject 
+                                            <strong className="font-bold"> {selectedSubjectForPurge?.subject_id}</strong>, 
+                                            including all associated samples and assay results. 
+                                            Please type the subject ID <strong className="font-bold">{selectedSubjectForPurge?.subject_id}</strong> again to confirm.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <Input 
+                                        id="confirm_subject_id_purge"
+                                        placeholder={`Type "${selectedSubjectForPurge?.subject_id}" to confirm`}
+                                    />
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel onClick={() => setIsPurgeConfirmOpen(false)}>Cancel</AlertDialogCancel>
+                                        <form action={async () => { // Removed formData param as it's not directly used here
+                                            if (!selectedSubjectForPurge) return; // Should not happen if button is enabled
+
+                                            const confirmationInput = document.getElementById('confirm_subject_id_purge') as HTMLInputElement;
+                                            if (confirmationInput.value !== selectedSubjectForPurge.subject_id) {
+                                                toast({ title: "Confirmation Failed", description: "Subject ID in confirmation box does not match.", variant: "destructive" });
+                                                return;
+                                            }
+                                            setIsPurgeLoading(true);
+                                            setIsPurgeConfirmOpen(false);
+                                            
+                                            const formDataForPurge = new FormData();
+                                            formDataForPurge.append('subject_id_to_purge', selectedSubjectForPurge.subject_id);
+                                            await handlePurgeDataAction(formDataForPurge);
+                                        }}>
+                                            <Button type="submit" variant="destructive" disabled={isPurgeLoading}> 
+                                                {isPurgeLoading ? <FontAwesomeIcon icon={faSpinner} spin className="mr-2" /> : <FontAwesomeIcon icon={faTrashAlt} className="mr-2" />}
+                                                Yes, Purge Data for {selectedSubjectForPurge?.subject_id}
+                                            </Button>
+                                        </form>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

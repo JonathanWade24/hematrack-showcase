@@ -1,9 +1,9 @@
 'use server'
 
 import { db } from '@/lib/db';
-import { UserInApp } from '@/lib/db/schema';
+import { UserInApp, omics_subjectsInLaboratory, samplesInLaboratory } from '@/lib/db/schema';
 import { auth } from '@/app/api/auth/[...nextauth]/route'; 
-import { eq } from 'drizzle-orm';
+import { eq, inArray, sql, or, like, desc } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { type UserRole, PERMITTED_ROLES } from '@/lib/definitions';
@@ -33,6 +33,25 @@ export type ToggleUserActiveStateFormState = {
   success: boolean;
   message: string;
   errors?: Record<string, string[] | undefined>;
+};
+
+export type PurgeSubjectDataFormState = {
+  success: boolean;
+  message: string;
+  subjectId?: string;
+};
+
+// Type for subject search results
+export type OmicsSubjectSearchResult = {
+  subject_id: string;
+  project: string | null;
+  // Add other fields if needed for display
+};
+
+export type SearchSubjectsFormState = {
+  results?: OmicsSubjectSearchResult[];
+  message?: string;
+  error?: boolean;
 };
 
 // Helper to check if the current user is an admin
@@ -188,5 +207,110 @@ export async function toggleUserActiveStateAction(
   } catch (e) {
     console.error(`Error toggling user active state for ${userId}:`, e);
     return { success: false, message: 'Failed to update user active state.' };
+  }
+}
+
+export async function searchOmicsSubjectsAction(
+  prevState: SearchSubjectsFormState | null,
+  formData: FormData
+): Promise<SearchSubjectsFormState> {
+  if (!(await isAdmin())) {
+    return { message: 'Unauthorized', error: true };
+  }
+
+  const query = formData.get('searchQuery') as string | null;
+
+  if (!query || query.trim().length < 2) {
+    return { message: 'Search term must be at least 2 characters long.', error: false, results: [] };
+  }
+
+  const searchTerm = `%${query.toLowerCase().trim()}%`;
+
+  try {
+    const foundSubjects = await db
+      .select({
+        subject_id: omics_subjectsInLaboratory.subject_id,
+        project: omics_subjectsInLaboratory.project,
+      })
+      .from(omics_subjectsInLaboratory)
+      .where(like(sql`lower(${omics_subjectsInLaboratory.subject_id})`, searchTerm))
+      .orderBy(desc(omics_subjectsInLaboratory.created_at)) // Or order by subject_id
+      .limit(10); // Limit results for performance
+
+    if (foundSubjects.length === 0) {
+      return { message: `No subjects found matching "${query}".`, results: [], error: false };
+    }
+
+    return { results: foundSubjects, error: false };
+
+  } catch (e: any) {
+    console.error(`Error searching subjects with query "${query}":`, e);
+    return { message: 'Subject search failed due to a server error.', error: true };
+  }
+}
+
+export async function purgeSubjectDataAction(
+  prevState: PurgeSubjectDataFormState | null,
+  formData: FormData
+): Promise<PurgeSubjectDataFormState> {
+  if (!(await isAdmin())) {
+    return { success: false, message: 'Unauthorized' };
+  }
+
+  const subjectId = formData.get('subject_id_to_purge') as string;
+
+  if (!subjectId || subjectId.trim() === '') {
+    return { success: false, message: 'Subject ID is required to purge data.', subjectId };
+  }
+
+  try {
+    // Verify subject exists before attempting to fetch related data
+    const subjectExists = await db.query.omics_subjectsInLaboratory.findFirst({
+        where: eq(omics_subjectsInLaboratory.subject_id, subjectId)
+    });
+    if (!subjectExists) {
+        return { success: false, message: `Subject ID ${subjectId} not found.`, subjectId };
+    }
+
+    // Proceed with deletion within a transaction
+    const result = await db.transaction(async (tx) => {
+      // 1. Get all sample_ids for this subject
+      const samplesToDelete = await tx.query.samplesInLaboratory.findMany({
+        where: eq(samplesInLaboratory.subject_id, subjectId),
+        columns: {
+          sample_id: true,
+        },
+      });
+
+      const sampleIdsToDelete = samplesToDelete.map(s => s.sample_id);
+
+      if (sampleIdsToDelete.length > 0) {
+        // 2. Delete from all results_* tables using ASSAY_CONFIGS
+        const { ASSAY_CONFIGS } = await import('@/config/assayConfigs'); // Dynamic import
+        for (const assayKey in ASSAY_CONFIGS) {
+          const config = ASSAY_CONFIGS[assayKey];
+          if (config.dbTable && config.sampleIdForeignKey) {
+            // @ts-ignore - Drizzle types struggle with dynamic table/column names here
+            await tx.delete(config.dbTable).where(inArray(config.dbTable[config.sampleIdForeignKey], sampleIdsToDelete));
+            console.log(`Purged ${assayKey} data for samples of subject ${subjectId}`);
+          }
+        }
+        // 3. Delete from samplesInLaboratory table
+        await tx.delete(samplesInLaboratory).where(eq(samplesInLaboratory.subject_id, subjectId));
+        console.log(`Purged samples for subject ${subjectId}`);
+      }
+
+      // 4. Delete from omics_subjectsInLaboratory table
+      await tx.delete(omics_subjectsInLaboratory).where(eq(omics_subjectsInLaboratory.subject_id, subjectId));
+      console.log(`Purged subject ${subjectId}`);
+      
+      return { success: true, message: `All data for subject ${subjectId} has been successfully purged.`, subjectId };
+    });
+
+    return result;
+
+  } catch (e: any) {
+    console.error(`Error purging data for subject ${subjectId}:`, e);
+    return { success: false, message: `Failed to purge data for subject ${subjectId}. Reason: ${e.message}`, subjectId };
   }
 } 

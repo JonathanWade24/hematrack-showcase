@@ -9,6 +9,12 @@ This document contains development notes, key decisions, and reminders for the S
 
 ## Development Notes (Add as we go)
 
+*   **YYYY-MM-DD:** (Placeholder, use today's date) Successfully configured the application to build a Docker image (`scd-dashboard:latest`). This involved:
+    *   Reviewing and refining the existing `Dockerfile` and `.dockerignore` files.
+    *   Uninstalling Prisma (`prisma`, `@prisma/client`) as a direct dependency.
+    *   Temporarily disabling Prisma-dependent logic in numerous API routes (`/api/auth/register`, `/api/registration`, `/api/data-import/preview`, `/api/clinical`, `/api/data-preview`, `/api/medications`, `/api/lab-components`, `/api/user-roles`, `/api/query/values`) by commenting out Prisma client usage and returning placeholder 503 responses. These routes will require full migration to Drizzle ORM.
+    *   Resolving a build-time error where `DATABASE_URL` was not set by providing it to the `npm run build` command in the `Dockerfile`.
+    *   Resolving a subsequent `ECONNREFUSED` error during build by changing the build-time `DATABASE_URL` to use `host.docker.internal` (e.g., `postgresql://user@host.docker.internal:5432/db`) to allow the build process within the Docker container to connect to a PostgreSQL instance running on the host machine.
 *   **YYYY-MM-DD:** (Placeholder, use today's date) Fixed build errors due to module resolution and NextAuth.js migration:
     *   Created `src/lib/db/column-queries.ts` to replace missing `@/lib/prisma/column-queries` module, implementing Drizzle ORM-based column query functionality.
     *   Created a placeholder `src/lib/prisma/operations.ts` module to satisfy lazy imports in the omics route, enabling future migration.
@@ -46,6 +52,36 @@ This document contains development notes, key decisions, and reminders for the S
 *   **2023-10-27:** (Placeholder) Resolved NextAuth.js v5 authentication issues on `/samples/[id]` page by using the exported `auth()` function from `src/app/api/auth/[...nextauth]/route.ts` instead of `getServerSession`.
 *   **2023-10-26:** (Placeholder) Began refactor of data entry (`/data-entry/individual`) from API routes to Next.js Server Actions. Created `saveSampleInfoAction` with auth and Zod validation.
 *   **2024-07-30:** Fixed a data saving issue in the data entry form (`src/components/data-entry/SampleEntryForm.tsx`) where assays other than Advia were not saving correctly. The root cause was missing `name` attributes on the `<Input>` and `<Select>` components within the individual assay section files (e.g., `src/components/data-entry/form-sections/DNASection.tsx`, `PBMCSection.tsx`, etc.). Added the appropriate `name` attributes to all relevant fields, ensuring `FormData` correctly captures their values for the server actions.
+*   **YYYY-MM-DD:** (Use today's date) Initiated implementation of a new bulk assay data entry feature. 
+    *   Created a new page at `src/app/data-entry/bulk-assay-entry/page.tsx` to host the feature.
+    *   Added a `BulkAssaySelector.tsx` component (`src/components/data-entry/BulkAssaySelector.tsx`) with a dropdown for users to select the target assay. It's currently populated with a temporary list of assays.
+    *   Created a placeholder `BulkAssayDataGrid.tsx` component (`src/components/data-entry/BulkAssayDataGrid.tsx`) which will later display the editable grid for data input.
+    *   The main page (`page.tsx`) now renders the `BulkAssaySelector` and has a basic structure to show content once an assay is selected. Next steps will involve implementing sample identification methods and the dynamic data grid.
+*   **YYYY-MM-DD:** (Use today's date) Advanced the bulk assay data entry feature:
+    *   Replaced manual sample ID pasting with a `BulkSampleSelector.tsx` component (`src/components/data-entry/BulkSampleSelector.tsx`) that allows searching for samples and selecting multiple via checkboxes. It uses the existing `searchSamplesAction`.
+    *   The main page (`BulkAssayEntryPage.tsx`) now integrates this selector, accumulates selected samples into a `batchSamples` state, and triggers fetching of existing assay data for this batch using `getExistingAssayDataAction`.
+    *   The `ASSAY_CONFIGS` object in `src/config/assayConfigs.ts` was created and populated to define UI labels, DB table mappings, field types, and options for various assays. `BulkAssaySelector.tsx` now uses this config to dynamically populate its options.
+    *   `BulkAssayDataGrid.tsx` was updated to dynamically render table headers and read-only data based on the selected assay and the `batchSamples` (which now include fetched `assayData`).
+    *   A link to the new bulk entry page was added to `src/app/data-entry/page.tsx`, and the old "Bulk Upload from CSV" card was removed.
+    *   Refined `searchSamplesAction` in `actions.ts` to better handle queries with leading zeros in numeric suffixes.
+*   **YYYY-MM-DD:** (Use today's date) Completed the core functionality for the bulk assay data entry feature:
+    *   Made `BulkAssayDataGrid.tsx` interactive by allowing inline editing of assay data. Input fields (text, number, date, select, boolean checkbox) are dynamically rendered based on `ASSAY_CONFIGS`.
+    *   Created a new server action `saveBulkAssayDataAction` in `src/app/data-entry/actions.ts`. This action handles the upserting of multiple assay records to the correct database table based on the `assayKey` and provided data, using `ASSAY_CONFIGS` for table and field mapping.
+    *   Updated `BulkAssayEntryPage.tsx` to call `saveBulkAssayDataAction` when the user submits the data from the grid. The page now manages loading/saving states and displays success/error messages to the user. After a successful save, it re-fetches the assay data to reflect the persisted changes in the grid.
+*   **YYYY-MM-DD:** (Use today's date) Addressed UI issues in the bulk assay data entry grid:
+    *   Corrected a condition in `BulkAssayEntryPage.tsx` within the `useEffect` hook responsible for fetching and setting existing assay data. This ensures that previously saved data is correctly populated into the editable grid when samples are loaded.
+    *   Modified `BulkAssayDataGrid.tsx` to apply Tailwind CSS classes to number input fields to hide the default browser-provided spinner buttons (up/down arrows), improving visibility of the entered numeric values.
+*   **YYYY-MM-DD:** (Use today's date) Resolved a `TypeError` in `saveBulkAssayDataAction` occurring during data submission. The action was attempting to save JavaScript `Date` objects directly, while the database adapter expected date strings. The fix ensures that `Date` objects are converted to 'YYYY-MM-DD' formatted strings before being passed to the database query, aligning with the expected data type.
+*   **YYYY-MM-DD:** (Use today's date) Added a "Purge Subject Data" feature to the Admin Panel (`src/app/admin/page.tsx`):
+    *   Created a new server action `purgeSubjectDataAction` in `src/app/admin/actions.ts`. This action, restricted to admin users, deletes a specified subject and all its associated laboratory data (samples from `samplesInLaboratory`, and all corresponding assay results from `results_*` tables) within a database transaction.
+    *   The admin page now includes a new card section for this functionality, with an input for the `subject_id` and a button to initiate the purge.
+    *   An `AlertDialog` is used to require explicit confirmation from the admin before proceeding with the data deletion, including re-typing the subject ID.
+    *   The UI provides loading indicators and success/error feedback for the purge operation.
+*   **YYYY-MM-DD:** (Use today's date) Enhanced the "Purge Subject Data" feature in the Admin Panel (`src/app/admin/page.tsx`):
+    *   Replaced the manual subject ID input with a search-and-select mechanism. Admins can now search for subjects using a new server action `searchOmicsSubjectsAction` (added to `src/app/admin/actions.ts`).
+    *   The UI displays search results, allowing the admin to select a subject for purging, reducing the risk of errors from manual ID entry.
+    *   The confirmation dialog and purge process now use the subject ID selected from the search results.
+*   **YYYY-MM-DD:** (Use today's date) Resolved a `TypeError` in the Admin Panel's "Purge Subject Data" feature (`src/app/admin/page.tsx`). The error occurred when clearing search results after selecting a subject, due to incorrectly calling the `useActionState` dispatcher with `null`. The fix involves removing the direct dispatcher call and relying on conditional rendering to manage the visibility of search results, aligning with standard `useActionState` usage.
 
 ## Configuration Points
 

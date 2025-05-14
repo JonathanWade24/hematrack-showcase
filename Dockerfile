@@ -22,8 +22,8 @@ COPY . .
 
 # Build the Next.js application
 ENV NODE_ENV=production
-# Provide the actual DATABASE_URL for the build process as requested
-RUN DATABASE_URL="postgresql://jonathanwade@localhost:5432/scd_research_refactored" npm run build
+# Provide the DATABASE_URL for the build process, using host.docker.internal for host DB access
+RUN DATABASE_URL="postgresql://jonathanwade@host.docker.internal:5432/scd_research_refactored" npm run build
 
 # Clean up build-time .env if it was used
 # RUN rm .env
@@ -44,7 +44,7 @@ COPY --from=builder /app/.next/standalone ./
 
 # Copy public and static assets from builder stage
 COPY --from=builder /app/public ./public
-# COPY --from=builder /app/.next/static ./.next/static # Next.js 13+ typically includes static in standalone
+COPY --from=builder /app/.next/static ./.next/static
 
 # Copy Drizzle configuration and migrations 
 # Adjust path if your Drizzle files are elsewhere. Assuming migrations are in 'src/lib/drizzle' and config is at root.

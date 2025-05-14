@@ -3,7 +3,7 @@
 import { z } from 'zod' // For validation
 import { revalidatePath } from 'next/cache' // To potentially update related views
 import { redirect } from 'next/navigation' // Optional for redirecting after save
-import { eq, like, or, desc, sql } from "drizzle-orm"; // Added like, or, desc
+import { eq, like, or, desc, sql, inArray } from "drizzle-orm"; // Added like, or, desc, inArray
 
 import { auth } from '@/app/api/auth/[...nextauth]/route' // Use the exported auth function
 import { db } from '@/lib/db' // Drizzle instance
@@ -20,6 +20,7 @@ import {
     results_fcellsInLaboratory,
     results_adhesionInLaboratory
 } from '@/lib/db/schema' // Sample table schema
+import { ASSAY_CONFIGS } from "@/config/assayConfigs"; // Import ASSAY_CONFIGS
 
 // Define roles allowed for data entry
 const DATA_ENTRY_ROLES = ['admin', 'editor']; // Adjust as needed
@@ -1016,30 +1017,59 @@ export async function searchSamplesAction(
 ): Promise<SearchState> {
   const query = formData.get('searchQuery') as string | null;
 
-  if (!query || query.trim().length < 2) { // Require at least 2 chars for search
+  if (!query || query.trim().length < 2) {
     return { message: "Please enter at least 2 characters to search.", error: true };
   }
 
-  const searchTerm = `%${query.trim().toLowerCase()}%`;
+  const trimmedQuery = query.trim().toLowerCase();
+  // Original search term: user's query with wildcards
+  const searchTerm = `%${trimmedQuery}%`; 
+
+  let alternativeSearchTerm = null;
+  const lastHyphenIndex = trimmedQuery.lastIndexOf('-');
+
+  if (lastHyphenIndex > -1 && lastHyphenIndex < trimmedQuery.length - 1) {
+    const prefix = trimmedQuery.substring(0, lastHyphenIndex + 1); // e.g., "omi-" or "omi-001-"
+    const lastPart = trimmedQuery.substring(lastHyphenIndex + 1);    // e.g., "1" or "001"
+
+    if (!isNaN(Number(lastPart))) {
+      // If the last part is a number, create an alternative term 
+      // that matches the prefix and then the numeric value of the last part, 
+      // allowing for different leading zeros in the database.
+      // e.g., query "omi-1" -> prefix "omi-", lastPart "1" -> alt term "omi-%1%"
+      // e.g., query "omi-001-1" -> prefix "omi-001-", lastPart "1" -> alt term "omi-001-%1%"
+      alternativeSearchTerm = `${prefix}%${Number(lastPart)}%`;
+    }
+  } else if (!isNaN(Number(trimmedQuery))) {
+    // If the whole query is a number (e.g., "001", "1"), search for its numeric value with wildcards
+    // This might be too broad if IDs are purely numeric and short.
+    // Consider if purely numeric IDs need a prefix to be effective.
+    // alternativeSearchTerm = `%${Number(trimmedQuery)}%`; 
+    // For now, let's assume purely numeric IDs are less common or handled by exact searchTerm
+  }
 
   try {
-    // Query samples table directly, joining minimally if needed
+    const conditions = [
+      sql`lower(${samplesInLaboratory.sample_id}) like ${searchTerm}`,
+      sql`lower(${samplesInLaboratory.subject_id}) like ${searchTerm}`
+    ];
+
+    if (alternativeSearchTerm && alternativeSearchTerm !== searchTerm) {
+      console.log("[Action searchSamplesAction] Using alternative search term:", alternativeSearchTerm);
+      conditions.push(sql`lower(${samplesInLaboratory.sample_id}) like ${alternativeSearchTerm}`);
+      conditions.push(sql`lower(${samplesInLaboratory.subject_id}) like ${alternativeSearchTerm}`);
+    }
+
     const foundSamples = await db
       .select({
         sample_id: samplesInLaboratory.sample_id,
         subject_id: samplesInLaboratory.subject_id,
         date_of_collection: samplesInLaboratory.date_of_collection,
-        // Can add joins and status calculation here if necessary, but keeping it simple for now
       })
       .from(samplesInLaboratory)
-      .where(
-        or(
-          sql`lower(${samplesInLaboratory.sample_id}) like ${searchTerm}`,
-          sql`lower(${samplesInLaboratory.subject_id}) like ${searchTerm}`
-        )
-      )
-      .orderBy(desc(samplesInLaboratory.created_at)) // Order by creation date or relevance?
-      .limit(20); // Limit results
+      .where(or(...conditions))
+      .orderBy(desc(samplesInLaboratory.created_at))
+      .limit(20);
 
     const formattedResults = foundSamples.map(sample => ({
         ...sample,
@@ -1057,6 +1087,201 @@ export async function searchSamplesAction(
     console.error("[Action searchSamplesAction] Error:", error);
     return { message: "Search failed due to a database error.", error: true };
   }
+}
+
+// --- Server Action: Get Existing Assay Data for a Batch of Samples ---
+export async function getExistingAssayDataAction(
+  sampleIds: string[],
+  assayKey: string
+): Promise<{ success: boolean; data?: any[]; message?: string; error?: any }> {
+  const session = await auth();
+  if (!session?.user) { // Broader access initially, can be restricted later if needed
+    return { success: false, message: "Unauthorized: User not authenticated." };
+  }
+
+  if (!sampleIds || sampleIds.length === 0) {
+    return { success: false, message: "No sample IDs provided." };
+  }
+  if (!assayKey) {
+    return { success: false, message: "No assay key provided." };
+  }
+
+  const assayConfig = ASSAY_CONFIGS[assayKey];
+  if (!assayConfig) {
+    return { success: false, message: `Invalid assay key: ${assayKey}. No configuration found.` };
+  }
+
+  const { dbTable, sampleIdForeignKey } = assayConfig;
+
+  if (!dbTable || !(sampleIdForeignKey in dbTable)) {
+    console.error(`[Action getExistingAssayDataAction] Misconfiguration for assay key ${assayKey}: dbTable or sampleIdForeignKey is invalid.`);
+    return { success: false, message: `Server misconfiguration for assay ${assayKey}.` };
+  }
+
+  try {
+    console.log(`[Action getExistingAssayDataAction] Fetching ${assayKey} data for sample IDs:`, sampleIds);
+    
+    const results = await db
+      .select()
+      .from(dbTable)
+      // @ts-ignore because sampleIdForeignKey is a string key, but TS expects a specific column type here.
+      // Drizzle should correctly interpret this at runtime.
+      .where(inArray(dbTable[sampleIdForeignKey], sampleIds));
+
+    console.log(`[Action getExistingAssayDataAction] Found ${results.length} existing ${assayKey} records.`);
+    return { success: true, data: results };
+
+  } catch (error: any) {
+    console.error(`[Action getExistingAssayDataAction] Error fetching ${assayKey} data:`, error);
+    return { 
+      success: false, 
+      message: `Error fetching existing data for ${assayConfig.displayName}.`, 
+      error: error.message 
+    };
+  }
+}
+
+// --- Server Action: Save Bulk Assay Data ---
+interface BulkSaveData {
+  sample_id: string;
+  assayData: Record<string, any>;
+  // other sample fields like subject_id could be here if needed for context, but not for saving
+}
+
+export async function saveBulkAssayDataAction(
+  assayKey: string,
+  recordsToSave: BulkSaveData[]
+): Promise<{ success: boolean; message: string; errors?: Array<{ sample_id: string; error: string }> }> {
+  const session = await auth();
+  if (!session?.user || !DATA_ENTRY_ROLES.includes(session.user.role ?? '')) {
+    return { success: false, message: "Unauthorized: User not permitted to save bulk data." };
+  }
+
+  if (!assayKey) {
+    return { success: false, message: "No assay key provided." };
+  }
+  if (!recordsToSave || recordsToSave.length === 0) {
+    return { success: false, message: "No records provided to save." };
+  }
+
+  const assayConfig = ASSAY_CONFIGS[assayKey];
+  if (!assayConfig) {
+    return { success: false, message: `Invalid assay key: ${assayKey}. No configuration found.` };
+  }
+
+  const { dbTable, sampleIdForeignKey, fields: fieldConfigs } = assayConfig;
+
+  if (!dbTable || !(sampleIdForeignKey in dbTable)) {
+    console.error(`[Action saveBulkAssayDataAction] Misconfiguration for assay key ${assayKey}: dbTable or sampleIdForeignKey is invalid.`);
+    return { success: false, message: `Server misconfiguration for assay ${assayConfig.displayName}.` };
+  }
+
+  const errors: Array<{ sample_id: string; error: string }> = [];
+  let successCount = 0;
+
+  for (const record of recordsToSave) {
+    if (!record.sample_id || !record.assayData) {
+      errors.push({ sample_id: record.sample_id || "UNKNOWN_SAMPLE", error: "Missing sample_id or assayData." });
+      continue;
+    }
+
+    const dataForDb: Record<string, any> = {
+      [sampleIdForeignKey]: record.sample_id,
+    };
+
+    // Prepare data, ensuring types and only including fields defined in config
+    for (const fieldConfig of fieldConfigs) {
+      const fieldName = fieldConfig.name;
+      let value = record.assayData[fieldName];
+
+      // Skip if value is undefined (field not present in input for this record)
+      if (value === undefined) {
+        continue;
+      }
+      
+      // Handle nulls: if a field is explicitly set to null, pass it as null
+      if (value === null) {
+        dataForDb[fieldName] = null;
+        continue;
+      }
+
+      // Type conversion based on fieldConfig
+      switch (fieldConfig.type) {
+        case 'number':
+          const numValue = Number(value);
+          dataForDb[fieldName] = isNaN(numValue) ? null : numValue;
+          break;
+        case 'date':
+          if (value === '' || !value) {
+            dataForDb[fieldName] = null;
+          } else {
+            const dateObj = new Date(value as string);
+            if (dateObj instanceof Date && !isNaN(dateObj.getTime())) {
+              dataForDb[fieldName] = dateObj.toISOString().split('T')[0]; // Store as YYYY-MM-DD string
+            } else {
+              dataForDb[fieldName] = null; // Invalid date becomes null
+            }
+          }
+          break;
+        case 'boolean':
+          dataForDb[fieldName] = Boolean(value);
+          break;
+        case 'select': // Select values are typically strings or numbers
+        default: // text
+          dataForDb[fieldName] = String(value);
+          break;
+      }
+      // Ensure that empty strings for non-text fields are treated as null if appropriate
+      if (fieldConfig.type !== 'text' && dataForDb[fieldName] === '') {
+          dataForDb[fieldName] = null;
+      }
+    }
+    
+    // Remove any fields that ended up as undefined after processing (shouldn't happen with current logic)
+    Object.keys(dataForDb).forEach(key => {
+        if (dataForDb[key] === undefined) {
+            delete dataForDb[key];
+        }
+    });
+
+    try {
+      // @ts-ignore - dbTable is generic, and sampleIdForeignKey is a string key.
+      const conflictTarget = dbTable[sampleIdForeignKey];
+
+      await db.insert(dbTable)
+        // @ts-ignore - dataForDb is Record<string, any>
+        .values(dataForDb)
+        .onConflictDoUpdate({
+          target: conflictTarget,
+          // @ts-ignore - dataForDb includes the sampleIdForeignKey, Drizzle needs it excluded from set typically,
+          // but for upserting all fields, this should be fine. Or be more explicit if issues arise.
+          set: dataForDb 
+        });
+      successCount++;
+    } catch (e: any) {
+      console.error(`[Action saveBulkAssayDataAction] Error saving record for sample ${record.sample_id}, assay ${assayKey}:`, e);
+      errors.push({ sample_id: record.sample_id, error: e.message || "An unknown error occurred." });
+    }
+  }
+
+  if (successCount > 0) {
+    revalidatePath('/data-entry/bulk-assay-entry');
+    revalidatePath('/samples');
+    // Potentially revalidate individual sample paths if that's a common navigation flow
+    recordsToSave.forEach(record => {
+        if (record.sample_id) revalidatePath(`/samples/${record.sample_id}`);
+    });
+  }
+
+  if (errors.length > 0) {
+    return {
+      success: false,
+      message: `Successfully saved ${successCount} record(s), but ${errors.length} record(s) failed.`,
+      errors: errors,
+    };
+  }
+
+  return { success: true, message: `Successfully saved all ${successCount} records for ${assayConfig.displayName}.` };
 }
 
 // Placeholder for other assay actions (Adhesion)
