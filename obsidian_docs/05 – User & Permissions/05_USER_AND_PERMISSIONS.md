@@ -9,163 +9,160 @@ This document outlines user management, authentication, and authorization strate
 
 ## 1. User Definition in Database
 
-Users are primarily defined in the `app.users` table (or a similarly named table within the `app` or public schema) in the PostgreSQL database. Refer to `src/lib/db/schema.ts` for the exact structure.
+Users are primarily defined in the `app.User` table (Drizzle variable: `UserInApp`) in the PostgreSQL database, as specified in `src/lib/db/schema.ts`. This table, along with `app.Account`, `app.Session`, and `app.VerificationToken`, supports NextAuth.js functionality.
 
-**Key Table: `app.users`** (Example structure, verify from `src/lib/db/schema.ts`)
--   `id`: (e.g., `uuid().defaultRandom().primaryKey()`, `serial().primaryKey()`)
--   `name`: `varchar({ length: 255 })`
--   `email`: `varchar({ length: 255 }).unique().notNull()`
--   `emailVerified`: `timestamp({ withTimezone: true, mode: "date" })` (if email verification is used)
--   `passwordHash`: `text()` (stores the hashed password)
--   `image`: `text()` (URL to profile picture, optional)
--   `role`: `varchar({ length: 50 })` (e.g., 'admin', 'user', 'editor') or a foreign key to a `roles` table.
-    - `[TODO: Determine if roles are simple strings or a separate app.roles table. If separate, document app.roles and app.user_roles join table if many-to-many.]`
--   `createdAt`: `timestamp().defaultNow()`
--   `updatedAt`: `timestamp().defaultNow()`
+**Key Table: `app.User`**
+-   `id`: `text` (Primary Key) - User's unique identifier.
+-   `name`: `text` (Nullable) - User's display name.
+-   `email`: `text` (Not Null, Unique) - User's email address.
+-   `emailVerified`: `timestamp({ withTimezone: true, mode: 'date' })` (Nullable) - Timestamp if email has been verified.
+-   `password`: `text` (Nullable) - Stores the hashed password (used by the Credentials provider).
+-   `image`: `text` (Nullable) - URL to profile picture.
+-   `role`: `text` (Nullable) - Stores the user's role as a simple string (e.g., 'admin', 'user', 'editor'). There is no separate `app.roles` table; roles are managed directly on the user record.
+-   `isActive`: `boolean` (Not Null, Default: `true`) - Indicates if the user account is active.
+-   `created_at`: `timestamp({ withTimezone: true, mode: 'string' })` (Default: `CURRENT_TIMESTAMP`)
+-   `updated_at`: `timestamp({ withTimezone: true, mode: 'string' })` (Default: `CURRENT_TIMESTAMP`)
 
-**Related Tables (Potential):**
--   `app.accounts`: If using NextAuth.js or similar, this table links user accounts to OAuth providers (Google, GitHub, etc.).
-    - `userId` (FK to `users.id`)
-    - `type` (e.g., 'oauth', 'credentials')
-    - `provider` (e.g., 'google', 'github')
+**Related NextAuth.js Tables (all in `app` schema):**
+-   **`app.Account`** (Drizzle: `AccountInApp`): Links user accounts to authentication providers. Given the primary use of a Credentials provider, this table might store entries with `type: 'credentials'` or might be less utilized if only credentials are in play. It's structured to support OAuth providers as well.
+    - `userId` (FK to `app.User.id`)
+    - `type` (e.g., 'oauth', 'credentials', 'email')
+    - `provider` (e.g., 'credentials', 'google')
     - `providerAccountId`
-    - `access_token`, `refresh_token`, `expires_at`
--   `app.sessions`: Stores active user sessions (common with NextAuth.js).
-    - `sessionToken`
-    - `userId` (FK to `users.id`)
+    - OAuth-specific fields: `access_token`, `refresh_token`, `expires_at`, `token_type`, `scope`, `id_token`, `session_state`.
+-   **`app.Session`** (Drizzle: `SessionInApp`): Stores active user sessions when using database session strategy with NextAuth.js.
+    - `sessionToken` (Primary Key)
+    - `userId` (FK to `app.User.id`)
+    - `expires` (Timestamp when the session expires)
+-   **`app.VerificationToken`** (Drizzle: `VerificationTokenInApp`): Used by NextAuth.js for email verification links or passwordless login (if an Email provider is configured).
+    - `identifier`
+    - `token`
     - `expires`
--   `app.verification_tokens`: For email verification or password reset tokens.
 
-`[TODO: Read src/lib/db/schema.ts specifically for tables named users, accounts, sessions, roles, permissions in the app or public schema to confirm actual table structures and relationships. Create individual notes like [[usersInApp]], [[accountsInApp]] if they exist.]`
+Individual notes with more details on these Drizzle schema definitions:
+- [[UserInApp]]
+- [[AccountInApp]]
+- [[SessionInApp]]
+- [[VerificationTokenInApp]]
 
 ## 2. Authentication Strategy
 
-`[TODO: Identify and document the precise authentication strategy. This is a critical section.]`
+The application uses NextAuth.js for authentication, configured in `src/app/api/auth/[...nextauth]/route.ts`.
 
-**Common Possibilities:**
+**Key Configuration Points:**
 
--   **NextAuth.js**: Highly likely for a Next.js application.
-    -   **Configuration**: Check for `src/app/api/auth/[...nextauth]/route.ts` or `src/pages/api/auth/[...nextauth].ts` (for Pages Router).
-    -   **Providers**: Identify configured providers (e.g., Credentials, Google, GitHub, Email/Magic Link).
-    -   **Callbacks**: Review `callbacks` in NextAuth options (e.g., `signIn`, `jwt`, `session`) for custom logic.
-    -   **Adapter**: Check if a Drizzle Adapter for NextAuth.js is used (e.g., `@auth/drizzle-adapter`). This would manage `users`, `accounts`, `sessions`, `verification_tokens` tables.
-        ```typescript
-        // Example NextAuth.js setup with Drizzle Adapter
-        // src/app/api/auth/[...nextauth]/route.ts
-        import NextAuth from "next-auth";
-        import GoogleProvider from "next-auth/providers/google";
-        import CredentialsProvider from "next-auth/providers/credentials";
-        import { DrizzleAdapter } from "@auth/drizzle-adapter";
-        import { db } from "@/lib/db"; // Your Drizzle instance
-        // import { users } from "@/lib/db/schema"; // If not using default table names
+-   **Adapter**: `DrizzleAdapter` is used, connecting NextAuth.js to the PostgreSQL database using the `app.User`, `app.Account`, `app.Session`, and `app.VerificationToken` tables defined in `src/lib/db/schema.ts`.
 
-        export const authOptions = {
-          adapter: DrizzleAdapter(db /*, { usersTable: users, ... } */),
-          providers: [
-            GoogleProvider({
-              clientId: process.env.GOOGLE_CLIENT_ID!,
-              clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            }),
-            CredentialsProvider({
-              // ... configuration for username/password login
-            }),
-          ],
-          session: { strategy: "jwt" }, // Or "database"
-          callbacks: {
-            async session({ session, token }) {
-              if (token.sub && session.user) {
-                session.user.id = token.sub;
-                // session.user.role = token.role; // Example: Add role to session
-              }
-              return session;
-            },
-            async jwt({ token, user }) {
-              if (user) {
-                // token.role = user.role; // Example: Add role to JWT from user object
-              }
-              return token;
-            },
-          },
-          // ... other NextAuth options (pages, secret, etc.)
-        };
+-   **Providers**:
+    -   The primary (and currently sole) authentication method is **Credentials Provider**.
+        -   It expects `email` and `password` for login.
+        -   The `authorize` function in its configuration:
+            1.  Retrieves the user from the `app.User` table by email.
+            2.  Uses `bcrypt.compare` to validate the provided password against the hashed password stored in `app.User.password`.
+            3.  If successful, it returns a user object that includes `id`, `email`, `name`, and `role`.
+    -   No OAuth providers (like Google, GitHub, etc.) are currently configured.
 
-        const handler = NextAuth(authOptions);
-        export { handler as GET, handler as POST };
-        ```
+-   **Session Strategy**: JWT (JSON Web Tokens) are used for session management (`strategy: "jwt"`).
+    -   While the `DrizzleAdapter` is provided with `sessionsTable: SessionInApp`, this table will not be used for storing sessions when the JWT strategy is active. It would be used if the strategy were set to `"database"`.
 
--   **Custom JWT Authentication**: If NextAuth.js is not used, there might be a custom implementation involving JWTs.
-    -   Look for API routes for login/registration.
-    -   Identify how JWTs are generated, stored (e.g., httpOnly cookies), and validated (e.g., middleware).
+-   **Custom Pages**:
+    -   Sign-in page: `/login`
+    -   Error page: `/auth/error` (for authentication-related errors).
 
--   **Other Third-Party Auth Services**: (e.g., Clerk, Supabase Auth, Auth0).
-    -   Look for SDK installations and configurations.
+-   **Callbacks for Role Propagation**:
+    -   **`jwt` callback**: When a user signs in, this callback is invoked. It takes the user object returned by the `authorize` function (which includes the `role`) and adds `id`, `name`, `email`, and `role` to the JWT (`token`).
+    -   **`session` callback**: This callback receives the JWT (`token`) and uses it to populate the `session.user` object. Crucially, `session.user.role` is set from `token.role`. This makes the user's role available both on the client-side (via `useSession()`) and server-side (via `getServerSession()` or the `auth()` helper).
 
-**Key Files to Check:**
--   `src/app/api/auth/[...nextauth]/route.ts` (or Pages Router equivalent)
--   `src/lib/auth.ts` or `src/auth.ts` (potential helper file for auth logic/session access)
--   Middleware: `src/middleware.ts` (often used for protecting routes)
--   Environment variables related to auth (e.g., `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`).
+-   **Exports for Server-Side Auth**: The `authOptions` and helper functions like `auth`, `signIn`, and `signOut` are exported from the NextAuth.js route file, allowing them to be used in Server Components and Server Actions for accessing session information or initiating auth flows.
+
+**Relevant Environment Variables:**
+-   `NEXTAUTH_URL`: The canonical URL of the application.
+-   `NEXTAUTH_SECRET`: A secret key used to sign JWTs and other tokens.
+-   `DATABASE_URL`: Used by the Drizzle adapter to connect to the database.
+
+This setup ensures that the user's role, defined in the `app.User` table, is embedded into the JWT upon login and then made available in the session object for use throughout the application for authorization purposes.
 
 ## 3. Authorization (Permissions & Roles)
 
-`[TODO: Document how authorization/permissions are handled.]`
+Authorization in this application is primarily Role-Based Access Control (RBAC), centered around the `role` attribute (e.g., 'admin', 'user', 'editor') stored as a text field in the `app.User` table. This role is propagated to the JWT and then to the user's session object, making it available for authorization checks.
 
-**Common Approaches:**
+No separate `permissions` or `role_permissions` tables are currently used; permissions are implicitly tied to roles.
 
--   **Role-Based Access Control (RBAC)**:
-    -   Users have roles (e.g., 'admin', 'user', 'editor') stored in the `users` table or a dedicated `roles` table.
-    -   Application logic checks the user's role before allowing access to certain features or data.
-    -   This can be implemented in API routes, Server Actions, or even UI components (conditionally rendering elements).
+**Implementation Details:**
 
--   **Permission-Based Access Control**: More granular.
-    -   Might involve `permissions` and `role_permissions` tables.
-    -   `[TODO: Check schema for these tables.]`
+-   **Middleware (`src/middleware.ts`)**: This is the primary mechanism for general route protection based on authentication status.
+    -   **Authentication Checks (Active)**:
+        -   It ensures that users are authenticated to access protected routes. If an unauthenticated user tries to access a protected path, they are redirected to `/login`.
+        -   If an authenticated user tries to access public-only paths like `/login`, they are redirected to the application's home page (`/`).
+        -   Protected paths are essentially any path not explicitly listed in `PUBLIC_PATHS` (e.g., `/login`, `/access-denied`).
+    -   **Role-Based Route Protection (Intended but Currently Commented Out in Middleware)**:
+        -   The `src/middleware.ts` file contains a commented-out section designed for broader role-based route protection (e.g., restricting `/dashboard/*` to certain roles). This is not currently active due to noted "type errors."
+        -   Addressing this would enhance route-level RBAC.
 
--   **Implementation Details**:
-    -   **Middleware**: `src/middleware.ts` can be used to protect entire route segments based on authentication status or roles.
+-   **Page-Level and Action-Level Admin Checks (e.g., `/admin` route)**:
+    -   Specific routes like `/admin` implement their own admin checks. The `src/app/admin/page.tsx` component verifies if `session.user.role === 'admin'` before rendering content or fetching data.
+    -   All Server Actions defined in `src/app/admin/actions.ts` (e.g., for user management, data purge) also explicitly check if the invoking user has an 'admin' role using `await auth()` at the beginning of each action.
+
+-   **Server-Side Checks (General API Routes, Server Actions, Server Components)**:
+    -   For granular access control within other specific server-side logic, the pattern is to fetch the current user's session and role, then conditionally allow/deny operations.
         ```typescript
-        // src/middleware.ts (Example with NextAuth.js)
-        export { default } from "next-auth/middleware";
+        // Example: Server-side check
+        import { auth } from "@/app/api/auth/[...nextauth]/route";
 
-        export const config = {
-          matcher: ["/dashboard/:path*", "/admin/:path*"], // Protected routes
-        };
-        ```
-    -   **Server-Side Checks**: In API routes, Server Actions, or Server Components, fetch the user's session/role and perform checks.
-        ```typescript
-        // Example in a Server Component or API route
-        import { getServerSession } from "next-auth/next";
-        import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // Path to your auth options
-
-        async function someSecureOperation() {
-          const session = await getServerSession(authOptions);
-          if (!session || session.user.role !== "admin") {
+        export async function someSpecificOperation() {
+          const session = await auth();
+          if (!session?.user?.role || session.user.role !== 'specific_required_role') {
             throw new Error("Unauthorized");
           }
-          // Proceed with admin-only operation
+          // Proceed with operation
         }
         ```
-    -   **UI Level**: Conditionally render UI elements based on user role or permissions.
+
+-   **UI Level**: React components conditionally render UI elements based on the user's role from the session.
+    ```tsx
+    // Example in a Client Component
+    "use client";
+    import { useSession } from "next-auth/react";
+
+    function MyFeatureButton() {
+      const { data: session } = useSession();
+      if (session?.user?.role === 'admin') {
+        return <button>Admin Only Action</button>;
+      }
+      return null;
+    }
+    ```
+
+While middleware provides coarse-grained auth status checks, fine-grained role-based authorization for specific features like the admin panel is implemented at the page and Server Action level.
 
 ## 4. Adding / Removing / Managing Users
 
-`[TODO: Detail the process for user management. This depends heavily on the auth strategy.]`
+User management is primarily handled through a dedicated admin interface, supplemented by scripts for initial setup.
 
--   **Self-Service Registration**: If enabled (e.g., through NextAuth.js providers or a registration form).
--   **Admin Interface**: Is there a dedicated admin section in the app for managing users?
-    -   If so, document its location and capabilities (e.g., inviting users, changing roles, deactivating accounts).
-    -   This might involve custom API routes and frontend components.
--   **Database Operations (Direct - Use with extreme caution)**:
-    -   For emergency or backend-only user management, direct database manipulation might be an option, but it's generally discouraged if an admin interface or auth provider console exists.
-    -   SQL commands to add a user (example, highly dependent on schema and password hashing):
-        ```sql
-        -- Example, NOT FOR PRODUCTION USE WITHOUT HASHING
-        -- INSERT INTO app.users (name, email, password_hash, role) VALUES ('New User', 'new@example.com', 'hashed_password_here', 'user');
-        ```
-    -   The `test-user.ts` and `check-user.ts` files in the project root suggest scripts for creating/checking users, possibly for testing or initial setup. These should be investigated and documented if they are part of the standard user management toolkit.
-        - [[test-user.ts]]
-        - [[check-user.ts]]
--   **External Provider Management**: If using OAuth providers like Google, user management might partially occur on the provider's platform (e.g., revoking access).
+**In-App Admin User Management UI (`/admin` route):**
+
+-   The application includes an admin page at `/admin` (`src/app/admin/page.tsx`) specifically for user management and other administrative tasks.
+-   **Access**: This page is restricted to users with the 'admin' role. This is enforced both in the page component (client-side redirect/denial if not admin) and in all associated Server Actions.
+-   **Features**:
+    -   **List Users**: Displays a table of all users with their name, email, role, and active status.
+    -   **Add User**: A dialog form allows admins to add new users by providing name, email, password, and role (selected from `PERMITTED_ROLES`). The password is hashed by the server. New users are set to active by default.
+    -   **Edit User Role**: Admins can change a user's role directly in the user list.
+    -   **Activate/Deactivate User**: Admins can toggle a user's `isActive` status.
+-   **Backend Logic**: These UI operations are powered by Server Actions in `src/app/admin/actions.ts`, including `getAllUsersAction`, `addUserAction`, `updateUserRoleAction`, and `toggleUserActiveStateAction`. Each action re-verifies admin privileges before execution.
+
+**Initial Admin User Creation (Scripts):**
+
+-   **Primary Method (Drizzle/SQL-aligned script):** `scripts/seed-admin.mjs` is suitable for creating an initial admin user, especially in development or for initial deployment.
+    -   Connects directly to PostgreSQL, clears `app.User`, `app.Account`, `app.Session` tables, then inserts a new admin user (e.g., `admin@email.com`, password 'admin' - hashed by script) with the 'admin' role.
+    -   **Caution**: This script is destructive to existing user data.
+
+-   **Alternative Script (`npm run create-admin` - Prisma-based - Requires Verification):**
+    -   `scripts/create-admin.ts` (run via `npm run create-admin`) uses Prisma ORM. Its compatibility with the Drizzle-managed schema needs verification, as it might be legacy.
+
+**Other User Management Aspects:**
+
+-   **Self-Service Registration**: Not implemented. User creation is an admin-initiated task through the `/admin` UI or setup scripts.
+-   **Password Resets / Email Verification**: While `app.VerificationToken` table exists, full flows for these features are not apparent and would require further implementation.
 
 ## 5. Session Management
 

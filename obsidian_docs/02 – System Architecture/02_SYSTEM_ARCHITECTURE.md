@@ -1,8 +1,3 @@
----
-tags: [moc, architecture, diagrams, modules]
-aliases: [System Architecture, Architecture Overview, Folder Structure]
----
-
 # 02 – System Architecture
 
 This document provides a high-level overview of the application's architecture, including the interaction between different services, key modules, and folder responsibilities.
@@ -13,34 +8,62 @@ The following diagram illustrates the primary components and data flow of the sy
 
 ```mermaid
 graph TD
-    A[User's Browser] --> B{Next.js Frontend (App Router)};
-    B --> C{Next.js API Routes (Route Handlers)};
-    C --> D[Drizzle ORM];
-    D --> E[(PostgreSQL Database)];
-    E --> F[External Metabase Instance];
 
-    subgraph "Next.js Application (Deployed via Docker)"
-        B
-        C
-        D
-    end
+A[User's Browser] --> B{Next.js Frontend}
 
-    subgraph "Data Persistence"
-        E
-    end
+B --> C{Next.js API Routes}
 
-    subgraph "Analytics & Reporting"
-        F
-    end
+C --> D[Drizzle ORM]
 
-    G[Developer] --> H{Local Development Environment};
-    H --> I(Local PostgreSQL via Docker/Service);
-    H --> J(Drizzle Studio);
-    D --> J;
+D --> E[(PostgreSQL Database)]
 
-    K[Docker Build Process] --> L(Docker Image);
-    L --> M(Ubuntu Server Deployment);
-    M --> B;
+E --> F[External Metabase Instance]
+
+  
+
+subgraph NextjsApp["Next.js Application Deployed via Docker"]
+
+B
+
+C
+
+D
+
+end
+
+  
+
+subgraph DataPersistence["Data Persistence"]
+
+E
+
+end
+
+  
+
+subgraph Analytics["Analytics & Reporting"]
+
+F
+
+end
+
+  
+
+G[Developer] --> H{Local Development Environment}
+
+H --> I[Local PostgreSQL via Docker/Service]
+
+H --> J[Drizzle Studio]
+
+D --> J
+
+  
+
+K[Docker Build Process] --> L[Docker Image]
+
+L --> M[Ubuntu Server Deployment]
+
+M --> B
 ```
 
 **Key Interactions:**
@@ -56,45 +79,59 @@ graph TD
 Based on the project scan, here are the key directories and their inferred responsibilities:
 
 - **`src/`**: Core application code.
-    - **`src/app/`**: Contains Next.js App Router pages, layouts, loading states, error boundaries, and API route handlers. Each folder typically represents a route segment.
-        - `src/app/page.tsx`: The homepage of the application.
-        - `src/app/layout.tsx`: The root layout for the application.
-        - `src/app/api/...`: Server-side API route handlers.
-        - `[TODO: List other key sub-directories in src/app/ and their purpose, e.g., src/app/(auth)/, src/app/dashboard/]`
+    - **`src/app/`**: Contains Next.js App Router pages, layouts, API route handlers, and global styles. Each folder typically represents a route segment.
+        - `page.tsx`: The main landing page for the root route.
+        - `layout.tsx`: The root layout for the application.
+        - `globals.css`: Global stylesheets.
+        - `providers.tsx`: Client-side context providers.
+        - `api/`: Server-side API route handlers.
+        - `auth/`: Authentication-related pages/routes (e.g., NextAuth.js callbacks, login page if not a top-level route).
+        - `admin/`: Admin dashboard and functionalities.
+        - `dashboard/`: Main user dashboard.
+        - `data-download/`, `data-entry/`, `data-import/`: Feature sections for data operations.
+        - `patients/`, `samples/`, `subjects/`, `visits/`: Sections for managing specific data entities.
+        - `login/`, `logout/`, `profile/`, `registration/`, `settings/`: User account and session management pages.
+        - `query-builder/`: Interface for building queries.
     - **`src/components/`**: Reusable UI components (React components).
-        - `src/components/ui/`: Likely contains Shadcn UI components or other primitive UI elements.
-        - `[TODO: List examples of custom components if identifiable, e.g., src/components/AssayForm.tsx]`
+        - `ui/`: Generic, reusable UI primitives (e.g., buttons, inputs, cards), likely from Shadcn UI (as per `components.json`).
+        - `auth/`, `dashboard/`, `data/`, `data-download/`, `data-entry/`, `data-import/`, `forms/`, `layout/`, `patients/`, `query/`, `registration/`, `samples/`, `subjects/`, `visits/`: Feature-specific or layout-specific components.
+        - Example custom components: `SamplesTable.tsx` (in `src/components/samples/`), `SimpleAdviaForm.tsx` (in `src/components/forms/`).
     - **`src/lib/`**: Shared libraries, utilities, and helper functions.
-        - `src/lib/db/` or `src/lib/drizzle/`: Likely contains Drizzle ORM setup, schema definitions if not in root `drizzle/` folder, and database query functions. (Verify exact location)
-        - `src/lib/utils.ts`: Common utility functions.
-        - `[TODO: List other key files/folders in src/lib/]`
-    - **`src/styles/`**: Global styles, Tailwind CSS base styles, etc. (if applicable, Tailwind is often configured in `tailwind.config.ts` and global CSS in `src/app/globals.css`).
+        - `auth/`: Authentication utility functions (e.g., session helpers, NextAuth.js config access).
+        - `db/`: Core database interaction logic, likely Drizzle ORM setup (`src/lib/db/schema.ts`), Drizzle client instance, query functions.
+        - `drizzle/`: May contain Drizzle-specific utilities or schema parts. Note: Root `drizzle/` folder contains migrations and `drizzle.config.ts`.
+        - `types/` & `types.ts`: Shared TypeScript type definitions.
+        - `utils/` & `utils.ts`: Common utility functions.
+        - `apiClient.ts`: Helper for client-side API calls.
+        - `db-helpers.ts`: Additional database utility functions.
+        - `services/`: Business logic or interactions with external services.
+        - `placeholder-data.ts`, `queryTemplates.ts`, `metadata-cache.ts`: Utility files for development, queries, and caching.
+        - `[NOTE: Contains remnants of Prisma (`prisma/`, `prisma.ts`, `prisma-helpers.ts`) and Supabase (`supabase/`) which have been largely replaced by Drizzle. These may need cleanup or could be a source of confusion.]`
 
-- **`drizzle/`** (Root directory): Contains Drizzle ORM configuration and migration files.
-    - `drizzle/schema.ts` (or similar, e.g., `schema/` subfolder): Defines the database schema using Drizzle ORM syntax. This is a critical file for [[03_DATABASE]].
-    - `drizzle/migrations/`: Stores SQL migration files generated by Drizzle Kit.
-    - `drizzle.config.ts` (Root): Configuration file for Drizzle Kit.
+- **`drizzle/`** (Root directory): Contains Drizzle ORM migration files (`drizzle/migrations/`) generated by Drizzle Kit. The main Drizzle configuration (`drizzle.config.ts`) is also at the root.
 
-- **`public/`**: Static assets that are served directly (e.g., images, fonts, favicons).
+- **`public/`**: Static assets that are served directly (e.g., images, fonts, `favicon.ico`).
 
-- **`scripts/`**: Utility scripts for development, deployment, or other tasks (e.g., seed scripts, custom build scripts).
-    - `[TODO: List any important scripts found in this folder]`
+- **`scripts/`** (Root directory): Utility scripts for development or specific tasks.
+    - `create-admin.ts`: Script to create an admin user (callable via `npm run create-admin`).
+    - `seed-admin.mjs`, `seed-admin.ts`: Likely related scripts for seeding admin user data.
 
-- **`node_modules/`**: Project dependencies (managed by pnpm/npm/yarn).
+- **`node_modules/`**: Project dependencies (managed by `npm` as per `package-lock.json`).
 
 - **`.next/`**: Build output from Next.js (automatically generated).
 
 - **Configuration Files (Root):**
-    - `next.config.mjs` (or `.js`/`.ts`): Next.js configuration file.
+    - `next.config.mjs`: Next.js configuration file.
     - `tailwind.config.ts`: Tailwind CSS configuration.
-    - `postcss.config.mjs`: PostCSS configuration (often used with Tailwind).
+    - `postcss.config.mjs`: PostCSS configuration.
     - `tsconfig.json`: TypeScript configuration.
-    - `package.json`: Project metadata, dependencies, and scripts.
-    - `Dockerfile`: Docker image definition. See [[01_SETUP_AND_DEPLOYMENT#Docker Setup]].
+    - `package.json`: Project metadata, dependencies (`npm`), and scripts.
+    - `Dockerfile`: Docker image definition.
     - `.dockerignore`: Files to ignore for Docker builds.
     - `.gitignore`: Files to ignore for Git.
     - `drizzle.config.ts`: Drizzle Kit configuration.
-    - `components.json`: Likely configuration for Shadcn UI or similar component library.
+    - `components.json`: Configuration for Shadcn UI (or similar component library).
+    - `jest.config.js`: Jest test runner configuration.
 
 ## 3. Data Flow
 
@@ -103,16 +140,16 @@ Refer to [[04_FRONTEND_AND_API#Data Flow through Pages → API Routes → Drizzl
 ## 4. Key Technologies & Services
 
 - **Frontend**: Next.js (App Router, React, TypeScript)
-- **Styling**: Tailwind CSS, potentially Shadcn UI
+- **Styling**: Tailwind CSS, Shadcn UI (inferred from `components.json` and `src/components/ui/`)
 - **Backend/API**: Next.js API Routes (Route Handlers)
 - **ORM**: Drizzle ORM
 - **Database**: PostgreSQL
 - **Containerization**: Docker
 - **Deployment Target**: Ubuntu Server
 - **Analytics/Reporting**: External Metabase Instance
-- **Package Manager**: [pnpm/npm - verify from `package-lock.json` or `pnpm-lock.yaml`]
-- **Linting/Formatting**: [ESLint, Prettier - verify from `package.json` and config files]
-- **Testing**: [Jest - as per `jest.config.js`. Check for other testing frameworks like Playwright or Cypress]
+- **Package Manager**: npm (confirmed from `package-lock.json` and `Dockerfile`)
+- **Linting**: ESLint (from `package.json` script `lint: "next lint"`).
+- **Testing**: Jest (from `jest.config.js` and `package.json` scripts).
 
 ---
 Links to: [[01 – Setup & Deployment]], [[03 – Database]], [[04 – Frontend & API]] 

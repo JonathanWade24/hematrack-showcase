@@ -54,3 +54,4 @@ Labs_Lam_20241004.csv
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 /Junk
+*.tar

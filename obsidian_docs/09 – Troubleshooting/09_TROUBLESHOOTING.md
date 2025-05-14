@@ -50,7 +50,7 @@ This document provides a guide to common error patterns, solutions, and general 
     -   **Solution**: You are trying to insert/update a record with a value in a foreign key column that doesn't exist in the referenced primary key column of the parent table. Ensure parent records exist.
 
 -   **Slow Queries / Performance Issues**: 
-    -   **Solution**: Use `EXPLAIN ANALYZE` in PostgreSQL to understand query plans. Add necessary database indexes (see `index()` in Drizzle schema). Optimize query logic. See [[03_DATABASE]] for schema and [[06_METABASE_INTEGRATION]] for query best practices.
+    -   **Solution**: Use `EXPLAIN ANALYZE` in PostgreSQL to understand query plans. Add necessary database indexes (see `index()` in Drizzle schema). Optimize query logic. See [[03_DATABASE]] for schema and [[07_METABASE_INTEGRATION]] for query best practices.
 
 ### 2.2. Docker Build & Deployment Issues
 

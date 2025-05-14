@@ -32,49 +32,58 @@ npm install
 ```
 
 ### 1.4. Environment Variables (`.env`)
-Create a `.env.local` file (or `.env` if specified by the project, check `.gitignore`) in the root of the project and populate it with the necessary environment variables.
-Refer to `.env.example` if available, or add the following common keys:
+Create a `.env.local` file in the root of the project and populate it with the necessary environment variables.
+Based on your provided `.env.local` and project dependencies, key variables include:
 
 ```env
-# Next.js
+# Next.js (Defaults, adjust if needed)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # Database (PostgreSQL with Drizzle ORM)
-POSTGRES_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
-# Example: POSTGRES_URL="postgresql://postgres:mysecretpassword@localhost:5432/mydb"
+# For local Next.js server (node server on host) connecting to local Postgres:
+DATABASE_URL="postgresql://jonathanwade@localhost:5432/scd_research_refactored"
+# For Docker build process (if DATABASE_URL is needed at build time, as suggested by Dockerfile comment):
+# The Dockerfile example was: DATABASE_URL="postgresql://jonathanwade@host.docker.internal:5432/scd_research_refactored"
+# Ensure the correct one is available or passed during `npm run build` if run within Docker or for Docker builds.
 
-# Authentication (if applicable)
-# NEXTAUTH_URL=http://localhost:3000
-# NEXTAUTH_SECRET= # Generate a strong secret: openssl rand -hex 32
+# Authentication (NextAuth.js)
+NEXTAUTH_URL="http://10.66.54.59" # As provided, typically http://localhost:3000 for local dev
+NEXTAUTH_SECRET="KLEDpi+o8183f7rpG4Tfi4U26WFtj+XIxqcCPDKjVTw=" # As provided
 
-# Other service keys
-# ... [TODO: List other required .env keys based on project needs, e.g., S3, Stripe, etc.]
+# TODO: Add any other NextAuth.js provider credentials if used (e.g., GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET).
+
+# Other service keys (potential based on dependencies)
+# AWS Secrets Manager (if @aws-sdk/client-secrets-manager is actively used to fetch secrets) - User confirmed this is not actively used.
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
+# AWS_REGION=
+# AWS_SECRETS_MANAGER_SECRET_ID=
+
+# TODO: List any other required .env keys (e.g., for Keycloak if its client is actively used, Supabase if its JS client is used for more than SSR helpers).
 ```
-**Note:** Ensure your PostgreSQL connection string is correct and the database exists.
+**Note:**
+- The `NEXTAUTH_URL` you provided (`http://10.66.54.59`) seems like a specific IP. For typical local development, this is often `http://localhost:3000`. Ensure this is correct for your local setup vs. deployed environments.
+- Ensure your PostgreSQL connection string is correct and the database exists and is accessible.
 
 ### 1.5. Initialize PostgreSQL Database
 - Ensure PostgreSQL is running.
-- Create the database specified in `POSTGRES_URL`.
-- Drizzle ORM will handle schema creation/migration.
+- Create the database specified in `DATABASE_URL`.
+- Drizzle ORM will handle schema creation/migration based on files in `src/lib/drizzle/` (as per Dockerfile).
 
 ### 1.6. Drizzle ORM Commands
-Refer to `package.json` for exact script names. Common commands include:
+Common Drizzle Kit commands are typically run directly using `npx`:
 
-- **Generate Migrations:** After changing your schema in `drizzle/schema.ts` (or relevant schema files):
+- **Generate Migrations:** After changing your schema in `src/lib/db/schema.ts` (or relevant schema files, likely under `src/lib/drizzle/` or `src/lib/db/`):
   ```bash
-  pnpm drizzle-kit generate:pg
-  # or npm run drizzle-kit generate:pg
+  npx drizzle-kit generate:pg
   ```
-- **Apply Migrations:** To apply pending migrations to your database:
+- **Apply Migrations:** To apply pending migrations to your database (migrations are in `src/lib/drizzle/migrations/` if Dockerfile path is accurate):
   ```bash
-  pnpm drizzle-kit migrate
-  # or npm run drizzle-kit migrate
-  # Some projects might have a custom script like `pnpm db:migrate`
+  npx drizzle-kit migrate
   ```
 - **Drizzle Studio (Optional):** For a UI to browse your database:
   ```bash
-  pnpm drizzle-kit studio
-  # or npm run drizzle-kit studio
+  npx drizzle-kit studio
   ```
   See [[03_DATABASE#Drizzle Studio]] for more details.
 
@@ -99,10 +108,10 @@ The application should now be accessible at `http://localhost:3000` (or as confi
 
 ## 2. Docker Setup
 
-The project uses Docker for containerization. Key files:
+The project uses Docker for containerization, primarily to package the Next.js application for deployment. Key files:
 - `Dockerfile`: Defines the image for the Next.js application. Found at the root.
 - `.dockerignore`: Specifies files to exclude from the Docker build context. Found at the root.
-- `docker-compose.yml` (if used for local development with services like Postgres): [TODO: Check if docker-compose.yml exists and document its services]
+- `docker-compose.yml`: Not typically used for local development in this project, as Docker is focused on packaging the standalone Next.js application.
 
 ### 2.1. Understanding the `Dockerfile`
 I will read the `Dockerfile` to provide a summary here.
@@ -117,21 +126,31 @@ I will read the `Dockerfile` to provide a summary here.
 ### 2.2. Building the Docker Image
 From the project root directory:
 ```bash
-docker build -t your-app-name:latest .
-# Example: docker build -t scd-dashboard:latest .
+docker build -t scd-dashboard:latest .
+# The DATABASE_URL for the build process is typically sourced from the environment
+# where the `docker build` command is run, or it might be hardcoded
+# in the Dockerfile (as seen in the example within the Dockerfile's build stage) if appropriate for your setup.
+# If it needs to be passed explicitly as a build argument (and the Dockerfile is set up to receive it with ARG DATABASE_URL):
+# docker build --build-arg DATABASE_URL="your_build_time_db_url" -t scd-dashboard:latest .
 ```
 
 ### 2.3. Running the Docker Container Locally
-```bash
-# Ensure your .env variables (especially POSTGRES_URL if connecting to an external DB)
-# are either baked into the image (not recommended for secrets) or passed at runtime.
-docker run -p 3000:3000 --env-file ./.env.local your-app-name:latest
-# Or for specific variables:
-# docker run -p 3000:3000 -e POSTGRES_URL="your_db_connection_string" your-app-name:latest
-
-# If you have a docker-compose.yml for local development:
-# docker-compose up -d --build
-```
+To run the built container, you'll need to provide runtime environment variables. Common methods include:
+1.  Using an environment file (`--env-file`):
+    ```bash
+    # Ensure your .env.local file (or a dedicated .env.production file) has the runtime DATABASE_URL
+    # and other necessary runtime environment variables like NEXTAUTH_URL, NEXTAUTH_SECRET.
+    docker run -p 3000:3000 --env-file ./.env.local scd-dashboard:latest
+    ```
+2.  Passing variables individually (`-e`):
+    ```bash
+    # docker run -p 3000:3000 \
+    #   -e DATABASE_URL="postgresql://user:pass@runtime_host:port/db" \
+    #   -e NEXTAUTH_URL="http://localhost:3000" \
+    #   -e NEXTAUTH_SECRET="your_secret" \
+    #   scd-dashboard:latest
+    ```
+Choose the method that best suits your workflow. Using an `--env-file` is often more convenient for managing multiple variables.
 
 ## 3. Deployment to Ubuntu Server
 
@@ -214,7 +233,7 @@ Remember to configure SSL (e.g., with Certbot) for HTTPS.]
 
 ### 3.5. Persistent Data
 - For the PostgreSQL database, ensure its data is persisted. If running Postgres in Docker, use named volumes.
-- Application logs can be managed using Docker logging drivers or by mounting volumes for log files. See [[07_TROUBLESHOOTING#Logging]].
+- Application logs can be managed using Docker logging drivers or by mounting volumes for log files. See [[09_TROUBLESHOOTING#Logging]].
 
 ### 3.6. Ubuntu Deployment Steps (Summary from `Server Setup Part 2.md` if relevant)
 [TODO: If `Server Setup Part 2.md` contains specific, non-generic steps that are crucial for this project's Ubuntu deployment, summarize them here. Otherwise, mark as N/A or rely on the generic steps above.]
