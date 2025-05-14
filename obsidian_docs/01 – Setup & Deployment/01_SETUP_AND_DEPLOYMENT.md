@@ -162,56 +162,80 @@ This section outlines a general workflow for deploying the Dockerized applicatio
 - (Optional but recommended) Nginx or another reverse proxy.
 - (Optional) CI/CD system for automating builds and deployments.
 
-### 3.2. Deployment Workflow (Manual Example)
+### 3.2. Deployment Workflow
 
-1.  **Build the Docker Image:**
-    - Build locally (as above) or on a build server.
+This section outlines the typical workflow for building a new version of the application locally and deploying it to the server.
+
+**Prerequisites:**
+*   Docker (and Docker Buildx for multi-platform builds) configured on your local machine.
+*   Docker installed on the deployment server.
+*   SSH access to the deployment server.
+*   The application code updated with the latest changes.
+
+**Steps:**
+
+1.  **Local Machine: Build the Docker Image**
+    *   Build the image specifically for the `linux/amd64` platform (common for many servers). The `--load` flag is important if your local machine architecture differs from the target, as it loads the image into the local Docker daemon.
     ```bash
-    docker build -t your-registry/your-app-name:tag .
-    # Example: docker build -t mydockerhubusername/scd-dashboard:v1.0.1 .
+    docker buildx build --platform linux/amd64 -t scd-dashboard:latest --load .
     ```
 
-2.  **Push Image to a Docker Registry (Optional but Recommended):**
-    - E.g., Docker Hub, AWS ECR, GitHub Container Registry.
+2.  **Local Machine: Save the Docker Image**
+    *   Save the newly built image to a `.tar` file. It's good practice to include a version or date in the filename for tracking.
     ```bash
-    docker login your-registry
-    # Example: docker login
-    docker push your-registry/your-app-name:tag
-    # Example: docker push mydockerhubusername/scd-dashboard:v1.0.1
+    # Replace YYYY-MM-DD with the current date or version
+    docker save -o scd-dashboard_amd64_YYYY-MM-DD.tar scd-dashboard:latest
+    ```
+    *   Example: `docker save -o scd-dashboard_amd64_2023-10-15.tar scd-dashboard:latest`
+
+3.  **Local Machine: Transfer Image to Server**
+    *   Use `scp` (Secure Copy) to transfer the `.tar` file to your deployment server. Replace `your_user`, `your_server_ip`, and `/path/to/deploy/directory/` with your actual server details.
+    ```bash
+    scp scd-dashboard_amd64_YYYY-MM-DD.tar your_user@your_server_ip:/path/to/deploy/directory/
+    ```
+    *   Example: `scp scd-dashboard_amd64_2023-10-15.tar sheehanlab_db@10.224.106.69:/opt/scd-dashboard/`
+
+4.  **Server: SSH into the Server**
+    *   Connect to your server via SSH.
+    ```bash
+    ssh your_user@your_server_ip
+    ```
+    *   Navigate to the directory where you copied the `.tar` file (e.g., `/opt/scd-dashboard/`).
+
+5.  **Server: Stop and Remove Old Container**
+    *   Stop the currently running application container.
+    ```bash
+    docker stop scd-dashboard-app
+    ```
+    *   Remove the stopped container to avoid name conflicts.
+    ```bash
+    docker rm scd-dashboard-app
     ```
 
-3.  **On the Ubuntu Server:**
-    - **Pull the Image:**
-      ```bash
-      ssh user@your-server-ip
-      docker pull your-registry/your-app-name:tag
-      # Example: docker pull mydockerhubusername/scd-dashboard:v1.0.1
-      ```
-    - **Stop and Remove Old Container (if any):**
-      ```bash
-      docker stop your-app-container-name || true
-      docker rm your-app-container-name || true
-      # Example: docker stop scd-dashboard-prod || true && docker rm scd-dashboard-prod || true
-      ```
-    - **Run the New Container:**
-      Ensure you provide necessary environment variables. Using a `.env` file on the server is a common practice.
-      ```bash
-      # Create an .env file on the server (e.g., /opt/app/.env) with production values
-      docker run -d --restart always \
-        -p 3000:3000 \
-        --env-file /opt/app/.env \
-        --name your-app-container-name \
-        your-registry/your-app-name:tag
-      # Example:
-      # docker run -d --restart always \
-      #   -p 80:3000 \ # If Nginx is not used, or mapping directly
-      #   --env-file /srv/scd-dashboard/.env.production \
-      #   --name scd-dashboard-prod \
-      #   mydockerhubusername/scd-dashboard:v1.0.1
-      ```
-      **Note:** The `-p 80:3000` example maps port 80 on the host to port 3000 in the container. If using Nginx as a reverse proxy, Nginx would listen on port 80/443 and forward to the container's port 3000.
+6.  **Server: Load the New Docker Image**
+    *   Load the image from the `.tar` file into the server's Docker daemon.
+    ```bash
+    docker load -i scd-dashboard_amd64_YYYY-MM-DD.tar
+    ```
+    *   If an image with the same tag (`scd-dashboard:latest`) already exists, Docker may rename the old one.
 
-### 3.4. Setting up a Reverse Proxy (Nginx Example)
+7.  **Server: Run the New Container**
+    *   Run the new version of the application using the loaded image. Ensure all environment variables are correctly set for your server environment.
+    ```bash
+    docker run -d \
+      --name scd-dashboard-app \
+      -p 3000:3000 \
+      -e DATABASE_URL="postgresql://jonathanwade@172.17.0.1:5432/scd_research_refactored" \
+      -e NEXTAUTH_URL="http://10.224.106.69:3000" \
+      -e NEXTAUTH_SECRET="KLEDpi+o8183f7rpG4Tfi4U26WFtj+XIxqcCPDKjVTw=" \
+      -e AUTH_TRUST_HOST="true" \
+      --restart unless-stopped \
+      scd-dashboard:latest
+    ```
+    *   **Note on `DATABASE_URL` for Docker**: The IP `172.17.0.1` is often the default gateway for the Docker bridge network, allowing containers to reach services running on the host machine. If your PostgreSQL database is running as another Docker container on the same custom Docker network, you would typically use that container's service name as the host in the `DATABASE_URL`.
+    *   Verify the application is running correctly by accessing its URL.
+
+### 3.3. Setting up a Reverse Proxy (Nginx Example)
 [TODO: Add basic Nginx configuration snippet if applicable.
 Example:
 ```nginx
@@ -231,12 +255,38 @@ server {
 ```
 Remember to configure SSL (e.g., with Certbot) for HTTPS.]
 
-### 3.5. Persistent Data
-- For the PostgreSQL database, ensure its data is persisted. If running Postgres in Docker, use named volumes.
+### 3.4. Persistent Data
+- PostgreSQL database is installed directly on the Ubuntu server, not in Docker. The application container connects to this local PostgreSQL instance via the DATABASE_URL environment variable.
 - Application logs can be managed using Docker logging drivers or by mounting volumes for log files. See [[09_TROUBLESHOOTING#Logging]].
 
-### 3.6. Ubuntu Deployment Steps (Summary from `Server Setup Part 2.md` if relevant)
-[TODO: If `Server Setup Part 2.md` contains specific, non-generic steps that are crucial for this project's Ubuntu deployment, summarize them here. Otherwise, mark as N/A or rely on the generic steps above.]
+## 4. Environment Variables Summary
+
+```env
+# Next.js (Defaults, adjust if needed)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Database (PostgreSQL with Drizzle ORM)
+# For local Next.js server (node server on host) connecting to local Postgres:
+DATABASE_URL="postgresql://jonathanwade@localhost:5432/scd_research_refactored"
+# For Docker build process (if DATABASE_URL is needed at build time, as suggested by Dockerfile comment):
+# The Dockerfile example was: DATABASE_URL="postgresql://jonathanwade@host.docker.internal:5432/scd_research_refactored"
+# Ensure the correct one is available or passed during `npm run build` if run within Docker or for Docker builds.
+
+# Authentication (NextAuth.js)
+NEXTAUTH_URL="http://10.66.54.59" # As provided, typically http://localhost:3000 for local dev
+NEXTAUTH_SECRET="KLEDpi+o8183f7rpG4Tfi4U26WFtj+XIxqcCPDKjVTw=" # As provided
+
+# TODO: Add any other NextAuth.js provider credentials if used (e.g., GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET).
+
+# Other service keys (potential based on dependencies)
+# AWS Secrets Manager (if @aws-sdk/client-secrets-manager is actively used to fetch secrets) - User confirmed this is not actively used.
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
+# AWS_REGION=
+# AWS_SECRETS_MANAGER_SECRET_ID=
+
+# TODO: List any other required .env keys (e.g., for Keycloak if its client is actively used, Supabase if its JS client is used for more than SSR helpers).
+```
 
 ---
-Link to: [[02 – System Architecture]], [[03 – Database]], [[07 – Troubleshooting]] 
+Link to: [[02 – System Architecture]], [[03 – Database]] 

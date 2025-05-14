@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "09 – Troubleshooting/09_TROUBLESHOOTING.md",
+                "file": "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "09_TROUBLESHOOTING"
+              "title": "01_SETUP_AND_DEPLOYMENT"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "09 – Troubleshooting/09_TROUBLESHOOTING.md",
+                "file": "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for 09_TROUBLESHOOTING"
+              "title": "Backlinks for 01_SETUP_AND_DEPLOYMENT"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "09 – Troubleshooting/09_TROUBLESHOOTING.md",
+                "file": "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 09_TROUBLESHOOTING"
+              "title": "Outgoing links from 01_SETUP_AND_DEPLOYMENT"
             }
           },
           {
@@ -142,27 +142,17 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "09 – Troubleshooting/09_TROUBLESHOOTING.md",
+                "file": "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of 09_TROUBLESHOOTING"
-            }
-          },
-          {
-            "id": "f2e4894ef7522ebe",
-            "type": "leaf",
-            "state": {
-              "type": "mermaid-toolbar-view",
-              "state": {},
-              "icon": "trident-custom",
-              "title": "Mermaid Toolbar"
+              "title": "Outline of 01_SETUP_AND_DEPLOYMENT"
             }
           }
         ],
-        "currentTab": 4
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
@@ -183,6 +173,10 @@
   },
   "active": "8b545a26f9c789d0",
   "lastOpenFiles": [
+    "07_TROUBLESHOOTING.md",
+    "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
+    "02 – System Architecture/02_SYSTEM_ARCHITECTURE.md",
+    "09 – Troubleshooting/09_TROUBLESHOOTING.md",
     "06 – Key Logic and Algorithms/06_KEY_LOGIC_AND_ALGORITHMS.md",
     "07 – Metabase Integration/07_METABASE_INTEGRATION.md",
     "08 – Templates & Appendices/08_TEMPLATES_AND_APPENDICES.md",
@@ -193,13 +187,11 @@
     "03 – Database/VerificationTokenInApp.md",
     "03 – Database/SessionInApp.md",
     "00 – MOCs & Conventions/00_MOCS_AND_CONVENTIONS.md",
-    "02 – System Architecture/02_SYSTEM_ARCHITECTURE.md",
     "04 – Frontend and API/04_FRONTEND_AND_API.md",
     "04 – Frontend and API",
     "06 – Key Logic and Algorithms",
     "UserInApp.md",
     "03 – Database/03_DATABASE.md",
-    "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
     "02 – System Architecture/02 – System Architecture.md",
     "02 – System Architecture.md"
   ]
