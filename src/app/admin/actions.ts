@@ -41,6 +41,12 @@ export type PurgeSubjectDataFormState = {
   subjectId?: string;
 };
 
+export type ChangeUserPasswordFormState = {
+  success: boolean;
+  message: string;
+  errors?: Record<string, string[] | undefined>;
+};
+
 // Type for subject search results
 export type OmicsSubjectSearchResult = {
   subject_id: string;
@@ -312,5 +318,46 @@ export async function purgeSubjectDataAction(
   } catch (e: any) {
     console.error(`Error purging data for subject ${subjectId}:`, e);
     return { success: false, message: `Failed to purge data for subject ${subjectId}. Reason: ${e.message}`, subjectId };
+  }
+}
+
+export async function changeUserPasswordAction(
+  userId: string,
+  newPassword: string
+): Promise<ChangeUserPasswordFormState> {
+  if (!(await isAdmin())) {
+    return { success: false, message: 'Unauthorized' };
+  }
+
+  if (!userId || !newPassword) {
+    return { success: false, message: 'User ID and new password are required.' };
+  }
+
+  if (newPassword.length < 8) {
+    return { success: false, message: 'Password must be at least 8 characters long.' };
+  }
+
+  try {
+    const userExists = await db.query.UserInApp.findFirst({
+      where: eq(UserInApp.id, userId),
+    });
+
+    if (!userExists) {
+      return { success: false, message: 'User not found.' };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.update(UserInApp)
+      .set({ 
+        password: hashedPassword,
+        updated_at: new Date().toISOString() 
+      })
+      .where(eq(UserInApp.id, userId));
+
+    return { success: true, message: 'Password updated successfully.' };
+  } catch (e) {
+    console.error("Error updating user password:", e);
+    return { success: false, message: 'Failed to update password.' };
   }
 } 

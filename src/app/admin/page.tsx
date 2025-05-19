@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useActionState, useRef } from 'react';
 import { useSession } from 'next-auth/react'; // Import useSession for client-side session
-import { getAllUsersAction, addUserAction, updateUserRoleAction, toggleUserActiveStateAction, purgeSubjectDataAction, searchOmicsSubjectsAction } from './actions';
+import { getAllUsersAction, addUserAction, updateUserRoleAction, toggleUserActiveStateAction, purgeSubjectDataAction, searchOmicsSubjectsAction, changeUserPasswordAction } from './actions';
 // Import types from actions.ts, and UserRole/PERMITTED_ROLES from definitions.ts
-import type { UserForAdminClient, AddUserFormState, UpdateUserRoleFormState, ToggleUserActiveStateFormState, PurgeSubjectDataFormState, SearchSubjectsFormState, OmicsSubjectSearchResult } from './actions';
+import type { UserForAdminClient, AddUserFormState, UpdateUserRoleFormState, ToggleUserActiveStateFormState, PurgeSubjectDataFormState, SearchSubjectsFormState, OmicsSubjectSearchResult, ChangeUserPasswordFormState } from './actions';
 import { type UserRole, PERMITTED_ROLES } from '@/lib/definitions';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -63,6 +63,9 @@ function UserRow({ user, onRoleUpdate, onToggleActive }: UserRowProps) {
     const [selectedRole, setSelectedRole] = useState<UserRole>(initialRole);
     const [isTogglingActive, setIsTogglingActive] = useState(false);
     const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
 
     const handleRoleChange = async () => {
         if (selectedRole === user.role) {
@@ -92,7 +95,33 @@ function UserRow({ user, onRoleUpdate, onToggleActive }: UserRowProps) {
         }
         setIsTogglingActive(false);
     };
-    
+
+    const handlePasswordChange = async () => {
+        if (!newPassword) {
+            toast({ title: "Error", description: "Please enter a new password", variant: "destructive" });
+            return;
+        }
+        if (newPassword.length < 8) {
+            toast({ title: "Error", description: "Password must be at least 8 characters long", variant: "destructive" });
+            return;
+        }
+
+        setIsChangingPassword(true);
+        try {
+            const result = await changeUserPasswordAction(user.id, newPassword);
+            if (result.success) {
+                toast({ title: "Success", description: result.message });
+                setIsPasswordDialogOpen(false);
+                setNewPassword('');
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to change password", variant: "destructive" });
+        }
+        setIsChangingPassword(false);
+    };
+
     return (
         <TableRow key={user.id}>
             <TableCell>{user.name}</TableCell>
@@ -137,6 +166,50 @@ function UserRow({ user, onRoleUpdate, onToggleActive }: UserRowProps) {
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {user.isActive ? 'Active' : 'Disabled'}
                 </span>
+            </TableCell>
+            <TableCell>
+                <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                            Change Password
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Change Password for {user.name}</DialogTitle>
+                            <DialogDescription>
+                                Enter a new password for this user. The password must be at least 8 characters long.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="newPassword">New Password</Label>
+                                <Input
+                                    id="newPassword"
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                onClick={handlePasswordChange}
+                                disabled={isChangingPassword}
+                            >
+                                {isChangingPassword ? (
+                                    <>
+                                        <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                                        Changing Password...
+                                    </>
+                                ) : (
+                                    "Change Password"
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </TableCell>
         </TableRow>
     );
@@ -379,6 +452,7 @@ export default function AdminPage() {
                                     <TableHead>Role</TableHead>
                                     <TableHead className="text-center">Toggle Active</TableHead>
                                     <TableHead className="text-center">Status</TableHead>
+                                    <TableHead className="text-center">Password</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

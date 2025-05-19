@@ -1,0 +1,2 @@
+ALTER TABLE "clinical"."bone_marrow_results" ADD COLUMN "lab_component_description" text;--> statement-breakpoint
+ALTER TABLE "clinical"."bone_marrow_results" ADD COLUMN "bone_marrow_results_by_component" text;

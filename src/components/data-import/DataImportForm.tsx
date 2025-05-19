@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faXmark, faSpinner, faUpload } from '@fortawesome/free-solid-svg-icons'
-import { PreviewTable } from './PreviewTable'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { useToast } from '@/hooks/use-toast'
+import { importDataAction, type ImportResult } from '@/app/data-import/actions'
 
 interface FileUpload {
   file: File | null
@@ -22,12 +23,6 @@ interface ImportFiles {
   opvisits: FileUpload
   ipmeds: FileUpload
   labs: FileUpload
-}
-
-interface ImportResult {
-  type: string
-  error?: string
-  result?: string
 }
 
 const DATA_TYPES = [
@@ -51,18 +46,18 @@ const INITIAL_FILES: ImportFiles = {
 }
 
 export function DataImportForm() {
+  const { toast } = useToast()
   const [files, setFiles] = useState<ImportFiles>(INITIAL_FILES)
-  const [previewType, setPreviewType] = useState<string | null>(null)
   const [isImporting, setIsImporting] = useState(false)
 
   const handleFileChange = (type: keyof ImportFiles, file: File | null) => {
-    if (file && !file.name.endsWith('.csv')) {
+    if (file && !file.name.endsWith('.txt')) {
       setFiles(prev => ({
         ...prev,
         [type]: {
           file: null,
           status: 'error',
-          message: 'Only .csv files are allowed'
+          message: 'Only .txt files are allowed'
         }
       }))
       return
@@ -82,7 +77,11 @@ export function DataImportForm() {
     // Check if at least one file is selected
     const hasFiles = Object.values(files).some(f => f.file !== null)
     if (!hasFiles) {
-      alert('Please select at least one file to import')
+      toast({
+        title: "No Files Selected",
+        description: "Please select at least one file to import",
+        variant: "destructive"
+      })
       return
     }
 
@@ -99,53 +98,27 @@ export function DataImportForm() {
         }
       })
 
-      // Create XMLHttpRequest for progress tracking
-      const xhr = new XMLHttpRequest()
-      
-      // Track upload progress
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const progress = (event.loaded / event.total) * 100
-          // Update progress for all uploading files
-          setFiles(prev => {
-            const newFiles = { ...prev }
-            Object.keys(newFiles).forEach(key => {
-              if (newFiles[key as keyof ImportFiles].file) {
-                newFiles[key as keyof ImportFiles] = {
-                  ...newFiles[key as keyof ImportFiles],
-                  status: 'uploading',
-                  progress: progress
-                }
-              }
-            })
-            return newFiles
-          })
-        }
-      }
-
-      // Create a promise to handle the XHR request
-      const uploadPromise = new Promise((resolve, reject) => {
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            resolve(JSON.parse(xhr.responseText))
-          } else {
-            reject(new Error('Upload failed'))
+      // Update all files to uploading state
+      setFiles(prev => {
+        const newFiles = { ...prev }
+        Object.keys(newFiles).forEach(key => {
+          if (newFiles[key as keyof ImportFiles].file) {
+            newFiles[key as keyof ImportFiles] = {
+              ...newFiles[key as keyof ImportFiles],
+              status: 'uploading',
+              progress: 0
+            }
           }
-        }
-        xhr.onerror = () => reject(new Error('Upload failed'))
+        })
+        return newFiles
       })
 
-      // Configure and send the request
-      xhr.open('POST', '/api/data-import')
-      xhr.send(formData)
-
-      // Wait for the upload to complete
-      const response = await uploadPromise
-      const results = response as { results: ImportResult[] }
+      // Call the server action
+      const { results } = await importDataAction(formData)
 
       // Update status for each file based on results
       const newFiles = { ...files }
-      results.results.forEach((result) => {
+      results.forEach((result) => {
         const type = result.type as keyof ImportFiles
         if (newFiles[type].file) {
           newFiles[type] = {
@@ -158,10 +131,20 @@ export function DataImportForm() {
       })
       setFiles(newFiles)
 
-      // Show preview for the first successfully imported file type
-      const successfulType = results.results.find(r => !r.error)?.type
-      if (successfulType) {
-        setPreviewType(successfulType)
+      // Show toast for overall result
+      const hasErrors = results.some(r => r.error)
+      if (hasErrors) {
+        toast({
+          title: "Import Completed with Errors",
+          description: "Some files failed to import. Check the status below for details.",
+          variant: "destructive"
+        })
+      } else {
+        toast({
+          title: "Import Successful",
+          description: "All files were imported successfully.",
+          variant: "default"
+        })
       }
     } catch (error) {
       // Update all uploading files to error state
@@ -178,6 +161,12 @@ export function DataImportForm() {
           }
         })
         return newFiles
+      })
+
+      toast({
+        title: "Import Failed",
+        description: error instanceof Error ? error.message : "Failed to import files",
+        variant: "destructive"
       })
     } finally {
       setIsImporting(false)
@@ -221,11 +210,12 @@ export function DataImportForm() {
           </p>
         </div>
       )}
+
       <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
-        <p className="font-medium">CSV File Format Requirements</p>
+        <p className="font-medium">Text File Format Requirements</p>
         <p className="text-sm mt-1">
-          Please ensure all files are in CSV format with headers. Column names should match the expected format
-          (case-insensitive). Download the templates below for the correct format.
+          Please ensure all files are in text format with headers. Column names should match the expected format
+          (case-insensitive). The system will automatically parse and import the data into the appropriate tables.
         </p>
       </div>
 
@@ -242,35 +232,19 @@ export function DataImportForm() {
                 <Input
                   id={id}
                   type="file"
-                  accept=".csv"
+                  accept=".txt"
                   onChange={(e) => handleFileChange(id as keyof ImportFiles, e.target.files?.[0] || null)}
                   disabled={isImporting}
                   className="flex-1"
                 />
                 {files[id as keyof ImportFiles].file?.name && (
-                  <div className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-500">
                     {files[id as keyof ImportFiles].file?.name}
-                  </div>
+                  </span>
                 )}
               </div>
-              {/* Add progress bar when file is uploading */}
-              {files[id as keyof ImportFiles].status === 'uploading' && files[id as keyof ImportFiles].progress !== undefined && (
-                <div className="w-full mt-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
-                      style={{ width: `${files[id as keyof ImportFiles].progress}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {Math.round(files[id as keyof ImportFiles].progress || 0)}% uploaded
-                  </p>
-                </div>
-              )}
               {files[id as keyof ImportFiles].message && (
-                <p className={`text-sm ${
-                  files[id as keyof ImportFiles].status === 'error' ? 'text-red-500' : 'text-green-500'
-                }`}>
+                <p className={`text-sm ${files[id as keyof ImportFiles].status === 'error' ? 'text-red-500' : 'text-green-500'}`}>
                   {files[id as keyof ImportFiles].message}
                 </p>
               )}
@@ -279,34 +253,25 @@ export function DataImportForm() {
         ))}
       </div>
 
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={() => {/* TODO: Add template download handler */}}
-          className="gap-2"
-        >
-          <FontAwesomeIcon icon={faUpload} className="rotate-180" />
-          Download Templates
-        </Button>
-
+      <div className="flex justify-end">
         <Button
           onClick={handleImport}
           disabled={isImporting || !Object.values(files).some(f => f.file !== null)}
-          isLoading={isImporting}
-          className="gap-2"
+          className="w-full sm:w-auto"
         >
-          <FontAwesomeIcon icon={faUpload} />
-          Import Data
+          {isImporting ? (
+            <>
+              <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+              Importing...
+            </>
+          ) : (
+            <>
+              <FontAwesomeIcon icon={faUpload} className="mr-2" />
+              Import Files
+            </>
+          )}
         </Button>
       </div>
-
-      {/* Preview Table */}
-      {previewType && (
-        <PreviewTable
-          type={previewType}
-          onClose={() => setPreviewType(null)}
-        />
-      )}
     </div>
   )
 } 
