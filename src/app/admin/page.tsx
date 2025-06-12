@@ -121,7 +121,7 @@ function UserRow({ user, onRoleUpdate, onToggleActive }: UserRowProps) {
         }
         setIsChangingPassword(false);
     };
-
+    
     return (
         <TableRow key={user.id}>
             <TableCell>{user.name}</TableCell>

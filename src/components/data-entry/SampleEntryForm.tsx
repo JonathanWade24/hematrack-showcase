@@ -322,27 +322,29 @@ export function SampleEntryForm({ initialData, isEditing = false }: SampleEntryF
       {/* Confirmation Dialog for New Subject */}
       {needsSubjectConfirmation && subjectIdToConfirm && (
         <div className="border-l-4 border-yellow-400 p-4 bg-yellow-50">
-          <p className="font-semibold">Subject Confirmation Needed</p>
-          <p>{basicState.message}</p>
-          <p className="mt-2">Please provide an MRN for the new subject if available.</p>
-          <Input 
-            name="patient_mrn" 
-            placeholder="Patient MRN (Optional)"
-            defaultValue={patientMrnForSubject ?? ""}
-            className="mt-2"
-            onChange={(e) => setPatientMrnForSubject(e.target.value)}
-          />
-          <input type="hidden" name="confirm_new_subject" value="true" />
-          <input type="hidden" name="subject_id" value={subjectIdToConfirm ?? formData.subject_id} />
-          <input type="hidden" name="sample_number" value={String(formData.sample_number ?? "")} />
-          <input type="hidden" name="lab_id" value={formData.lab_id ?? ""} />
-          <input type="hidden" name="date_of_collection" value={formData.date_of_collection ?? ""} />
-          <input type="hidden" name="age_at_collection" value={String(formData.age_at_collection ?? "")} />
-          <input type="hidden" name="genotype" value={formData.genotype ?? ""} />
-          <input type="hidden" name="steady_state" value={formData.steady_state ?? ""} />
-          <input type="hidden" name="transfusion_status" value={formData.transfusion_status ?? ""} />
-          <input type="hidden" name="transfusion_confirmed" value={formData.transfusion_confirmed ?? ""} />
-          <SubmitButton label="Confirm & Save Basic Info" />
+          <form action={dispatchBasicForm} className="space-y-4">
+            <p className="font-semibold">Subject Confirmation Needed</p>
+            <p>{basicState.message}</p>
+            <p className="mt-2">Please provide an MRN for the new subject if available.</p>
+            <Input 
+              name="patient_mrn" 
+              placeholder="Patient MRN (Optional)"
+              defaultValue={patientMrnForSubject ?? ""}
+              className="mt-2"
+              onChange={(e) => setPatientMrnForSubject(e.target.value)}
+            />
+            <input type="hidden" name="confirm_new_subject" value="true" />
+            <input type="hidden" name="subject_id" value={subjectIdToConfirm ?? formData.subject_id} />
+            <input type="hidden" name="sample_number" value={String(formData.sample_number ?? "")} />
+            <input type="hidden" name="lab_id" value={formData.lab_id ?? ""} />
+            <input type="hidden" name="date_of_collection" value={formData.date_of_collection ?? ""} />
+            <input type="hidden" name="age_at_collection" value={String(formData.age_at_collection ?? "")} />
+            <input type="hidden" name="genotype" value={formData.genotype ?? ""} />
+            <input type="hidden" name="steady_state" value={formData.steady_state ?? ""} />
+            <input type="hidden" name="transfusion_status" value={formData.transfusion_status ?? ""} />
+            <input type="hidden" name="transfusion_confirmed" value={formData.transfusion_confirmed ?? ""} />
+            <SubmitButton label="Confirm & Save Basic Info" />
+          </form>
         </div>
       )}
 

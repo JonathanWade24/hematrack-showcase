@@ -19,6 +19,9 @@ import {
     formatDate // Import the helper function
 } from '@/lib/db/queries';
 
+// Force dynamic rendering to prevent stale cached data
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Home - SCD Dashboard',
   description: 'Sample overview and status dashboard for SCD research'

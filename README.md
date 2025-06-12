@@ -82,6 +82,11 @@ This document contains development notes, key decisions, and reminders for the S
     *   The UI displays search results, allowing the admin to select a subject for purging, reducing the risk of errors from manual ID entry.
     *   The confirmation dialog and purge process now use the subject ID selected from the search results.
 *   **YYYY-MM-DD:** (Use today's date) Resolved a `TypeError` in the Admin Panel's "Purge Subject Data" feature (`src/app/admin/page.tsx`). The error occurred when clearing search results after selecting a subject, due to incorrectly calling the `useActionState` dispatcher with `null`. The fix involves removing the direct dispatcher call and relying on conditional rendering to manage the visibility of search results, aligning with standard `useActionState` usage.
+*   **YYYY-MM-DD:** (Use today's date) Fixed an issue with the "Outpatient AVS Medications" import in `src/app/data-import/actions.ts`. The backend was expecting the file type `'opmeds'`, but the frontend (`src/components/data-import/DataImportForm.tsx`) was sending `'opavsmeds'`. Changed the server action to correctly handle `'opavsmeds'` for outpatient medication imports.
+*   **YYYY-MM-DD:** (Use today's date) Updated CSV parsing logic in `src/app/data-import/actions.ts` by adding `relax_quotes: true` to all `parse()` calls. This change addresses errors like "Invalid Opening Quote" caused by unescaped quote characters within data fields, making the import process more robust for various text file formats.
+*   **YYYY-MM-DD:** (Use today's date) Refactored data import logic in `src/app/data-import/actions.ts`:
+    *   Corrected field mappings for outpatient AVS medication imports (`opavsmeds`) to use appropriate column names from source files (e.g., `GENERIC_DESCRIPTION` for `medication_name`, `ORDER_MED_ID` for `epic_order_med_id`, `ORDER_DTTM` for `order_time`, `RX_STATUS` for `status`). This resolves issues where `medication_name` was NULL.
+    *   Standardized `source_file` handling: all individual import functions now accept the source file name as a parameter and use it to populate the `source_file` DB column where available. The `importDemographics` function was corrected to not attempt writing `source_file` as the `patientsInClinical` table lacks this column.
 
 ## Configuration Points
 

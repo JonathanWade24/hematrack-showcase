@@ -166,33 +166,31 @@
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false,
-      "mermaid-tools:Open Mermaid Toolbar": false,
-      "templater-obsidian:Templater": false
+      "command-palette:Open command palette": false
     }
   },
   "active": "8b545a26f9c789d0",
   "lastOpenFiles": [
-    "07_TROUBLESHOOTING.md",
-    "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
-    "02 – System Architecture/02_SYSTEM_ARCHITECTURE.md",
-    "09 – Troubleshooting/09_TROUBLESHOOTING.md",
-    "06 – Key Logic and Algorithms/06_KEY_LOGIC_AND_ALGORITHMS.md",
-    "07 – Metabase Integration/07_METABASE_INTEGRATION.md",
-    "08 – Templates & Appendices/08_TEMPLATES_AND_APPENDICES.md",
     "04 – Frontend & API/04_FRONTEND_AND_API.md",
     "05 – User & Permissions/05_USER_AND_PERMISSIONS.md",
+    "06 – Key Logic and Algorithms/06_KEY_LOGIC_AND_ALGORITHMS.md",
+    "02 – System Architecture/02_SYSTEM_ARCHITECTURE.md",
+    "02 – System Architecture.md",
+    "01 – Setup & Deployment/01_SETUP_AND_DEPLOYMENT.md",
+    "00 – MOCs & Conventions/00_MOCS_AND_CONVENTIONS.md",
+    "07_TROUBLESHOOTING.md",
+    "09 – Troubleshooting/09_TROUBLESHOOTING.md",
+    "07 – Metabase Integration/07_METABASE_INTEGRATION.md",
+    "08 – Templates & Appendices/08_TEMPLATES_AND_APPENDICES.md",
     "03 – Database/UserInApp.md",
     "03 – Database/AccountInApp.md",
     "03 – Database/VerificationTokenInApp.md",
     "03 – Database/SessionInApp.md",
-    "00 – MOCs & Conventions/00_MOCS_AND_CONVENTIONS.md",
     "04 – Frontend and API/04_FRONTEND_AND_API.md",
     "04 – Frontend and API",
     "06 – Key Logic and Algorithms",
     "UserInApp.md",
     "03 – Database/03_DATABASE.md",
-    "02 – System Architecture/02 – System Architecture.md",
-    "02 – System Architecture.md"
+    "02 – System Architecture/02 – System Architecture.md"
   ]
 }

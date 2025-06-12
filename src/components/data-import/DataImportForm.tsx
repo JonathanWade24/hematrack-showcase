@@ -99,19 +99,19 @@ export function DataImportForm() {
       })
 
       // Update all files to uploading state
-      setFiles(prev => {
-        const newFiles = { ...prev }
-        Object.keys(newFiles).forEach(key => {
-          if (newFiles[key as keyof ImportFiles].file) {
-            newFiles[key as keyof ImportFiles] = {
-              ...newFiles[key as keyof ImportFiles],
-              status: 'uploading',
+          setFiles(prev => {
+            const newFiles = { ...prev }
+            Object.keys(newFiles).forEach(key => {
+              if (newFiles[key as keyof ImportFiles].file) {
+                newFiles[key as keyof ImportFiles] = {
+                  ...newFiles[key as keyof ImportFiles],
+                  status: 'uploading',
               progress: 0
-            }
-          }
-        })
-        return newFiles
-      })
+                }
+              }
+            })
+            return newFiles
+          })
 
       // Call the server action
       const { results } = await importDataAction(formData)

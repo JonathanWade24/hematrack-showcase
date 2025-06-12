@@ -218,46 +218,63 @@ export function VisitsViewer({ patientMrn, data }: VisitsViewerProps) {
     
     // Create events for visits
     visits.forEach(visit => {
-      events.push({
-        id: visit.id,
-        title: visit.visit_type === 'IP' ? 'Inpatient Admission' : 'Outpatient Visit',
-        date: visit.start_date,
-        endDate: visit.end_date,
-        department: visit.department,
-        type: visit.visit_type,
-        isICU: visit.icu_admission_yn,
-        diagnoses: visit.diagnoses,
-        onClick: () => setActiveVisit(visit)
-      })
+      // Only add visit event if start_date is valid
+      if (visit.start_date && visit.start_date instanceof Date && !isNaN(visit.start_date.getTime())) {
+        events.push({
+          id: visit.id,
+          title: visit.visit_type === 'IP' ? 'Inpatient Admission' : 'Outpatient Visit',
+          date: visit.start_date,
+          endDate: visit.end_date,
+          department: visit.department,
+          type: visit.visit_type,
+          isICU: visit.icu_admission_yn,
+          diagnoses: visit.diagnoses,
+          onClick: () => setActiveVisit(visit)
+        })
+      }
       
       // Create events for OMICs samples
-      const sampleEvents = (visit.samples || []).map(sample => ({
-        id: `${visit.id}-sample-${sample.sample_id}`,
-        title: 'OMICs Sample Collection',
-        date: new Date(sample.collection_date),
-        type: 'SAMPLE',
-        isOmicsSample: true,
-        sampleType: sample.subject_id,
-        sampleData: {
-          sample_id: sample.sample_id,
-          genotype: null,
-          steady_state: null,
-          transfusion_status: null,
-          lab_values: {
-            hb: sample.hb ?? null,
-            hct: sample.hct ?? null,
-            wbc: sample.wbc ?? null,
-            plt: sample.plt ?? null,
-            f_cells: null
+      const sampleEvents = (visit.samples || [])
+        .filter(sample => sample.collection_date) // Filter out samples without collection dates
+        .map(sample => {
+          const collectionDate = new Date(sample.collection_date)
+          // Only include if the date is valid
+          if (isNaN(collectionDate.getTime())) {
+            return null
           }
-        },
-        onClick: () => router.push(`/samples/${sample.sample_id}`)
-      }))
+          
+          return {
+            id: `${visit.id}-sample-${sample.sample_id}`,
+            title: 'OMICs Sample Collection',
+            date: collectionDate,
+            type: 'SAMPLE',
+            isOmicsSample: true as const,
+            sampleType: sample.subject_id,
+            sampleData: {
+              sample_id: sample.sample_id,
+              genotype: null,
+              steady_state: null,
+              transfusion_status: null,
+              lab_values: {
+                hb: sample.hb ?? null,
+                hct: sample.hct ?? null,
+                wbc: sample.wbc ?? null,
+                plt: sample.plt ?? null,
+                f_cells: null
+              }
+            },
+            onClick: () => router.push(`/samples/${sample.sample_id}`)
+          } as TimelineEvent
+        })
+        .filter((event): event is TimelineEvent => event !== null) // Remove null events
       
       events.push(...sampleEvents)
     })
     
-    return events.sort((a, b) => b.date.getTime() - a.date.getTime())
+    // Filter out any events that might have undefined dates and sort
+    return events
+      .filter(event => event.date && event.date instanceof Date && !isNaN(event.date.getTime()))
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
   }, [visits, router])
   
   const formatName = (info: typeof patientInfo) => {

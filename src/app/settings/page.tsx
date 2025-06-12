@@ -1,200 +1,258 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSave } from '@fortawesome/free-solid-svg-icons'
+import { useToast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Loader2 } from 'lucide-react'
 
 interface Settings {
-  email_notifications: boolean
-  dark_mode: boolean
   show_phi: boolean
 }
 
+interface PasswordForm {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
 export default function SettingsPage() {
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const { toast } = useToast()
+  const [isSaving, setIsSaving] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [settings, setSettings] = useState<Settings>({
-    email_notifications: true,
-    dark_mode: false,
     show_phi: true
   })
-  const router = useRouter()
-  const supabase = createClient()
+  const [passwordForm, setPasswordForm] = useState<PasswordForm>({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  })
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) {
-        console.error('Error fetching user:', error)
-        router.push('/login')
-        return
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (response.ok) {
+          const data = await response.json()
+          setSettings(data)
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+        toast({
+          title: 'Error',
+          description: 'Failed to load settings. Please try again.',
+          variant: 'destructive',
+        })
       }
-      if (!user) {
-        router.push('/login')
-        return
-      }
-      setLoading(false)
     }
 
-    getUser()
-  }, [supabase.auth, router])
+    if (status === 'authenticated') {
+      fetchSettings()
+    }
+  }, [status, toast])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setError(null)
-    setSuccess(false)
-
+  const handleSave = async () => {
+    setIsSaving(true)
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          settings
-        }
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
       })
 
-      if (error) throw error
-
-      setSuccess(true)
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message)
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'Settings saved successfully.',
+        })
       } else {
-        setError('An unexpected error occurred')
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to save settings')
       }
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save settings. Please try again.',
+        variant: 'destructive',
+      })
     } finally {
-      setSaving(false)
+      setIsSaving(false)
     }
   }
 
-  if (loading) {
+  const handlePasswordChange = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'New passwords do not match.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'Password changed successfully.',
+        })
+        setPasswordForm({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        })
+      } else {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to change password')
+      }
+    } catch (error) {
+      console.error('Error changing password:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to change password. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Settings</h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
-              <p>Manage your preferences and account settings.</p>
+    <div className="container mx-auto py-10 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Settings</CardTitle>
+          <CardDescription>Manage your account settings and preferences.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Show PHI</Label>
+              <p className="text-sm text-muted-foreground">
+                Display protected health information in the interface.
+              </p>
             </div>
-
-            <form onSubmit={handleSubmit} className="mt-5 space-y-6">
-              {/* Notifications */}
-              <div className="flex items-start">
-                <div className="flex items-center h-5">
-                  <input
-                    id="email_notifications"
-                    name="email_notifications"
-                    type="checkbox"
-                    checked={settings.email_notifications}
-                    onChange={(e) => setSettings({ ...settings, email_notifications: e.target.checked })}
-                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="email_notifications" className="font-medium text-gray-700">
-                    Email Notifications
-                  </label>
-                  <p className="text-gray-500">
-                    Receive email notifications about important updates and changes.
-                  </p>
-                </div>
-              </div>
-
-              {/* Dark Mode */}
-              <div className="flex items-start">
-                <div className="flex items-center h-5">
-                  <input
-                    id="dark_mode"
-                    name="dark_mode"
-                    type="checkbox"
-                    checked={settings.dark_mode}
-                    onChange={(e) => setSettings({ ...settings, dark_mode: e.target.checked })}
-                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="dark_mode" className="font-medium text-gray-700">
-                    Dark Mode
-                  </label>
-                  <p className="text-gray-500">
-                    Enable dark mode for a more comfortable viewing experience.
-                  </p>
-                </div>
-              </div>
-
-              {/* PHI Visibility */}
-              <div className="flex items-start">
-                <div className="flex items-center h-5">
-                  <input
-                    id="show_phi"
-                    name="show_phi"
-                    type="checkbox"
-                    checked={settings.show_phi}
-                    onChange={(e) => setSettings({ ...settings, show_phi: e.target.checked })}
-                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="show_phi" className="font-medium text-gray-700">
-                    Show PHI
-                  </label>
-                  <p className="text-gray-500">
-                    Display protected health information in the interface.
-                  </p>
-                </div>
-              </div>
-
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <div className="flex">
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">Error</h3>
-                      <div className="mt-2 text-sm text-red-700">
-                        <p>{error}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {success && (
-                <div className="rounded-md bg-green-50 p-4">
-                  <div className="flex">
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-green-800">Success</h3>
-                      <div className="mt-2 text-sm text-green-700">
-                        <p>Your settings have been updated successfully.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <FontAwesomeIcon icon={faSave} className="mr-2 h-4 w-4" />
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
+            <Switch
+              checked={settings.show_phi}
+              onCheckedChange={(checked) =>
+                setSettings((prev) => ({ ...prev, show_phi: checked }))
+              }
+            />
           </div>
-        </div>
-      </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+          <CardDescription>Update your account password.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="currentPassword">Current Password</Label>
+            <Input
+              id="currentPassword"
+              type="password"
+              value={passwordForm.currentPassword}
+              onChange={(e) =>
+                setPasswordForm((prev) => ({
+                  ...prev,
+                  currentPassword: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={passwordForm.newPassword}
+              onChange={(e) =>
+                setPasswordForm((prev) => ({
+                  ...prev,
+                  newPassword: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) =>
+                setPasswordForm((prev) => ({
+                  ...prev,
+                  confirmPassword: e.target.value,
+                }))
+              }
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handlePasswordChange} disabled={isChangingPassword}>
+            {isChangingPassword ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Changing Password...
+              </>
+            ) : (
+              'Change Password'
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   )
 } 

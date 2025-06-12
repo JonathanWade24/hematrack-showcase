@@ -1,0 +1,1 @@
+ALTER TABLE "app"."User" ADD COLUMN "settings" jsonb;

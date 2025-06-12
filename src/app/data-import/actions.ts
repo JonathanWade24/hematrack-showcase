@@ -28,12 +28,13 @@ export type ImportResult = {
   recordsProcessed?: number;
 };
 
-async function importDemographics(fileContent: string): Promise<ImportResult> {
+async function importDemographics(fileContent: string, sourceFileName: string): Promise<ImportResult> {
   try {
     const records = parse(fileContent, {
       columns: true,
       skip_empty_lines: true,
-      delimiter: '|'
+      delimiter: '|',
+      relax_quotes: true
     });
 
     for (const record of records) {
@@ -69,24 +70,25 @@ async function importDemographics(fileContent: string): Promise<ImportResult> {
 
     return {
       type: 'demographics',
-      result: `Successfully imported ${records.length} demographic records`,
+      result: `Successfully imported ${records.length} demographic records from ${sourceFileName}`,
       recordsProcessed: records.length
     };
   } catch (error) {
     console.error('Error importing demographics:', error);
     return {
       type: 'demographics',
-      error: error instanceof Error ? error.message : 'Failed to import demographics'
+      error: error instanceof Error ? error.message : `Failed to import demographics from ${sourceFileName}`
     };
   }
 }
 
-async function importBoneMarrow(fileContent: string): Promise<ImportResult> {
+async function importBoneMarrow(fileContent: string, sourceFileName: string): Promise<ImportResult> {
   try {
     const records = parse(fileContent, {
       columns: true,
       skip_empty_lines: true,
-      delimiter: '|'
+      delimiter: '|',
+      relax_quotes: true
     });
 
     for (const record of records) {
@@ -100,7 +102,7 @@ async function importBoneMarrow(fileContent: string): Promise<ImportResult> {
         lab_name: record.LAB_NAME,
         order_time: record.ORDER_TIME,
         result_time: record.RESULT_TIME,
-        source_file: record.SOURCE_FILE
+        source_file: sourceFileName
       }).onConflictDoUpdate({
         target: lab_ordersInClinical.order_id,
         set: {
@@ -117,7 +119,7 @@ async function importBoneMarrow(fileContent: string): Promise<ImportResult> {
         lab_component_description: record.LAB_COMPONENT_DESCRIPTION,
         result_text: record.RESULT_TEXT,
         bone_marrow_results_by_component: record.BONE_MARROW_RESULTS_BY_COMPONENT,
-        source_file: record.SOURCE_FILE
+        source_file: sourceFileName
       }).onConflictDoUpdate({
         target: [bone_marrow_resultsInClinical.order_id, bone_marrow_resultsInClinical.component_id],
         set: {
@@ -131,24 +133,25 @@ async function importBoneMarrow(fileContent: string): Promise<ImportResult> {
 
     return {
       type: 'bonemarrow',
-      result: `Successfully imported ${records.length} bone marrow records`,
+      result: `Successfully imported ${records.length} bone marrow records from ${sourceFileName}`,
       recordsProcessed: records.length
     };
   } catch (error) {
     console.error('Error importing bone marrow data:', error);
     return {
       type: 'bonemarrow',
-      error: error instanceof Error ? error.message : 'Failed to import bone marrow data'
+      error: error instanceof Error ? error.message : `Failed to import bone marrow data from ${sourceFileName}`
     };
   }
 }
 
-async function importVisits(fileContent: string): Promise<ImportResult> {
+async function importVisits(fileContent: string, sourceFileName: string): Promise<ImportResult> {
   try {
     const records = parse(fileContent, {
       columns: true,
       skip_empty_lines: true,
-      delimiter: '|'
+      delimiter: '|',
+      relax_quotes: true
     });
 
     for (const record of records) {
@@ -168,7 +171,7 @@ async function importVisits(fileContent: string): Promise<ImportResult> {
         bp_systolic: record.BP_SYSTOLIC ? parseInt(record.BP_SYSTOLIC) : null,
         bp_diastolic: record.BP_DIASTOLIC ? parseInt(record.BP_DIASTOLIC) : null,
         weight_kg: record.WEIGHT_KG ? String(parseFloat(record.WEIGHT_KG)) : null,
-        source_file: record.SOURCE_FILE
+        source_file: sourceFileName
       }).onConflictDoUpdate({
         target: visitsInClinical.visit_id,
         set: {
@@ -191,7 +194,7 @@ async function importVisits(fileContent: string): Promise<ImportResult> {
             icd10_code: diagnosis.code,
             diagnosis_name: diagnosis.name,
             sequence_num: diagnosis.sequence,
-            source_file: record.SOURCE_FILE
+            source_file: sourceFileName
           }).onConflictDoUpdate({
             target: [visit_diagnosesInClinical.visit_id, visit_diagnosesInClinical.diagnosis_type, visit_diagnosesInClinical.icd10_code, visit_diagnosesInClinical.sequence_num],
             set: {
@@ -205,24 +208,25 @@ async function importVisits(fileContent: string): Promise<ImportResult> {
 
     return {
       type: 'visits',
-      result: `Successfully imported ${records.length} visit records`,
+      result: `Successfully imported ${records.length} visit records from ${sourceFileName}`,
       recordsProcessed: records.length
     };
   } catch (error) {
     console.error('Error importing visits:', error);
     return {
       type: 'visits',
-      error: error instanceof Error ? error.message : 'Failed to import visits'
+      error: error instanceof Error ? error.message : `Failed to import visits from ${sourceFileName}`
     };
   }
 }
 
-async function importMedications(fileContent: string, type: 'ip' | 'op'): Promise<ImportResult> {
+async function importMedications(fileContent: string, type: 'ip' | 'op', sourceFileName: string): Promise<ImportResult> {
   try {
     const records = parse(fileContent, {
       columns: true,
       skip_empty_lines: true,
-      delimiter: '|'
+      delimiter: '|',
+      relax_quotes: true
     });
 
     for (const record of records) {
@@ -239,7 +243,7 @@ async function importMedications(fileContent: string, type: 'ip' | 'op'): Promis
           route: record.ROUTE,
           reason_for_action: record.REASON_FOR_ACTION,
           administering_user: record.ADMINISTERING_USER,
-          source_file: record.SOURCE_FILE
+          source_file: sourceFileName
         }).onConflictDoUpdate({
           target: medication_administrationsInClinical.administration_id,
           set: {
@@ -249,23 +253,23 @@ async function importMedications(fileContent: string, type: 'ip' | 'op'): Promis
           }
         });
       } else {
-        // Handle outpatient medication orders
+        // Handle outpatient medication orders (opavsmeds)
         await db.insert(medication_ordersInClinical).values({
-          epic_order_med_id: record.EPIC_ORDER_MED_ID,
+          epic_order_med_id: record.ORDER_MED_ID,
           visit_id: record.VISIT_ID,
           patient_mrn: record.PATIENT_MRN,
-          medication_name: record.MEDICATION_NAME,
-          order_time: record.ORDER_TIME,
-          status: record.STATUS,
+          medication_name: record.GENERIC_DESCRIPTION,
+          order_time: record.ORDER_DTTM,
+          status: record.RX_STATUS,
           dose: record.DOSE,
           units: record.UNITS,
           route: record.ROUTE,
           frequency: record.FREQUENCY,
-          source_file: record.SOURCE_FILE
+          source_file: sourceFileName
         }).onConflictDoUpdate({
           target: medication_ordersInClinical.medication_order_id,
           set: {
-            status: record.STATUS,
+            status: record.RX_STATUS,
             updated_at: new Date().toISOString()
           }
         });
@@ -273,25 +277,26 @@ async function importMedications(fileContent: string, type: 'ip' | 'op'): Promis
     }
 
     return {
-      type: type === 'ip' ? 'ipmeds' : 'opmeds',
-      result: `Successfully imported ${records.length} ${type === 'ip' ? 'inpatient' : 'outpatient'} medication records`,
+      type: type === 'ip' ? 'ipmeds' : 'opavsmeds',
+      result: `Successfully imported ${records.length} ${type === 'ip' ? 'inpatient' : 'outpatient'} medication records from ${sourceFileName}`,
       recordsProcessed: records.length
     };
   } catch (error) {
     console.error(`Error importing ${type} medications:`, error);
     return {
-      type: type === 'ip' ? 'ipmeds' : 'opmeds',
-      error: error instanceof Error ? error.message : `Failed to import ${type} medications`
+      type: type === 'ip' ? 'ipmeds' : 'opavsmeds',
+      error: error instanceof Error ? error.message : `Failed to import ${type} medications from ${sourceFileName}`
     };
   }
 }
 
-async function importLabs(fileContent: string): Promise<ImportResult> {
+async function importLabs(fileContent: string, sourceFileName: string): Promise<ImportResult> {
   try {
     const records = parse(fileContent, {
       columns: true,
       skip_empty_lines: true,
-      delimiter: '|'
+      delimiter: '|',
+      relax_quotes: true
     });
 
     for (const record of records) {
@@ -308,7 +313,7 @@ async function importLabs(fileContent: string): Promise<ImportResult> {
         collection_time: record.COLLECTION_TIME,
         proc_bgn_time: record.PROC_BGN_TIME,
         proc_end_time: record.PROC_END_TIME,
-        source_file: record.SOURCE_FILE
+        source_file: sourceFileName
       }).onConflictDoUpdate({
         target: lab_ordersInClinical.order_id,
         set: {
@@ -328,7 +333,7 @@ async function importLabs(fileContent: string): Promise<ImportResult> {
         units: record.UNITS,
         abnormal_flag: record.ABNORMAL_FLAG,
         result_time: record.RESULT_TIME,
-        source_file: record.SOURCE_FILE
+        source_file: sourceFileName
       }).onConflictDoUpdate({
         target: [lab_resultsInClinical.order_id, lab_resultsInClinical.component_id],
         set: {
@@ -342,14 +347,14 @@ async function importLabs(fileContent: string): Promise<ImportResult> {
 
     return {
       type: 'labs',
-      result: `Successfully imported ${records.length} lab records`,
+      result: `Successfully imported ${records.length} lab records from ${sourceFileName}`,
       recordsProcessed: records.length
     };
   } catch (error) {
     console.error('Error importing lab data:', error);
     return {
       type: 'labs',
-      error: error instanceof Error ? error.message : 'Failed to import lab data'
+      error: error instanceof Error ? error.message : `Failed to import lab data from ${sourceFileName}`
     };
   }
 }
@@ -367,27 +372,28 @@ export async function importDataAction(formData: FormData): Promise<{ results: I
     const file = files[i];
     const type = types[i];
     const content = await file.text();
+    const sourceFileName = file.name;
 
     try {
       let result: ImportResult;
       switch (type) {
         case 'demographics':
-          result = await importDemographics(content);
+          result = await importDemographics(content, sourceFileName);
           break;
         case 'bonemarrow':
-          result = await importBoneMarrow(content);
+          result = await importBoneMarrow(content, sourceFileName);
           break;
         case 'visits':
-          result = await importVisits(content);
+          result = await importVisits(content, sourceFileName);
           break;
         case 'ipmeds':
-          result = await importMedications(content, 'ip');
+          result = await importMedications(content, 'ip', sourceFileName);
           break;
-        case 'opmeds':
-          result = await importMedications(content, 'op');
+        case 'opavsmeds':
+          result = await importMedications(content, 'op', sourceFileName);
           break;
         case 'labs':
-          result = await importLabs(content);
+          result = await importLabs(content, sourceFileName);
           break;
         default:
           result = { type, error: `Unknown file type: ${type}` };

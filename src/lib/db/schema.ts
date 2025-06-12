@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, varchar, date, timestamp, foreignKey, unique, serial, text, numeric, index, uuid, integer, boolean, uniqueIndex, bigint, primaryKey } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, varchar, date, timestamp, foreignKey, unique, serial, text, numeric, index, uuid, integer, boolean, uniqueIndex, bigint, primaryKey, jsonb } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const clinical = pgSchema("clinical");
@@ -546,6 +546,9 @@ export const UserInApp = app.table("User", {
 	password: text(),
 	role: text(),
 	isActive: boolean("is_active").default(true).notNull(),
+	settings: jsonb("settings").$type<{
+		show_phi: boolean;
+	}>(),
 	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 });
