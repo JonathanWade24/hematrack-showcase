@@ -81,3 +81,4 @@ visit_data.json
 config.txt
 Dockerrun.aws.json
 app/src/generated/
+*.Rmd
