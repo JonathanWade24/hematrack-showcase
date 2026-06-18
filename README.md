@@ -67,8 +67,8 @@ hematrack/
 ### 1. Clone and set up demo database
 
 ```bash
-git clone https://github.com/JonathanWade24/hematrack.git
-cd hematrack
+git clone https://github.com/JonathanWade24/hematrack-showcase.git
+cd hematrack-showcase
 chmod +x scripts/setup-demo.sh
 ./scripts/setup-demo.sh
 ```
