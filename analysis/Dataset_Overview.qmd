@@ -1,0 +1,528 @@
+---
+title: "EPIC Dataset Overview"
+author: "Jonathan Wade"
+format:
+  html:
+    code-fold: true
+  pdf:
+    documentclass: article
+    papersize: letter
+    toc: true
+    number-sections: true
+    colorlinks: true
+    fig-width: 7
+    fig-height: 4
+    fig-pos: 'H'
+    geometry:
+      - margin=1in
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(knitr)
+library(cowplot)
+library(kableExtra)
+
+theme_set(theme_cowplot())
+```
+
+## 1. Dataset Overview
+
+```{r load-data}
+data_path <- Sys.getenv("DATA_DIR", unset = "./data/epic/")
+
+# Read all files
+file_list <- list.files(data_path, pattern = "\\.txt$", full.names = TRUE)
+data_list <- map(file_list, ~ read_delim(.x, delim = "|"))
+names(data_list) <- basename(file_list)
+
+# Clean all dataframes immediately after loading
+clean_data_list <- map(data_list, clean_names)
+
+# Create summary table of records and patients per file using cleaned data
+file_summary <- map_dfr(names(clean_data_list), ~{
+  df <- clean_data_list[[.x]]
+  tibble(
+    File_Name = .x,
+    Total_Records = nrow(df),
+    Unique_Patients = n_distinct(df$patient_mrn),
+    Number_of_Variables = ncol(df)
+  )
+})
+
+kable(file_summary, caption = "Overview of Dataset Files")
+```
+
+
+## 2. Variable Inventory
+
+```{r variable-inventory}
+# Function to get variable information
+get_var_info <- function(df) {
+  map_dfr(names(df), ~{
+    example_vals <- if(is.numeric(df[[.x]])) {
+      paste(range(df[[.x]], na.rm = TRUE), collapse = " to ")
+    } else {
+      # Truncate string values to first 50 characters
+      vals <- head(unique(df[[.x]]), 3)
+      vals <- substr(vals, 1, 50)
+      paste(vals, collapse = ", ")
+    }
+    
+    tibble(
+      Variable_Name = .x,
+      Data_Type = class(df[[.x]])[1],
+      N_Missing = sum(is.na(df[[.x]])),
+      N_Unique = n_distinct(df[[.x]], na.rm = TRUE),
+      Example_Values = example_vals
+    )
+  })
+}
+
+# Create variable inventory for each file
+var_inventory <- map(clean_data_list, get_var_info)
+
+# Create individual tables for each file
+bone_marrow_vars <- kable(var_inventory[["IN495734_SCD_Bone_Marrow_Baseline.txt"]], 
+                         caption = "Variables in Bone Marrow Dataset",
+                         format = "html",
+                         table.attr = "style='width:100%;'") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+demographics_vars <- kable(var_inventory[["IN495734_SCD_Demographics_Social_Hx_Baseline.txt"]], 
+                         caption = "Variables in Demographics Dataset",
+                         format = "html",
+                         table.attr = "style='width:100%;'") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+ip_admissions_vars <- kable(var_inventory[["IN495734_SCD_IP_Admissions_Baseline.txt"]], 
+                          caption = "Variables in Inpatient Admissions Dataset",
+                          format = "html",
+                          table.attr = "style='width:100%;'") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+ip_meds_vars <- kable(var_inventory[["IN495734_SCD_IP_Meds_Baseline.txt"]], 
+                     caption = "Variables in Inpatient Medications Dataset",
+                     format = "html",
+                     table.attr = "style='width:100%;'") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+labs_vars <- kable(var_inventory[["IN495734_SCD_Labs_Baseline.txt"]], 
+                  caption = "Variables in Laboratory Dataset",
+                  format = "html",
+                  table.attr = "style='width:100%;'") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+op_avs_meds_vars <- kable(var_inventory[["IN495734_SCD_OP_AVS_Meds_Baseline.txt"]], 
+                         caption = "Variables in Outpatient AVS Medications Dataset",
+                         format = "html",
+                         table.attr = "style='width:100%;'") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+op_visits_vars <- kable(var_inventory[["IN495734_SCD_OP_Visits_Baseline.txt"]], 
+                       caption = "Variables in Outpatient Visits Dataset",
+                       format = "html",
+                       table.attr = "style='width:100%;'") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+# Display all tables
+bone_marrow_vars
+demographics_vars
+ip_admissions_vars
+ip_meds_vars
+labs_vars
+op_avs_meds_vars
+op_visits_vars
+```
+
+## 3. Demographic Distributions
+
+```{r demographics}
+# Clean demographics data
+demographics <- clean_data_list$"IN495734_SCD_Demographics_Social_Hx_Baseline.txt" %>%
+  mutate(
+    birth_date = as_datetime(birth_date),
+    age = as.numeric(age)
+  )
+
+# Age Distribution
+p1 <- ggplot(demographics, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "steelblue") +
+  labs(title = "Age Distribution", x = "Age", y = "Count")
+
+# Gender Distribution
+p2 <- ggplot(demographics, aes(x = gender)) +
+  geom_bar(fill = "darkgreen") +
+  labs(title = "Gender Distribution", x = "Gender", y = "Count")
+
+# Race Distribution
+p3 <- ggplot(demographics, aes(x = race)) +
+  geom_bar(fill = "darkred") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Race Distribution", x = "Race", y = "Count")
+
+# Print plots
+print(p1)
+print(p2)
+print(p3)
+```
+
+## 4. VOE and ACS Patient Counts
+
+```{r voe-acs}
+# Clean admissions data and count VOE/ACS
+admissions <- clean_data_list$"IN495734_SCD_IP_Admissions_Baseline.txt" %>%
+  mutate(
+    has_voe = if_any(
+      starts_with("admit_dx_cd_") | starts_with("final_dx_cd_"),
+      ~ grepl("^D57\\.0[0-9]", .)
+    ),
+    has_acs = if_any(
+      starts_with("admit_dx_cd_") | starts_with("final_dx_cd_"),
+      ~ grepl("^D57\\.01", .)
+    )
+  )
+
+# Summary of unique patients
+patient_summary <- admissions %>%
+  group_by(patient_mrn) %>%
+  summarise(
+    has_any_voe = any(has_voe & !has_acs, na.rm = TRUE),
+    has_any_acs = any(has_acs, na.rm = TRUE),
+    has_other = any(!has_voe & !has_acs, na.rm = TRUE)
+  ) %>%
+  summarise(
+    Unique_VOE_Patients = sum(has_any_voe),
+    Unique_ACS_Patients = sum(has_any_acs),
+    Unique_Other_Patients = sum(has_other),
+    Total_Unique_Patients = n()
+  )
+
+# Summary of total admissions
+admission_summary <- admissions %>%
+  summarise(
+    VOE_Admissions = sum(has_voe & !has_acs, na.rm = TRUE),
+    ACS_Admissions = sum(has_acs, na.rm = TRUE),
+    Other_Admissions = sum(!has_voe & !has_acs, na.rm = TRUE),
+    Total_Admissions = n()
+  )
+
+# Combine summaries for display
+combined_summary <- bind_rows(
+  patient_summary %>% 
+    pivot_longer(everything(), names_to = "Metric", values_to = "Count") %>%
+    mutate(Type = "Unique Patients"),
+  admission_summary %>%
+    pivot_longer(everything(), names_to = "Metric", values_to = "Count") %>%
+    mutate(Type = "Total Admissions")
+)
+
+kable(combined_summary, caption = "VOE and ACS Summary - Patients and Admissions")
+
+# Visualize unique patients
+patient_types <- patient_summary %>%
+  select(-Total_Unique_Patients) %>%
+  pivot_longer(everything(), 
+              names_to = "Type", 
+              values_to = "Count",
+              names_prefix = "Unique_") %>%
+  mutate(Type = str_remove(Type, "_Patients"))
+
+# Plot 1: Unique Patients
+p1 <- ggplot(patient_types, aes(x = reorder(Type, Count), y = Count)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  coord_flip() +
+  labs(
+    title = "Distribution of Unique Patients by Crisis Type",
+    x = "Crisis Type",
+    y = "Number of Unique Patients"
+  ) +
+  theme_cowplot()
+
+# Plot 2: Total Admissions
+admission_types <- admission_summary %>%
+  select(-Total_Admissions) %>%
+  pivot_longer(everything(), 
+              names_to = "Type", 
+              values_to = "Count") %>%
+  mutate(Type = str_remove(Type, "_Admissions"))
+
+p2 <- ggplot(admission_types, aes(x = reorder(Type, Count), y = Count)) +
+  geom_bar(stat = "identity", fill = "darkred") +
+  coord_flip() +
+  labs(
+    title = "Distribution of Total Admissions by Crisis Type",
+    x = "Crisis Type",
+    y = "Number of Admissions"
+  ) +
+  theme_cowplot()
+
+# Print both plots
+print(p1)
+print(p2)
+
+# Calculate and display average admissions per patient
+avg_admissions <- admissions %>%
+  group_by(patient_mrn) %>%
+  summarise(
+    VOE_count = sum(has_voe & !has_acs, na.rm = TRUE),
+    ACS_count = sum(has_acs, na.rm = TRUE),
+    Other_count = sum(!has_voe & !has_acs, na.rm = TRUE)
+  ) %>%
+  summarise(
+    Avg_VOE_per_patient = mean(VOE_count),
+    Avg_ACS_per_patient = mean(ACS_count),
+    Avg_Other_per_patient = mean(Other_count)
+  )
+
+kable(avg_admissions, caption = "Average Number of Admissions per Patient by Crisis Type")
+```
+
+> Note: The first plot shows the number of unique patients who experienced each type of crisis, while the second plot shows the total number of admissions for each crisis type. A patient may be counted in multiple categories if they experienced different types of crises across different admissions.
+
+## 5. Temporal Distribution of Records
+
+```{r temporal-distribution}
+# Function to extract dates from different files
+get_dates <- function(df, date_col) {
+  df %>%
+    pull(!!sym(date_col)) %>%
+    as_datetime() %>%
+    as.Date()
+}
+
+# Get dates from different files
+admission_dates <- get_dates(admissions, "adm_date_time")
+lab_dates <- get_dates(clean_data_list$"IN495734_SCD_Labs_Baseline.txt", "result_time")
+op_visit_dates <- get_dates(clean_data_list$"IN495734_SCD_OP_Visits_Baseline.txt", "visit_date")
+
+# Create timeline data
+timeline_data <- bind_rows(
+  tibble(date = admission_dates, type = "Inpatient Admissions"),
+  tibble(date = lab_dates, type = "Lab Results"),
+  tibble(date = op_visit_dates, type = "Outpatient Visits")
+) %>%
+  mutate(type = factor(type, levels = c("Lab Results", "Outpatient Visits", "Inpatient Admissions")))
+
+# Create faceted timeline plot
+ggplot(timeline_data, aes(x = date)) +
+  geom_histogram(bins = 50, fill = "steelblue") +
+  facet_wrap(~ type, ncol = 1, scales = "free_y") +
+  labs(
+    title = "Timeline of Records by Type",
+    subtitle = "Note: Y-axes are scaled independently for each record type",
+    x = "Date",
+    y = "Count"
+  ) +
+  theme_cowplot() +
+  theme(
+    strip.background = element_rect(fill = "lightgray"),
+    strip.text = element_text(face = "bold")
+  )
+
+# Print summary statistics
+record_counts <- timeline_data %>%
+  group_by(type) %>%
+  summarise(
+    Total_Records = n(),
+    Earliest_Date = min(date),
+    Latest_Date = max(date),
+    Avg_Records_per_Month = n() / (as.numeric(diff(range(date)))/30)
+  )
+
+kable(record_counts, 
+      caption = "Summary of Record Counts and Frequencies",
+      digits = 1)
+```
+
+> Note: The plots are shown with different y-axis scales to better visualize the patterns within each record type. Lab results typically occur much more frequently than visits or admissions.
+
+## 6. Lab Test Frequencies
+
+```{r lab-frequencies}
+# Analyze lab test frequencies
+lab_frequencies <- clean_data_list$"IN495734_SCD_Labs_Baseline.txt" %>%
+  count(lab_component_description, sort = TRUE) %>%
+  head(30)
+
+ggplot(lab_frequencies, aes(x = reorder(lab_component_description, n), y = n)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  coord_flip() +
+  labs(title = "Top 30 Most Frequent Lab Tests", x = "Lab Test", y = "Count") +
+  theme(axis.text.y = element_text(size = 8))
+``` 
+
+## 7. Medication Overview
+
+```{r medication-overview}
+# Analyze IP medications
+ip_med_summary <- clean_data_list$"IN495734_SCD_IP_Meds_Baseline.txt" %>%
+  group_by(rx_class_name) %>%
+  summarise(
+    n_patients = n_distinct(patient_mrn),
+    n_administrations = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_patients)) %>%
+  head(20)
+
+# Analyze OP medications
+op_med_summary <- clean_data_list$"IN495734_SCD_OP_AVS_Meds_Baseline.txt" %>%
+  group_by(generic_description) %>%
+  summarise(
+    n_patients = n_distinct(patient_mrn),
+    n_prescriptions = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_patients)) %>%
+  head(20)
+
+# Visualize IP medications
+p1 <- ggplot(ip_med_summary, aes(x = reorder(rx_class_name, n_patients), y = n_patients)) +
+  geom_bar(stat = "identity", fill = "darkgreen") +
+  coord_flip() +
+  labs(
+    title = "Top 20 Inpatient Medication Classes",
+    x = "Medication Class",
+    y = "Number of Patients"
+  ) +
+  theme(axis.text.y = element_text(size = 8))
+
+# Visualize OP medications
+p2 <- ggplot(op_med_summary, aes(x = reorder(generic_description, n_patients), y = n_patients)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  coord_flip() +
+  labs(
+    title = "Top 20 Outpatient Medications",
+    x = "Medication",
+    y = "Number of Patients"
+  ) +
+  theme(axis.text.y = element_text(size = 8))
+
+print(p1)
+print(p2)
+```
+
+## 8. Patient Visit Patterns
+
+```{r visit-patterns}
+# Analyze visit frequencies per patient
+visit_patterns <- admissions %>%
+  group_by(patient_mrn) %>%
+  summarise(
+    n_admissions = n(),
+    avg_days_between = mean(diff(adm_date_time), na.rm = TRUE),
+    first_admission = min(adm_date_time),
+    last_admission = max(adm_date_time),
+    total_days_observed = as.numeric(difftime(max(adm_date_time), 
+                                            min(adm_date_time), 
+                                            units = "days"))
+  ) %>%
+  mutate(
+    admissions_per_year = (n_admissions / total_days_observed) * 365.25
+  )
+
+# Visualize distribution of admissions per patient
+p1 <- ggplot(visit_patterns, aes(x = n_admissions)) +
+  geom_histogram(binwidth = 1, fill = "steelblue") +
+  labs(
+    title = "Distribution of Number of Admissions per Patient",
+    x = "Number of Admissions",
+    y = "Count of Patients"
+  )
+
+# Visualize admissions per year
+p2 <- ggplot(visit_patterns, aes(x = admissions_per_year)) +
+  geom_histogram(binwidth = 0.5, fill = "darkred") +
+  labs(
+    title = "Distribution of Admissions per Year",
+    x = "Admissions per Year",
+    y = "Count of Patients"
+  )
+
+print(p1)
+print(p2)
+
+# Summary statistics
+visit_summary <- visit_patterns %>%
+  summarise(
+    Median_Admissions = median(n_admissions),
+    Mean_Admissions = mean(n_admissions),
+    Median_Days_Between = median(avg_days_between, na.rm = TRUE),
+    Median_Admissions_per_Year = median(admissions_per_year),
+    Patients_with_Multiple_Admissions = sum(n_admissions > 1),
+    Pct_with_Multiple_Admissions = mean(n_admissions > 1) * 100
+  )
+
+kable(visit_summary, caption = "Summary of Patient Visit Patterns", digits = 1)
+```
+
+## 9. Data Completeness Analysis
+
+```{r data-completeness}
+# Function to analyze missing data
+analyze_missing <- function(df) {
+  map_dfr(names(df), ~{
+    tibble(
+      variable = .x,
+      n_missing = sum(is.na(df[[.x]])),
+      pct_missing = (n_missing / nrow(df)) * 100
+    )
+  }) %>%
+    arrange(desc(pct_missing))
+}
+
+# Analyze missing data for each file
+missing_data <- map(clean_data_list, analyze_missing)
+
+# Create visualizations for files with missing data
+for(file_name in names(missing_data)) {
+  missing_df <- missing_data[[file_name]] %>%
+    filter(pct_missing > 0)  # Only show variables with missing data
+  
+  if(nrow(missing_df) > 0) {
+    p <- ggplot(missing_df, aes(x = reorder(variable, pct_missing), y = pct_missing)) +
+      geom_bar(stat = "identity", fill = "orange") +
+      coord_flip() +
+      labs(
+        title = paste("Missing Data in", file_name),
+        x = "Variable",
+        y = "Percent Missing (%)"
+      )
+    print(p)
+  }
+}
+```
+
+## 10. Patient Care Patterns
+
+```{r care-patterns}
+# Get unique patients from each type of visit
+ip_patients <- clean_data_list$"IN495734_SCD_IP_Admissions_Baseline.txt" %>%
+  distinct(patient_mrn)
+op_patients <- clean_data_list$"IN495734_SCD_OP_Visits_Baseline.txt" %>%
+  distinct(patient_mrn)
+lab_patients <- clean_data_list$"IN495734_SCD_Labs_Baseline.txt" %>%
+  distinct(patient_mrn)
+
+# Create sets for visualization
+library(ggvenn)  # You might need to install this package
+
+patient_sets <- list(
+  "Inpatient" = ip_patients$patient_mrn,
+  "Outpatient" = op_patients$patient_mrn,
+  "Lab Tests" = lab_patients$patient_mrn
+)
+
+# Plot Venn diagram
+ggvenn(patient_sets, 
+       fill_color = c("red", "blue", "green"),
+       stroke_size = 0.5,
+       set_name_size = 4)
+```

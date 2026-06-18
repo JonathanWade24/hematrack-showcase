@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jonathan Wade">
+
+<title>EPIC Dataset Overview</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Dataset_Overview_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Dataset_Overview_files/libs/quarto-html/quarto.js"></script>
+<script src="Dataset_Overview_files/libs/quarto-html/popper.min.js"></script>
+<script src="Dataset_Overview_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Dataset_Overview_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Dataset_Overview_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Dataset_Overview_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Dataset_Overview_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Dataset_Overview_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Dataset_Overview_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="Dataset_Overview_files/libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="Dataset_Overview_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="Dataset_Overview.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">EPIC Dataset Overview</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jonathan Wade </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cowplot)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_cowplot</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="dataset-overview" class="level2">
+<h2 class="anchored" data-anchor-id="dataset-overview">1. Dataset Overview</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data_path <span class="ot">&lt;-</span> <span class="st">"Baseline Data Jan2011-Jun2024/"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Read all files</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>file_list <span class="ot">&lt;-</span> <span class="fu">list.files</span>(data_path, <span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.txt$"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>data_list <span class="ot">&lt;-</span> <span class="fu">map</span>(file_list, <span class="sc">~</span> <span class="fu">read_delim</span>(.x, <span class="at">delim =</span> <span class="st">"|"</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(data_list) <span class="ot">&lt;-</span> <span class="fu">basename</span>(file_list)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean all dataframes immediately after loading</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>clean_data_list <span class="ot">&lt;-</span> <span class="fu">map</span>(data_list, clean_names)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Create summary table of records and patients per file using cleaned data</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>file_summary <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(<span class="fu">names</span>(clean_data_list), <span class="sc">~</span>{</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> clean_data_list[[.x]]</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">File_Name =</span> .x,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Records =</span> <span class="fu">nrow</span>(df),</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Unique_Patients =</span> <span class="fu">n_distinct</span>(df<span class="sc">$</span>patient_mrn),</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Number_of_Variables =</span> <span class="fu">ncol</span>(df)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(file_summary, <span class="at">caption =</span> <span class="st">"Overview of Dataset Files"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Overview of Dataset Files</caption>
+<colgroup>
+<col style="width: 49%">
+<col style="width: 14%">
+<col style="width: 16%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">File_Name</th>
+<th style="text-align: right;">Total_Records</th>
+<th style="text-align: right;">Unique_Patients</th>
+<th style="text-align: right;">Number_of_Variables</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Bone_Marrow_Lam_20241004.txt</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Demographics_Lam_20241004.txt</td>
+<td style="text-align: right;">801</td>
+<td style="text-align: right;">801</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IN495734_SCD_Bone_Marrow_Baseline.txt</td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IN495734_SCD_Demographics_Social_Hx_Baseline.txt</td>
+<td style="text-align: right;">6657</td>
+<td style="text-align: right;">6657</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IN495734_SCD_IP_Admissions_Baseline.txt</td>
+<td style="text-align: right;">11300</td>
+<td style="text-align: right;">2865</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IN495734_SCD_IP_Meds_Baseline.txt</td>
+<td style="text-align: right;">1328884</td>
+<td style="text-align: right;">2861</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IN495734_SCD_Labs_Baseline.txt</td>
+<td style="text-align: right;">7742231</td>
+<td style="text-align: right;">6422</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IN495734_SCD_OP_AVS_Meds_Baseline.txt</td>
+<td style="text-align: right;">3221</td>
+<td style="text-align: right;">248</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IN495734_SCD_OP_Visits_Baseline.txt</td>
+<td style="text-align: right;">117938</td>
+<td style="text-align: right;">3284</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IP_Admissions_Lam_20241004.txt</td>
+<td style="text-align: right;">298</td>
+<td style="text-align: right;">217</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IP_Meds_Lam_20241004.txt</td>
+<td style="text-align: right;">38970</td>
+<td style="text-align: right;">217</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Labs_Lam_20241004.txt</td>
+<td style="text-align: right;">124129</td>
+<td style="text-align: right;">772</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">OP_AVS_Lam_20241004.txt</td>
+<td style="text-align: right;">111</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">OP_Visits_Lam_20241004.txt</td>
+<td style="text-align: right;">3175</td>
+<td style="text-align: right;">447</td>
+<td style="text-align: right;">13</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="variable-inventory" class="level2">
+<h2 class="anchored" data-anchor-id="variable-inventory">2. Variable Inventory</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to get variable information</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>get_var_info <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(<span class="fu">names</span>(df), <span class="sc">~</span>{</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    example_vals <span class="ot">&lt;-</span> <span class="cf">if</span>(<span class="fu">is.numeric</span>(df[[.x]])) {</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(<span class="fu">range</span>(df[[.x]], <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">collapse =</span> <span class="st">" to "</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Truncate string values to first 50 characters</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>      vals <span class="ot">&lt;-</span> <span class="fu">head</span>(<span class="fu">unique</span>(df[[.x]]), <span class="dv">3</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      vals <span class="ot">&lt;-</span> <span class="fu">substr</span>(vals, <span class="dv">1</span>, <span class="dv">50</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(vals, <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">Variable_Name =</span> .x,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">Data_Type =</span> <span class="fu">class</span>(df[[.x]])[<span class="dv">1</span>],</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">N_Missing =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(df[[.x]])),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">N_Unique =</span> <span class="fu">n_distinct</span>(df[[.x]], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">Example_Values =</span> example_vals</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Create variable inventory for each file</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>var_inventory <span class="ot">&lt;-</span> <span class="fu">map</span>(clean_data_list, get_var_info)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Create individual tables for each file</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>bone_marrow_vars <span class="ot">&lt;-</span> <span class="fu">kable</span>(var_inventory[[<span class="st">"IN495734_SCD_Bone_Marrow_Baseline.txt"</span>]], </span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>                         <span class="at">caption =</span> <span class="st">"Variables in Bone Marrow Dataset"</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>                         <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>                         <span class="at">table.attr =</span> <span class="st">"style='width:100%;'"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>))</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>demographics_vars <span class="ot">&lt;-</span> <span class="fu">kable</span>(var_inventory[[<span class="st">"IN495734_SCD_Demographics_Social_Hx_Baseline.txt"</span>]], </span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>                         <span class="at">caption =</span> <span class="st">"Variables in Demographics Dataset"</span>,</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>                         <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>                         <span class="at">table.attr =</span> <span class="st">"style='width:100%;'"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>))</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>ip_admissions_vars <span class="ot">&lt;-</span> <span class="fu">kable</span>(var_inventory[[<span class="st">"IN495734_SCD_IP_Admissions_Baseline.txt"</span>]], </span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>                          <span class="at">caption =</span> <span class="st">"Variables in Inpatient Admissions Dataset"</span>,</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>                          <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>                          <span class="at">table.attr =</span> <span class="st">"style='width:100%;'"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>))</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>ip_meds_vars <span class="ot">&lt;-</span> <span class="fu">kable</span>(var_inventory[[<span class="st">"IN495734_SCD_IP_Meds_Baseline.txt"</span>]], </span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>                     <span class="at">caption =</span> <span class="st">"Variables in Inpatient Medications Dataset"</span>,</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>                     <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>                     <span class="at">table.attr =</span> <span class="st">"style='width:100%;'"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>))</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>labs_vars <span class="ot">&lt;-</span> <span class="fu">kable</span>(var_inventory[[<span class="st">"IN495734_SCD_Labs_Baseline.txt"</span>]], </span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>                  <span class="at">caption =</span> <span class="st">"Variables in Laboratory Dataset"</span>,</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>                  <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>                  <span class="at">table.attr =</span> <span class="st">"style='width:100%;'"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>))</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>op_avs_meds_vars <span class="ot">&lt;-</span> <span class="fu">kable</span>(var_inventory[[<span class="st">"IN495734_SCD_OP_AVS_Meds_Baseline.txt"</span>]], </span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>                         <span class="at">caption =</span> <span class="st">"Variables in Outpatient AVS Medications Dataset"</span>,</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>                         <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>                         <span class="at">table.attr =</span> <span class="st">"style='width:100%;'"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>))</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>op_visits_vars <span class="ot">&lt;-</span> <span class="fu">kable</span>(var_inventory[[<span class="st">"IN495734_SCD_OP_Visits_Baseline.txt"</span>]], </span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>                       <span class="at">caption =</span> <span class="st">"Variables in Outpatient Visits Dataset"</span>,</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>                       <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>                       <span class="at">table.attr =</span> <span class="st">"style='width:100%;'"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>))</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a><span class="co"># Display all tables</span></span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>bone_marrow_vars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
+<caption>Variables in Bone Marrow Dataset</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable_Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data_Type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Missing</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Unique</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Example_Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">patient_mrn</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: left;">157457 to 100755414</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">hsp_account_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: left;">5003664548 to 5021769163</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">order_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: left;">107281985 to 272415838</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">result_time</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: left;">2022-11-11 16:22:00, 2016-11-14 09:55:00, 2021-03-09 17:24:00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">lab_code</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">LAB5117</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lab_name</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">BONE MARROW</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">component_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">180 to 1233043005</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lab_component_description</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">AP MICROSCOPIC DESCRIPTION, AP BONE MARROW, DIFFERENTIAL, GHS AP ADDENDUM 1 RT</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">bone_marrow_results_by_component</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">102</td>
+<td style="text-align: left;">Peripheral blood: ;Erythrocyte Number: Markedly de, CELL TYPE VALUE ;Cells Counted 500 ;Blasts 31 % ;, An addendum is issued to report the results of anc</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>demographics_vars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
+<caption>Variables in Demographics Dataset</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable_Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data_Type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Missing</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Unique</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Example_Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">patient_mrn</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6657</td>
+<td style="text-align: left;">15163 to 101000306</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">patient_name</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6645</td>
+<td style="text-align: left;">HOWARD,RACQUEL, DALTON,APRIL, PUGH,TERESA D</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">birth_date</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5578</td>
+<td style="text-align: left;">1968-04-22, 1978-01-06, 1980-06-12</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">age</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">97</td>
+<td style="text-align: left;">1 to 102</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">gender</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Female, Male</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">race</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: left;">Black or African American, Other Race, Other</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ethnicity</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Not Hispanic or Latino, Hispanic or Latino, Unknown</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">is_tobacco_user_yn</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">NULL, Never, Yes</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">alcohol_user_yn</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">NULL, Never, No</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ill_drug_user_yn</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">NULL, Never, No</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ip_admissions_vars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
+<caption>Variables in Inpatient Admissions Dataset</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable_Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data_Type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Missing</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Unique</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Example_Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">patient_mrn</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2865</td>
+<td style="text-align: left;">108589 to 101000306</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">hsp_account_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">11052</td>
+<td style="text-align: left;">1000107974 to 5024211146</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">adm_date_time</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">11047</td>
+<td style="text-align: left;">2015-10-08 09:27:00, 2016-01-29 15:02:00, 2016-06-27 15:54:00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">disch_date_time</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">10997</td>
+<td style="text-align: left;">2015-10-15 15:20:00, 2016-02-03 15:00:00, 2016-06-30 12:48:00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">discharge_department</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">51</td>
+<td style="text-align: left;">GHS 11A, GHS 9A, GHS 10A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">discharge_disposition</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: left;">Discharged to Home or Self Care (Routine Discharge, Left Against Medical Advice or Discontinued Care, Discharged/transferred to a Short-Term General Hos</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">icu_admission_yn</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Yes, No</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">admit_dx_cd_1</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1093</td>
+<td style="text-align: left;">D57.00, I50.1, K80.70</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">admit_dx_description_1</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1061</td>
+<td style="text-align: left;">Hb-SS disease with crisis unspecified, Left ventricular failure unspecified, Calculus of gallbladder and bile duct without chol</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">admit_dx_cd_2</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">243</td>
+<td style="text-align: left;">NULL, D57.219, Z01.818</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">admit_dx_description_2</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">240</td>
+<td style="text-align: left;">NULL, Sickle-cell/Hb-C disease with crisis unspecified, Encounter for other preprocedural examination</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">final_dx_cd_1</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1188</td>
+<td style="text-align: left;">D57.01, D57.00, A41.9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">final_dx_description_1</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1165</td>
+<td style="text-align: left;">Hb-SS disease with acute chest syndrome, Hb-SS disease with crisis unspecified, Sepsis unspecified organism</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">final_dx_cd_2</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1508</td>
+<td style="text-align: left;">J18.9, N17.9, I50.32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">final_dx_description_2</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1454</td>
+<td style="text-align: left;">Pneumonia unspecified organism, Acute kidney failure unspecified, Chronic diastolic (congestive) heart failure</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">final_dx_cd_3</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1896</td>
+<td style="text-align: left;">N17.9, I50.32, J45.909</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">final_dx_description_3</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1821</td>
+<td style="text-align: left;">Acute kidney failure unspecified, Chronic diastolic (congestive) heart failure, Unspecified asthma uncomplicated</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">final_dx_cd_4</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1858</td>
+<td style="text-align: left;">I50.9, J45.909, I10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">final_dx_description_4</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1784</td>
+<td style="text-align: left;">Heart failure unspecified, Unspecified asthma uncomplicated, Essential (primary) hypertension</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">final_dx_cd_5</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1813</td>
+<td style="text-align: left;">A68.9, E86.0, I10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">final_dx_description_5</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3586</td>
+<td style="text-align: left;">Relapsing fever unspecified , Dehydration , Essential (primary) hypertension</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ip_meds_vars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
+<caption>Variables in Inpatient Medications Dataset</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable_Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data_Type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Missing</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Unique</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Example_Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">patient_mrn</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2861</td>
+<td style="text-align: left;">108589 to 101000306</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">hsp_account_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">11040</td>
+<td style="text-align: left;">1000107974 to 5024211146</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">adm_date_time</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">11035</td>
+<td style="text-align: left;">2015-10-08 09:27:00, 2016-01-29 15:02:00, 2016-06-27 15:54:00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">disch_date_time</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">10985</td>
+<td style="text-align: left;">2015-10-15 15:20:00, 2016-02-03 15:00:00, 2016-06-30 12:48:00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">medication</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2208</td>
+<td style="text-align: left;">OXYCODONE HCL ER 20 MG PO T12A, DOCUSATE SODIUM 100 MG PO CAPS, DIPHENHYDRAMINE HCL 25 MG PO TABS</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">dosage</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">718</td>
+<td style="text-align: left;">20, 100, 25</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">unit</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: left;">mg, mL, g</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">frequency</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">146</td>
+<td style="text-align: left;">EVERY 12 HOURS SCHEDULED, 2 TIMES DAILY, EVERY 6 HOURS</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">taken_time</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">845702</td>
+<td style="text-align: left;">2015-10-08 10:13:00, 2015-10-08 10:14:00, 2015-10-08 10:17:00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rx_class_name</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">88</td>
+<td style="text-align: left;">Analgesics-Narcotic, Laxatives, Antihistamines</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>labs_vars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
+<caption>Variables in Laboratory Dataset</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable_Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data_Type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Missing</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Unique</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Example_Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">patient_mrn</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6422</td>
+<td style="text-align: left;">15163 to 101000306</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pat_enc_csn_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">151682</td>
+<td style="text-align: left;">101703418 to 1071219784</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">order_time</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">234700</td>
+<td style="text-align: left;">2011-03-01 12:42:00, 2015-10-08 09:54:00, 2015-10-08 09:55:00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">proc_code</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: left;">LAB17, LAB293, LAB296</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">proc_name</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: left;">CHEM 14, METABOLIC PANEL, CBC, PLAT, WBC DIFF, RETIC PANEL</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">component_id</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">558</td>
+<td style="text-align: left;">3042063, 3042300, 3040344</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">lab_component_description</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">440</td>
+<td style="text-align: left;">PROTEIN,TOTAL-SERUM, AST (SGOT), BILIRUBIN,TOTAL-SERUM</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lab_result_value</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">21720</td>
+<td style="text-align: left;">7.5, 34, 3.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">result_time</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">439034</td>
+<td style="text-align: left;">2011-03-01 12:41:00.000, 2011-03-01 12:42:00.000, 2015-10-08 10:52:00.000</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>op_avs_meds_vars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
+<caption>Variables in Outpatient AVS Medications Dataset</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable_Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data_Type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Missing</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Unique</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Example_Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">patient_mrn</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">248</td>
+<td style="text-align: left;">173718 to 100944937</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">hsp_account_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">337</td>
+<td style="text-align: left;">1000118000 to 5024150651</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">visit_date</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">296</td>
+<td style="text-align: left;">2019-07-31, 2020-10-14, 2020-12-22</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">order_med_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2881</td>
+<td style="text-align: left;">3952241 to 285845713</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">order_dttm</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1709</td>
+<td style="text-align: left;">2019-05-04 08:21:00, 2019-07-19 10:40:00, 2019-07-19 14:23:00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rx_status</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Resume, New, Changed</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">generic_description</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">603</td>
+<td style="text-align: left;">DOCUSATE SODIUM 100 MG PO CAPS, FERROUS SULFATE 325 (65 FE) MG PO TABS, ONDANSETRON HCL 4 MG PO TABS</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>op_visits_vars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
+<caption>Variables in Outpatient Visits Dataset</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable_Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data_Type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Missing</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N_Unique</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Example_Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">patient_mrn</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3284</td>
+<td style="text-align: left;">15163 to 100994614</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pat_id</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3284</td>
+<td style="text-align: left;">Z1723312, Z1723328, Z1723894</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">hsp_account_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">24976</td>
+<td style="text-align: left;">1000117171 to 5024163844</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">visit_date</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3121</td>
+<td style="text-align: left;">2016-01-13, 2014-01-02, 2014-02-06</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">visit_type</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">161</td>
+<td style="text-align: left;">SICKLE CELL FOLLOW UP, HYDREA, HMC</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">department_id</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">148</td>
+<td style="text-align: left;">10100113 to 10101065</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">department_name</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">148</td>
+<td style="text-align: left;">GHS SICKLE CELL CLINIC, GHS ORAL GEN SURG, GHS CARDIAC CLINIC MSM</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">bp_systolic</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">127</td>
+<td style="text-align: left;">130, 116, 115</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">bp_diastolic</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">99</td>
+<td style="text-align: left;">80, 74, 68</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">weight_lbs</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1998</td>
+<td style="text-align: left;">NULL, 151.0, 152.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">weight_kg</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2216</td>
+<td style="text-align: left;">NULL, 68.4936, 68.9472</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">current_icd10_list</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3543</td>
+<td style="text-align: left;">D57.1, E11.9, Z79.899</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dx_name</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4391</td>
+<td style="text-align: left;">Sickle-cell disease without crisis, Type 2 diabetes mellitus without complications, Hb-SS disease without crisis (CMS-HCC)</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</section>
+<section id="demographic-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="demographic-distributions">3. Demographic Distributions</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean demographics data</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>demographics <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_Demographics_Social_Hx_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">birth_date =</span> <span class="fu">as_datetime</span>(birth_date),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">age =</span> <span class="fu">as.numeric</span>(age)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Age Distribution</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(demographics, <span class="fu">aes</span>(<span class="at">x =</span> age)) <span class="sc">+</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">5</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Age Distribution"</span>, <span class="at">x =</span> <span class="st">"Age"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Gender Distribution</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(demographics, <span class="fu">aes</span>(<span class="at">x =</span> gender)) <span class="sc">+</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">fill =</span> <span class="st">"darkgreen"</span>) <span class="sc">+</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Gender Distribution"</span>, <span class="at">x =</span> <span class="st">"Gender"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Race Distribution</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(demographics, <span class="fu">aes</span>(<span class="at">x =</span> race)) <span class="sc">+</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">fill =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Race Distribution"</span>, <span class="at">x =</span> <span class="st">"Race"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Print plots</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/demographics-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/demographics-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/demographics-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="voe-and-acs-patient-counts" class="level2">
+<h2 class="anchored" data-anchor-id="voe-and-acs-patient-counts">4. VOE and ACS Patient Counts</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean admissions data and count VOE/ACS</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>admissions <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_IP_Admissions_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_voe =</span> <span class="fu">if_any</span>(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">starts_with</span>(<span class="st">"admit_dx_cd_"</span>) <span class="sc">|</span> <span class="fu">starts_with</span>(<span class="st">"final_dx_cd_"</span>),</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      <span class="sc">~</span> <span class="fu">grepl</span>(<span class="st">"^D57</span><span class="sc">\\</span><span class="st">.0[0-9]"</span>, .)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_acs =</span> <span class="fu">if_any</span>(</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">starts_with</span>(<span class="st">"admit_dx_cd_"</span>) <span class="sc">|</span> <span class="fu">starts_with</span>(<span class="st">"final_dx_cd_"</span>),</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>      <span class="sc">~</span> <span class="fu">grepl</span>(<span class="st">"^D57</span><span class="sc">\\</span><span class="st">.01"</span>, .)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary of unique patients</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>patient_summary <span class="ot">&lt;-</span> admissions <span class="sc">%&gt;%</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(patient_mrn) <span class="sc">%&gt;%</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_any_voe =</span> <span class="fu">any</span>(has_voe <span class="sc">&amp;</span> <span class="sc">!</span>has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_any_acs =</span> <span class="fu">any</span>(has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_other =</span> <span class="fu">any</span>(<span class="sc">!</span>has_voe <span class="sc">&amp;</span> <span class="sc">!</span>has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Unique_VOE_Patients =</span> <span class="fu">sum</span>(has_any_voe),</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">Unique_ACS_Patients =</span> <span class="fu">sum</span>(has_any_acs),</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">Unique_Other_Patients =</span> <span class="fu">sum</span>(has_other),</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Unique_Patients =</span> <span class="fu">n</span>()</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary of total admissions</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>admission_summary <span class="ot">&lt;-</span> admissions <span class="sc">%&gt;%</span></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">VOE_Admissions =</span> <span class="fu">sum</span>(has_voe <span class="sc">&amp;</span> <span class="sc">!</span>has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">ACS_Admissions =</span> <span class="fu">sum</span>(has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">Other_Admissions =</span> <span class="fu">sum</span>(<span class="sc">!</span>has_voe <span class="sc">&amp;</span> <span class="sc">!</span>has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Admissions =</span> <span class="fu">n</span>()</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine summaries for display</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>combined_summary <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>  patient_summary <span class="sc">%&gt;%</span> </span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"Metric"</span>, <span class="at">values_to =</span> <span class="st">"Count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Type =</span> <span class="st">"Unique Patients"</span>),</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>  admission_summary <span class="sc">%&gt;%</span></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"Metric"</span>, <span class="at">values_to =</span> <span class="st">"Count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Type =</span> <span class="st">"Total Admissions"</span>)</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(combined_summary, <span class="at">caption =</span> <span class="st">"VOE and ACS Summary - Patients and Admissions"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>VOE and ACS Summary - Patients and Admissions</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Metric</th>
+<th style="text-align: right;">Count</th>
+<th style="text-align: left;">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Unique_VOE_Patients</td>
+<td style="text-align: right;">1210</td>
+<td style="text-align: left;">Unique Patients</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Unique_ACS_Patients</td>
+<td style="text-align: right;">336</td>
+<td style="text-align: left;">Unique Patients</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Unique_Other_Patients</td>
+<td style="text-align: right;">2109</td>
+<td style="text-align: left;">Unique Patients</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Total_Unique_Patients</td>
+<td style="text-align: right;">2865</td>
+<td style="text-align: left;">Unique Patients</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">VOE_Admissions</td>
+<td style="text-align: right;">5300</td>
+<td style="text-align: left;">Total Admissions</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ACS_Admissions</td>
+<td style="text-align: right;">602</td>
+<td style="text-align: left;">Total Admissions</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Other_Admissions</td>
+<td style="text-align: right;">5398</td>
+<td style="text-align: left;">Total Admissions</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Total_Admissions</td>
+<td style="text-align: right;">11300</td>
+<td style="text-align: left;">Total Admissions</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize unique patients</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>patient_types <span class="ot">&lt;-</span> patient_summary <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Total_Unique_Patients) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_to =</span> <span class="st">"Type"</span>, </span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_to =</span> <span class="st">"Count"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_prefix =</span> <span class="st">"Unique_"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Type =</span> <span class="fu">str_remove</span>(Type, <span class="st">"_Patients"</span>))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 1: Unique Patients</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(patient_types, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Type, Count), <span class="at">y =</span> Count)) <span class="sc">+</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"purple"</span>) <span class="sc">+</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Distribution of Unique Patients by Crisis Type"</span>,</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Crisis Type"</span>,</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Unique Patients"</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_cowplot</span>()</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 2: Total Admissions</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>admission_types <span class="ot">&lt;-</span> admission_summary <span class="sc">%&gt;%</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Total_Admissions) <span class="sc">%&gt;%</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), </span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_to =</span> <span class="st">"Type"</span>, </span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_to =</span> <span class="st">"Count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Type =</span> <span class="fu">str_remove</span>(Type, <span class="st">"_Admissions"</span>))</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(admission_types, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Type, Count), <span class="at">y =</span> Count)) <span class="sc">+</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Distribution of Total Admissions by Crisis Type"</span>,</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Crisis Type"</span>,</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Admissions"</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_cowplot</span>()</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Print both plots</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/voe-acs-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/voe-acs-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate and display average admissions per patient</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>avg_admissions <span class="ot">&lt;-</span> admissions <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(patient_mrn) <span class="sc">%&gt;%</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">VOE_count =</span> <span class="fu">sum</span>(has_voe <span class="sc">&amp;</span> <span class="sc">!</span>has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ACS_count =</span> <span class="fu">sum</span>(has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Other_count =</span> <span class="fu">sum</span>(<span class="sc">!</span>has_voe <span class="sc">&amp;</span> <span class="sc">!</span>has_acs, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">Avg_VOE_per_patient =</span> <span class="fu">mean</span>(VOE_count),</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">Avg_ACS_per_patient =</span> <span class="fu">mean</span>(ACS_count),</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Avg_Other_per_patient =</span> <span class="fu">mean</span>(Other_count)</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(avg_admissions, <span class="at">caption =</span> <span class="st">"Average Number of Admissions per Patient by Crisis Type"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Average Number of Admissions per Patient by Crisis Type</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Avg_VOE_per_patient</th>
+<th style="text-align: right;">Avg_ACS_per_patient</th>
+<th style="text-align: right;">Avg_Other_per_patient</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1.849913</td>
+<td style="text-align: right;">0.2101222</td>
+<td style="text-align: right;">1.884119</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>Note: The first plot shows the number of unique patients who experienced each type of crisis, while the second plot shows the total number of admissions for each crisis type. A patient may be counted in multiple categories if they experienced different types of crises across different admissions.</p>
+</blockquote>
+</section>
+<section id="temporal-distribution-of-records" class="level2">
+<h2 class="anchored" data-anchor-id="temporal-distribution-of-records">5. Temporal Distribution of Records</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to extract dates from different files</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>get_dates <span class="ot">&lt;-</span> <span class="cf">function</span>(df, date_col) {</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  df <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(<span class="sc">!!</span><span class="fu">sym</span>(date_col)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_datetime</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.Date</span>()</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Get dates from different files</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>admission_dates <span class="ot">&lt;-</span> <span class="fu">get_dates</span>(admissions, <span class="st">"adm_date_time"</span>)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>lab_dates <span class="ot">&lt;-</span> <span class="fu">get_dates</span>(clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_Labs_Baseline.txt"</span>, <span class="st">"result_time"</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>op_visit_dates <span class="ot">&lt;-</span> <span class="fu">get_dates</span>(clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_OP_Visits_Baseline.txt"</span>, <span class="st">"visit_date"</span>)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Create timeline data</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>timeline_data <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">date =</span> admission_dates, <span class="at">type =</span> <span class="st">"Inpatient Admissions"</span>),</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">date =</span> lab_dates, <span class="at">type =</span> <span class="st">"Lab Results"</span>),</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">date =</span> op_visit_dates, <span class="at">type =</span> <span class="st">"Outpatient Visits"</span>)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(type, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Lab Results"</span>, <span class="st">"Outpatient Visits"</span>, <span class="st">"Inpatient Admissions"</span>)))</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Create faceted timeline plot</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(timeline_data, <span class="fu">aes</span>(<span class="at">x =</span> date)) <span class="sc">+</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">50</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> type, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Timeline of Records by Type"</span>,</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Note: Y-axes are scaled independently for each record type"</span>,</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Date"</span>,</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Count"</span></span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_cowplot</span>() <span class="sc">+</span></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"lightgray"</span>),</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/temporal-distribution-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print summary statistics</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>record_counts <span class="ot">&lt;-</span> timeline_data <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(type) <span class="sc">%&gt;%</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Records =</span> <span class="fu">n</span>(),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Earliest_Date =</span> <span class="fu">min</span>(date),</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Latest_Date =</span> <span class="fu">max</span>(date),</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Avg_Records_per_Month =</span> <span class="fu">n</span>() <span class="sc">/</span> (<span class="fu">as.numeric</span>(<span class="fu">diff</span>(<span class="fu">range</span>(date)))<span class="sc">/</span><span class="dv">30</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(record_counts, </span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Summary of Record Counts and Frequencies"</span>,</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">digits =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Summary of Record Counts and Frequencies</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 14%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">type</th>
+<th style="text-align: right;">Total_Records</th>
+<th style="text-align: left;">Earliest_Date</th>
+<th style="text-align: left;">Latest_Date</th>
+<th style="text-align: right;">Avg_Records_per_Month</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Lab Results</td>
+<td style="text-align: right;">7742231</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Outpatient Visits</td>
+<td style="text-align: right;">117938</td>
+<td style="text-align: left;">2011-01-03</td>
+<td style="text-align: left;">2024-08-22</td>
+<td style="text-align: right;">710.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Inpatient Admissions</td>
+<td style="text-align: right;">11300</td>
+<td style="text-align: left;">2011-01-01</td>
+<td style="text-align: left;">2024-06-30</td>
+<td style="text-align: right;">68.8</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>Note: The plots are shown with different y-axis scales to better visualize the patterns within each record type. Lab results typically occur much more frequently than visits or admissions.</p>
+</blockquote>
+</section>
+<section id="lab-test-frequencies" class="level2">
+<h2 class="anchored" data-anchor-id="lab-test-frequencies">6. Lab Test Frequencies</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyze lab test frequencies</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>lab_frequencies <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_Labs_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(lab_component_description, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">30</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(lab_frequencies, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(lab_component_description, n), <span class="at">y =</span> n)) <span class="sc">+</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkblue"</span>) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Top 30 Most Frequent Lab Tests"</span>, <span class="at">x =</span> <span class="st">"Lab Test"</span>, <span class="at">y =</span> <span class="st">"Count"</span>) <span class="sc">+</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/lab-frequencies-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="medication-overview" class="level2">
+<h2 class="anchored" data-anchor-id="medication-overview">7. Medication Overview</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyze IP medications</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>ip_med_summary <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_IP_Meds_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(rx_class_name) <span class="sc">%&gt;%</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_patients =</span> <span class="fu">n_distinct</span>(patient_mrn),</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_administrations =</span> <span class="fu">n</span>(),</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n_patients)) <span class="sc">%&gt;%</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>)</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyze OP medications</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>op_med_summary <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_OP_AVS_Meds_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(generic_description) <span class="sc">%&gt;%</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_patients =</span> <span class="fu">n_distinct</span>(patient_mrn),</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_prescriptions =</span> <span class="fu">n</span>(),</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n_patients)) <span class="sc">%&gt;%</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>)</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize IP medications</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(ip_med_summary, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(rx_class_name, n_patients), <span class="at">y =</span> n_patients)) <span class="sc">+</span></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkgreen"</span>) <span class="sc">+</span></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top 20 Inpatient Medication Classes"</span>,</span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Medication Class"</span>,</span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Patients"</span></span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>))</span>
+<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize OP medications</span></span>
+<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(op_med_summary, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(generic_description, n_patients), <span class="at">y =</span> n_patients)) <span class="sc">+</span></span>
+<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkblue"</span>) <span class="sc">+</span></span>
+<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top 20 Outpatient Medications"</span>,</span>
+<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Medication"</span>,</span>
+<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Patients"</span></span>
+<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>))</span>
+<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-45"><a href="#cb20-45" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/medication-overview-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/medication-overview-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="patient-visit-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="patient-visit-patterns">8. Patient Visit Patterns</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyze visit frequencies per patient</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>visit_patterns <span class="ot">&lt;-</span> admissions <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(patient_mrn) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_admissions =</span> <span class="fu">n</span>(),</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_days_between =</span> <span class="fu">mean</span>(<span class="fu">diff</span>(adm_date_time), <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">first_admission =</span> <span class="fu">min</span>(adm_date_time),</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">last_admission =</span> <span class="fu">max</span>(adm_date_time),</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_days_observed =</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">max</span>(adm_date_time), </span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>                                            <span class="fu">min</span>(adm_date_time), </span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">units =</span> <span class="st">"days"</span>))</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">admissions_per_year =</span> (n_admissions <span class="sc">/</span> total_days_observed) <span class="sc">*</span> <span class="fl">365.25</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize distribution of admissions per patient</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(visit_patterns, <span class="fu">aes</span>(<span class="at">x =</span> n_admissions)) <span class="sc">+</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Distribution of Number of Admissions per Patient"</span>,</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Number of Admissions"</span>,</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Count of Patients"</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize admissions per year</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(visit_patterns, <span class="fu">aes</span>(<span class="at">x =</span> admissions_per_year)) <span class="sc">+</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="fl">0.5</span>, <span class="at">fill =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Distribution of Admissions per Year"</span>,</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Admissions per Year"</span>,</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Count of Patients"</span></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/visit-patterns-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/visit-patterns-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary statistics</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>visit_summary <span class="ot">&lt;-</span> visit_patterns <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Median_Admissions =</span> <span class="fu">median</span>(n_admissions),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Mean_Admissions =</span> <span class="fu">mean</span>(n_admissions),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Median_Days_Between =</span> <span class="fu">median</span>(avg_days_between, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Median_Admissions_per_Year =</span> <span class="fu">median</span>(admissions_per_year),</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Patients_with_Multiple_Admissions =</span> <span class="fu">sum</span>(n_admissions <span class="sc">&gt;</span> <span class="dv">1</span>),</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pct_with_Multiple_Admissions =</span> <span class="fu">mean</span>(n_admissions <span class="sc">&gt;</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(visit_summary, <span class="at">caption =</span> <span class="st">"Summary of Patient Visit Patterns"</span>, <span class="at">digits =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Summary of Patient Visit Patterns</caption>
+<colgroup>
+<col style="width: 12%">
+<col style="width: 11%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 23%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Median_Admissions</th>
+<th style="text-align: right;">Mean_Admissions</th>
+<th style="text-align: left;">Median_Days_Between</th>
+<th style="text-align: right;">Median_Admissions_per_Year</th>
+<th style="text-align: right;">Patients_with_Multiple_Admissions</th>
+<th style="text-align: right;">Pct_with_Multiple_Admissions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3.9</td>
+<td style="text-align: left;">18701077 secs</td>
+<td style="text-align: right;">Inf</td>
+<td style="text-align: right;">1374</td>
+<td style="text-align: right;">48</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="data-completeness-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="data-completeness-analysis">9. Data Completeness Analysis</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to analyze missing data</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>analyze_missing <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(<span class="fu">names</span>(df), <span class="sc">~</span>{</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">variable =</span> .x,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">n_missing =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(df[[.x]])),</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">pct_missing =</span> (n_missing <span class="sc">/</span> <span class="fu">nrow</span>(df)) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">%&gt;%</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(pct_missing))</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyze missing data for each file</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>missing_data <span class="ot">&lt;-</span> <span class="fu">map</span>(clean_data_list, analyze_missing)</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Create visualizations for files with missing data</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(file_name <span class="cf">in</span> <span class="fu">names</span>(missing_data)) {</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  missing_df <span class="ot">&lt;-</span> missing_data[[file_name]] <span class="sc">%&gt;%</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pct_missing <span class="sc">&gt;</span> <span class="dv">0</span>)  <span class="co"># Only show variables with missing data</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">nrow</span>(missing_df) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(missing_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(variable, pct_missing), <span class="at">y =</span> pct_missing)) <span class="sc">+</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Missing Data in"</span>, file_name),</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Variable"</span>,</span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Percent Missing (%)"</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(p)</span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/data-completeness-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/data-completeness-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/data-completeness-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/data-completeness-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/data-completeness-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="patient-care-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="patient-care-patterns">10. Patient Care Patterns</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get unique patients from each type of visit</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>ip_patients <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_IP_Admissions_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(patient_mrn)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>op_patients <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_OP_Visits_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(patient_mrn)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>lab_patients <span class="ot">&lt;-</span> clean_data_list<span class="sc">$</span><span class="st">"IN495734_SCD_Labs_Baseline.txt"</span> <span class="sc">%&gt;%</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(patient_mrn)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Create sets for visualization</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggvenn)  <span class="co"># You might need to install this package</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>patient_sets <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Inpatient"</span> <span class="ot">=</span> ip_patients<span class="sc">$</span>patient_mrn,</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Outpatient"</span> <span class="ot">=</span> op_patients<span class="sc">$</span>patient_mrn,</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Lab Tests"</span> <span class="ot">=</span> lab_patients<span class="sc">$</span>patient_mrn</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot Venn diagram</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggvenn</span>(patient_sets, </span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill_color =</span> <span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"blue"</span>, <span class="st">"green"</span>),</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">stroke_size =</span> <span class="fl">0.5</span>,</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">set_name_size =</span> <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Dataset_Overview_files/figure-html/care-patterns-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

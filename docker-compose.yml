@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: hema_track_postgres
+    environment:
+      POSTGRES_DB: hema_track_demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema/00_init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d hema_track_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: hema_track_metabase
+    ports:
+      - "3001:3000"
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+    volumes:
+      - metabase_data:/metabase-data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  metabase_data:

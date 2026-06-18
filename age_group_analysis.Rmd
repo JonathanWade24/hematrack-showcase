@@ -1,0 +1,175 @@
+```{r data_import}
+// ... existing data import code ...
+```
+
+## Study Population and Sample Selection
+
+```{r flow_diagram, fig.width=10, fig.height=12}
+# Load required packages
+if(!require(DiagrammeR)) {
+  install.packages("DiagrammeR")
+  library(DiagrammeR)
+}
+
+# Calculate counts for flow diagram
+initial_counts <- anonymized_data %>%
+  summarise(
+    total_samples = n(),
+    total_patients = n_distinct(anonymous_id)
+  )
+
+genotype_counts <- anonymized_data %>%
+  group_by(genotype) %>%
+  summarise(
+    samples = n(),
+    patients = n_distinct(anonymous_id)
+  )
+
+# Calculate assay-specific counts
+assay_counts <- anonymized_data %>%
+  summarise(
+    advia_samples = sum(!is.na(hb_advia)),
+    lorrca_samples = sum(!is.na(ei_min_lorrca)),
+    fcell_samples = sum(!is.na(percent_f_cells)),
+    dense_rbc_samples = sum(!is.na(dense_rbcs)),
+    viscosity_samples = sum(!is.na(visc_45))
+  )
+
+# Calculate age group counts
+age_counts <- anonymized_data %>%
+  group_by(age_group) %>%
+  summarise(
+    samples = n(),
+    patients = n_distinct(anonymous_id)
+  )
+
+# Create the flow diagram
+flow_diagram <- grViz("
+  digraph flow {
+    # Graph settings
+    graph [rankdir = TB, splines = ortho]
+    node [shape = rectangle, style = filled, fillcolor = white, fontname = Helvetica, fontsize = 12]
+    
+    # Nodes
+    initial [label = 'Initial SCD Database\n(n = samples)', width = 3]
+    
+    genotype [label = 'Genotype Filter\nHbSS and HbSC only', width = 3]
+    
+    ss [label = 'HbSS\nSamples: XX\nPatients: YY', width = 2]
+    sc [label = 'HbSC\nSamples: XX\nPatients: YY', width = 2]
+    
+    assays [label = 'Available Assay Data\n(samples with results)', width = 4]
+    
+    advia [label = 'Complete Blood Count\nSamples: XX', width = 2]
+    lorrca [label = 'LORRCA\nSamples: XX', width = 2]
+    fcell [label = 'F-Cells\nSamples: XX', width = 2]
+    dense [label = 'Dense RBCs\nSamples: XX', width = 2]
+    visc [label = 'Viscosity\nSamples: XX', width = 2]
+    
+    age [label = 'Age Group Distribution', width = 3]
+    
+    young [label = '18-45 years\nSamples: XX\nPatients: YY', width = 2]
+    middle [label = '46-59 years\nSamples: XX\nPatients: YY', width = 2]
+    elderly [label = '60+ years\nSamples: XX\nPatients: YY', width = 2]
+    
+    # Edges
+    initial -> genotype
+    genotype -> {ss sc}
+    {ss sc} -> assays
+    assays -> {advia lorrca fcell dense visc}
+    {advia lorrca fcell dense visc} -> age
+    age -> {young middle elderly}
+    
+    # Edge settings
+    edge [color = black, penwidth = 1]
+  }
+  [Initial Sample Count: total_samples = ', initial_counts$total_samples, 
+   '\nInitial Patient Count: total_patients = ', initial_counts$total_patients, ']
+  [SS Samples: ', genotype_counts$samples[genotype_counts$genotype == 'SS'],
+   '\nSS Patients: ', genotype_counts$patients[genotype_counts$genotype == 'SS'], ']
+  [SC Samples: ', genotype_counts$samples[genotype_counts$genotype == 'SC'],
+   '\nSC Patients: ', genotype_counts$patients[genotype_counts$genotype == 'SC'], ']
+  [Advia: ', assay_counts$advia_samples, ']
+  [LORRCA: ', assay_counts$lorrca_samples, ']
+  [F-Cells: ', assay_counts$fcell_samples, ']
+  [Dense RBCs: ', assay_counts$dense_rbc_samples, ']
+  [Viscosity: ', assay_counts$viscosity_samples, ']
+  [18-45 Samples: ', age_counts$samples[age_counts$age_group == '18-45'],
+   '\n18-45 Patients: ', age_counts$patients[age_counts$age_group == '18-45'], ']
+  [46-59 Samples: ', age_counts$samples[age_counts$age_group == '46-59'],
+   '\n46-59 Patients: ', age_counts$patients[age_counts$age_group == '46-59'], ']
+  [60+ Samples: ', age_counts$samples[age_counts$age_group == '60+'],
+   '\n60+ Patients: ', age_counts$patients[age_counts$age_group == '60+'], ']
+")
+
+# Display the flow diagram
+flow_diagram
+
+# Create a summary table of sample counts
+sample_summary <- bind_rows(
+  # Initial counts
+  initial_counts %>% 
+    mutate(Category = "Initial Database", .before = everything()) %>%
+    rename(Samples = total_samples, Patients = total_patients),
+  
+  # Genotype counts
+  genotype_counts %>%
+    mutate(Category = paste("Genotype:", genotype)) %>%
+    select(-genotype),
+  
+  # Age group counts
+  age_counts %>%
+    mutate(Category = paste("Age Group:", age_group)) %>%
+    select(-age_group)
+)
+
+# Display the summary table
+kable(sample_summary,
+      caption = "Sample and Patient Counts by Category",
+      format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE)
+
+# Create a summary table of assay counts
+assay_summary <- pivot_longer(assay_counts, 
+                            everything(),
+                            names_to = "Assay",
+                            values_to = "Samples") %>%
+  mutate(
+    Assay = case_when(
+      Assay == "advia_samples" ~ "Complete Blood Count",
+      Assay == "lorrca_samples" ~ "LORRCA",
+      Assay == "fcell_samples" ~ "F-Cells",
+      Assay == "dense_rbc_samples" ~ "Dense RBCs",
+      Assay == "viscosity_samples" ~ "Viscosity",
+      TRUE ~ Assay
+    )
+  )
+
+# Display the assay summary table
+kable(assay_summary,
+      caption = "Sample Counts by Assay Type",
+      format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE)
+```
+
+The flow diagram above illustrates our study population selection process and available data for each assay type. Starting from our initial SCD database, we applied the following criteria:
+
+1. **Genotype Selection**: 
+   - Included only HbSS and HbSC patients
+   - Excluded other genotypes (HbSβ⁰, HbSβ⁺, etc.)
+
+2. **Assay Availability**:
+   - Complete Blood Count (CBC) from Advia analyzer
+   - LORRCA rheology measurements
+   - F-Cell percentages
+   - Dense RBC percentages
+   - Blood viscosity measurements
+
+3. **Age Group Stratification**:
+   - Young adults (18-45 years)
+   - Middle-aged adults (46-59 years)
+   - Elderly adults (60+ years)
+
+The tables above provide detailed counts of samples and unique patients for each category and assay type. These numbers reflect our final analytic dataset used for all subsequent analyses. 
